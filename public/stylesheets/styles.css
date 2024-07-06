@@ -1,0 +1,61 @@
+* {
+    font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+h1 {
+  color: rgb(10, 59, 16);
+}
+
+.grid-line {
+    stroke:grey;
+    stroke-width: 0.5px;
+}
+
+.background {
+    fill: rgb(233, 231, 231);
+}
+
+.Rupture {
+    fill: rgb(244, 161, 161);
+}
+
+.Tension {
+    fill: rgb(255, 236, 112);
+}
+
+.month-line {
+    stroke: grey;
+    stroke-width: 0.5px;
+}
+
+.year-line {
+    stroke: black;
+    stroke-width: 1;
+}
+
+.year-tick text {
+    transform: translateY(15px); /* Adjust the position of the year labels */
+}
+
+.current-date-line {
+    stroke:rgb(176, 12, 12);
+    stroke-width: 1px;
+}
+  
+.current-date-label {
+    fill: brown;
+    font-size: 10px;
+}
+
+#search-container {
+    position: relative;
+    top: 30px;
+    left: 0px;
+}
+  
+#search-box {
+    width: 200px;
+    padding: 3px;
+    font-size: 11px;
+}
+
