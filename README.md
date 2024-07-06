@@ -24,7 +24,7 @@ This project is a visual dashboard that tracks the availability of pharmaceutica
 2. Use the search bar to find specific products quickly.
 
 ## Technical Details
-This dashboard is built using [insert technology stack here, e.g., D3.js for visualization, React for UI, etc.].
+This dashboard is built using D3.js for visualization.
 
 ## Future Enhancements
 - Interactive tooltips for detailed information on hover
