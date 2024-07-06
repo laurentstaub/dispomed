@@ -1,0 +1,38 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Your Project Title
+    link(rel="stylesheet", href="./public/stylesheets/styles.css")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js")
+
+  body
+    header
+      h1 Dispomed
+      //nav
+      //  ul
+      //    li
+      //      a(href="#") Home
+      //    li
+      //      a(href="#") About
+      //    li
+      //      a(href="#") Contact
+    main
+      //section
+      //  h2 Ruptures de stocks par mois
+      //  p Ce graphique montre l'évolution du nombre de ruptures de stock par mois
+      //  div#chart
+      //  script(type="module" src="/src/d3Visualizations.js")
+
+      section
+        h2 Incidents de disponibilité par produit
+        p Ce graphique montre les incidents de disponibilité pour chaque produit
+        div#search-container
+          input(type="text" id="search-box" placeholder="Rechercher un produit...")
+        div#dash
+        script(type="module" src="/src/d3Dashboard.js")
+
+
+    footer
+      p 2024 - Antheos
