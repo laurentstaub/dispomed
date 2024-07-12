@@ -17,7 +17,7 @@ d3.csv("/data/incidents.csv").then(data => {
     d.end_date = d.end_date ? parseTime(d.end_date) : new Date(); // Use today's date if end_date is missing
   });
 
-  start_date_chart = new Date(d3.min(data, d => d.start_date).getFullYear(), 0, 1);
+  start_date_chart = new Date(2022, 0, 1);
   end_date_chart = new Date(d3.max(data, d => d.end_date).getFullYear(), 11, 31);
   originalData = data;
 
@@ -86,9 +86,16 @@ function drawBarChart(data, isInitialSetup) {
     .enter()
     .append("rect")
       .attr("class", "bar")
-      .attr("x", d => xScale(d.start_date))
+      .attr("x", d => {
+        return xScale(d.start_date > start_date_chart ? d.start_date : start_date_chart);
+      })
       .attr("y", d => yScale(d.product) + yScale.bandwidth() / 2 - barHeight / 2 - 1)
-      .attr("width", d => xScale(d.end_date) - xScale(d.start_date))
+      .attr("width", d => {
+        const startDate = new Date(d.start_date);
+        const endDate = new Date(d.end_date);
+        const effectiveStartDate = startDate > start_date_chart ? startDate : start_date_chart;
+        return Math.max(0, xScale(endDate) - xScale(effectiveStartDate));
+      })
       .attr("height", barHeight)
       .attr("class", d => d.status === "Rupture" ? "Rupture" : "Tension");
 
@@ -216,7 +223,7 @@ function drawBarChart(data, isInitialSetup) {
     .attr("y1", 0)
     .attr("y2", innerHeight);
 
-    const formatTime = d3.utcFormat("%B %d, %Y")
+  const formatTime = d3.utcFormat("%d/%m/%Y")
   // Add a label for the current date
   innerChart.append("text")
     .attr("class", "current-date-label")
