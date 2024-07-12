@@ -1,9 +1,10 @@
 // Variables globales
-let products, xScale, yScale, outerBox, innerChart, originalData;
+let products, xScale, yScale, outerBox, innerChart, originalData, filteredData;
 const margin = { top: 50, right: 20, bottom: 30, left: 300 };
 const width = 1000;
 const barHeight = 15;
 const currentDate = new Date();
+const labelMaxLength = 50;
 
 let start_date_chart, end_date_chart;
 let height, innerWidth, innerHeight;
@@ -19,10 +20,11 @@ d3.csv("/data/incidents.csv").then(data => {
   start_date_chart = new Date(2022, 0, 1);
   end_date_chart = new Date(d3.max(data, d => d.end_date).getFullYear(), 11, 31);
   originalData = data;
+  filteredData = originalData.filter(hasEventInChartPeriod);
 
-  data.sort(customSort);
-  updateVariables(data);
-  drawBarChart(data, true);
+  filteredData.sort(customSort);
+  updateVariables(filteredData);
+  drawBarChart(filteredData, true);
 });
 
 function updateVariables(data) {
@@ -144,10 +146,27 @@ function drawBarChart(data, isInitialSetup) {
   // Remove the ticks in front of the products
   innerChart
     .append("g")
-      .call(d3.axisLeft(yScale).tickSize(0))
-      .selectAll(".tick text")
-      .attr("x", -margin.left)
-      .style("text-anchor", "start");
+    .call(d3.axisLeft(yScale).tickSize(0))
+    .selectAll(".tick text")
+    .attr("x", -margin.left)
+    .style("text-anchor", "start")
+    .text(function (d) {
+      return d.length > labelMaxLength ? d.substring(0, labelMaxLength) + "..." : d;
+    })
+    .on("mouseover", function (event, d) {
+      if (d.length > labelMaxLength) {
+        const tooltip = d3.select("#tooltip");
+        tooltip.transition().duration(200).style("opacity", 0.9);
+        tooltip.html(d)
+          .style("left", (event.pageX + 10) + "px")
+          .style("top", (event.pageY - 28) + "px");
+      }
+    })
+    .on("mouseout", function () {
+      d3.select("#tooltip").transition().duration(500).style("opacity", 0);
+    });
+
+
 
 // GRID
   // Add horizontal grid lines manually after bars to ensure they are on top
@@ -212,7 +231,7 @@ function drawBarChart(data, isInitialSetup) {
     .attr("y2", innerHeight)
 
   d3.select("#search-box").on("input", function() {
-    filterProducts(this.value, data);
+    filterProducts(this.value, filteredData);
   });
 
   // Add the vertical line
@@ -233,25 +252,54 @@ function drawBarChart(data, isInitialSetup) {
     .text(formatTime(currentDate));
 }
 
+function hasEventInChartPeriod(product) {
+  return (
+    (product.start_date <= end_date_chart && product.start_date >= start_date_chart) ||
+    (product.end_date <= end_date_chart && product.end_date >= start_date_chart) ||
+    (product.start_date <= start_date_chart && product.end_date >= end_date_chart)
+  );
+}
+
 function customSort(a, b) {
-  // If status is the same, sort by end_date (finished events at the bottom)
-  return new Date(b.end_date) - new Date(a.end_date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+
+  const aIsActive = a.end_date >= today;
+  const bIsActive = b.end_date >= today;
+
+  // First, sort by active status
+  if (aIsActive && !bIsActive) return -1;
+  if (!aIsActive && bIsActive) return 1;
+
+  // If both are active or both are inactive, sort by status
+  if (aIsActive === bIsActive) {
+    if (a.status === "Rupture" && b.status !== "Rupture") return -1;
+    if (a.status !== "Rupture" && b.status === "Rupture") return 1;
+    if (a.status === "Tension" && b.status !== "Tension") return -1;
+    if (a.status !== "Tension" && b.status === "Tension") return 1;
+
+    // If status is the same, sort by start_date (most recent first)
+    return new Date(b.start_date) - new Date(a.start_date);
+  }
+
+  // If we reach here, one is active and one is inactive, but this is handled above
+  return 0;
 }
 
 function filterProducts(searchTerm, data) {
-  let filteredData;
+  let filterData;
 
   if (searchTerm.trim() === "") {
     // If search is empty, use all original data
-    filteredData = originalData;
+    filterData = filteredData;
   } else {
     // Filter products based on search term
-    filteredData = originalData.filter(d =>
+    filterData = filteredData.filter(d =>
       d.product.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }
 
   // Update variables and redraw chart
-  updateVariables(filteredData);
-  drawBarChart(filteredData, false);
+  updateVariables(filterData);
+  drawBarChart(filterData, false);
 }

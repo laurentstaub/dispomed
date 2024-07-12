@@ -45,7 +45,7 @@ h1 {
     stroke:rgb(176, 12, 12);
     stroke-width: 1px;
 }
-  
+
 .current-date-label {
     fill: brown;
     font-size: 10px;
@@ -56,10 +56,17 @@ h1 {
     top: 30px;
     left: 0px;
 }
-  
+
 #search-box {
     width: 200px;
     padding: 3px;
     font-size: 11px;
 }
 
+#tooltip {
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 5px;
+  border-radius: 3px;
+  font-size: 12px;
+}
