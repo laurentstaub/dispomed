@@ -30,8 +30,8 @@ const drawBarChart = (data) => {
   const outerBox = d3.select("#chart")
     .append("svg")
       .attr("viewBox", `0, 0, ${width}, ${height}`)
-   
-  const innerChart = outerBox    
+
+  const innerChart = outerBox
     .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 

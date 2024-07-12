@@ -10,17 +10,17 @@ let height, innerWidth, innerHeight;
 
 d3.csv("/data/incidents.csv").then(data => {
   const parseTime = d3.timeParse("%Y-%m-%d");
-  
 
   data.forEach(d => {
     d.start_date = parseTime(d.start_date);
-    d.end_date = d.end_date ? parseTime(d.end_date) : new Date(); // Use today's date if end_date is missing
+    d.end_date = d.end_date ? parseTime(d.end_date) :  new Date(); // Use today's date if end_date is missing
   });
 
   start_date_chart = new Date(2022, 0, 1);
   end_date_chart = new Date(d3.max(data, d => d.end_date).getFullYear(), 11, 31);
   originalData = data;
 
+  data.sort(customSort);
   updateVariables(data);
   drawBarChart(data, true);
 });
@@ -85,7 +85,7 @@ function drawBarChart(data, isInitialSetup) {
     .data(data)
     .enter()
     .append("rect")
-      .attr("class", "bar")
+      .attr("class", d => `bar ${d.status}`)
       .attr("x", d => {
         return xScale(d.start_date > start_date_chart ? d.start_date : start_date_chart);
       })
@@ -183,7 +183,7 @@ function drawBarChart(data, isInitialSetup) {
       .attr("x2", d => xScale(d))
       .attr("y1", 0)
       .attr("y2", innerHeight)
-  
+
   // Add horizontal line on top of products
   innerChart.append("line")
     .attr("class", "year-line")
@@ -191,7 +191,7 @@ function drawBarChart(data, isInitialSetup) {
     .attr("x2", innerWidth)
     .attr("y1", -margin.top + 10)
     .attr("y2", -margin.top + 10)
-  
+
   // Add vertical lines for each month beginning
   innerChart.selectAll(".month-line")
     .data(monthTicks)
@@ -233,19 +233,24 @@ function drawBarChart(data, isInitialSetup) {
     .text(formatTime(currentDate));
 }
 
+function customSort(a, b) {
+  // If status is the same, sort by end_date (finished events at the bottom)
+  return new Date(b.end_date) - new Date(a.end_date);
+}
+
 function filterProducts(searchTerm, data) {
   let filteredData;
-  
+
   if (searchTerm.trim() === "") {
     // If search is empty, use all original data
     filteredData = originalData;
   } else {
     // Filter products based on search term
-    filteredData = originalData.filter(d => 
+    filteredData = originalData.filter(d =>
       d.product.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }
-  
+
   // Update variables and redraw chart
   updateVariables(filteredData);
   drawBarChart(filteredData, false);
