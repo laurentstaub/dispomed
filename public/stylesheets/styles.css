@@ -1,5 +1,9 @@
 * {
-    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-family: Roboto, Times, serif;
+    --gris: rgb(191, 191, 191);
+    --grisleger: rgb(242, 242, 242);
+    --rougerupture: rgb(245, 200, 205);
+    --jaunetension: rgb(252, 236, 166);
 }
 
 h1 {
@@ -7,24 +11,24 @@ h1 {
 }
 
 .grid-line {
-    stroke:grey;
-    stroke-width: 0.5px;
+    stroke: var(--gris);
+    stroke-width: 1px;
 }
 
 .background {
-    fill: rgb(233, 231, 231);
+    fill: var(--grisleger);
 }
 
 .Rupture {
-    fill: rgb(244, 161, 161);
+    fill: var(--rougerupture);
 }
 
 .Tension {
-    fill: rgb(255, 236, 112);
+    fill: var(--jaunetension);
 }
 
 .month-line {
-    stroke: grey;
+    stroke: var(--gris);
     stroke-width: 0.5px;
 }
 
