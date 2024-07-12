@@ -28,6 +28,7 @@ html(lang="en")
       section
         h2 Incidents de disponibilité par produit
         p Ce graphique montre les incidents de disponibilité pour chaque produit
+        div#tooltip(style="position: absolute; opacity: 0; pointer-events: none;")
         div#search-container
           input(type="text" id="search-box" placeholder="Rechercher un produit...")
         div#dash
