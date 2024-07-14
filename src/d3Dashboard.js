@@ -6,7 +6,7 @@ const barHeight = 15;
 const currentDate = new Date();
 const labelMaxLength = 50;
 
-let start_date_chart, end_date_chart;
+let start_date_chart, end_date_chart, date_last_report;
 let height, innerWidth, innerHeight;
 
 d3.csv("/data/incidents.csv").then(data => {
@@ -14,15 +14,29 @@ d3.csv("/data/incidents.csv").then(data => {
 
   data.forEach(d => {
     d.start_date = parseTime(d.start_date);
-    d.end_date = d.end_date ? parseTime(d.end_date) :  new Date(); // Use today's date if end_date is missing
+    d.mise_a_jour_date = parseTime(d.mise_a_jour_date);
+    d.date_dernier_rapport = parseTime(d.date_dernier_rapport);
+
+    if (!d.end_date) {
+      // If end_date is missing, use the max of mise_a_jour_date and date_dernier_rapport
+      d.end_date = new Date(Math.max(
+        d.mise_a_jour_date ? d.mise_a_jour_date : 0,
+        d.date_dernier_rapport ? d.date_dernier_rapport : 0
+      ));
+    } else {
+      d.end_date = parseTime(d.end_date);
+    }
   });
 
   start_date_chart = new Date(2022, 0, 1);
   end_date_chart = new Date(d3.max(data, d => d.end_date).getFullYear(), 11, 31);
+  date_last_report = d3.max(data, d => d.end_date);
+  //date_last_report.setHours(0, 0, 0, 0);
+
   originalData = data;
   filteredData = originalData.filter(hasEventInChartPeriod);
-
   filteredData.sort(customSort);
+
   updateVariables(filteredData);
   drawBarChart(filteredData, true);
 });
@@ -143,30 +157,31 @@ function drawBarChart(data, isInitialSetup) {
     .style("text-anchor", "middle");
 
 // Y-AXIS
-  // Remove the ticks in front of the products
   innerChart
     .append("g")
     .call(d3.axisLeft(yScale).tickSize(0))
     .selectAll(".tick text")
     .attr("x", -margin.left)
     .style("text-anchor", "start")
-    .text(function (d) {
+    .text(function(d) {
       return d.length > labelMaxLength ? d.substring(0, labelMaxLength) + "..." : d;
     })
-    .on("mouseover", function (event, d) {
-      if (d.length > labelMaxLength) {
+    .on("mouseover", function(event, d) {
+      const product = data.find(item => item.product === d);
+      if (d.length > labelMaxLength || product) {
         const tooltip = d3.select("#tooltip");
         tooltip.transition().duration(200).style("opacity", 0.9);
-        tooltip.html(d)
+        tooltip.html(`
+          <strong>Produit:</strong> ${d}<br>
+          <strong>Statut:</strong> ${getProductStatus(product)}
+        `)
           .style("left", (event.pageX + 10) + "px")
           .style("top", (event.pageY - 28) + "px");
       }
     })
-    .on("mouseout", function () {
+    .on("mouseout", function() {
       d3.select("#tooltip").transition().duration(500).style("opacity", 0);
     });
-
-
 
 // GRID
   // Add horizontal grid lines manually after bars to ensure they are on top
@@ -237,8 +252,8 @@ function drawBarChart(data, isInitialSetup) {
   // Add the vertical line
   innerChart.append("line")
     .attr("class", "current-date-line")
-    .attr("x1", xScale(currentDate))
-    .attr("x2", xScale(currentDate))
+    .attr("x1", xScale(date_last_report))
+    .attr("x2", xScale(date_last_report))
     .attr("y1", 0)
     .attr("y2", innerHeight);
 
@@ -246,10 +261,10 @@ function drawBarChart(data, isInitialSetup) {
   // Add a label for the current date
   innerChart.append("text")
     .attr("class", "current-date-label")
-    .attr("x", xScale(currentDate))
+    .attr("x", xScale(date_last_report))
     .attr("y", innerHeight + 12)
     .attr("text-anchor", "middle")
-    .text(formatTime(currentDate));
+    .text(formatTime(date_last_report));
 }
 
 function hasEventInChartPeriod(product) {
@@ -261,11 +276,8 @@ function hasEventInChartPeriod(product) {
 }
 
 function customSort(a, b) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
-
-  const aIsActive = a.end_date >= today;
-  const bIsActive = b.end_date >= today;
+  const aIsActive = a.end_date >= date_last_report;
+  const bIsActive = b.end_date >= date_last_report;
 
   // First, sort by active status
   if (aIsActive && !bIsActive) return -1;
@@ -302,4 +314,22 @@ function filterProducts(searchTerm, data) {
   // Update variables and redraw chart
   updateVariables(filterData);
   drawBarChart(filterData, false);
+}
+
+function getProductStatus(d) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (d.status === "arret") {
+    return "Arrêt de commercialisation";
+  } else if (d.start_date <= date_last_report && d.end_date >= date_last_report) {
+    if (d.status === "Rupture") {
+      return "Rupture de stock";
+    } else if (d.status === "Tension") {
+      return "Tension d'approvisionnement";
+    }
+  } else if (!d.end_date || d.end_date < date_last_report) {
+    return "Disponible";
+  }
+  return "Statut inconnu";
 }
