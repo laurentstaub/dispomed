@@ -27,6 +27,10 @@ h1 {
     fill: var(--jaunetension);
 }
 
+.Arret {
+    fill: var(--gris);
+}
+
 .month-line {
     stroke: var(--gris);
     stroke-width: 0.5px;
