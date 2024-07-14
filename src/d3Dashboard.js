@@ -113,7 +113,7 @@ function drawBarChart(data, isInitialSetup) {
         return Math.max(0, xScale(endDate) - xScale(effectiveStartDate));
       })
       .attr("height", barHeight)
-      .attr("class", d => d.status === "Rupture" ? "Rupture" : "Tension");
+      .attr("class", d => d.status);
 
 // X-AXIS
   // Top X Axis for years
@@ -317,9 +317,6 @@ function filterProducts(searchTerm, data) {
 }
 
 function getProductStatus(d) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
   if (d.status === "arret") {
     return "Arrêt de commercialisation";
   } else if (d.start_date <= date_last_report && d.end_date >= date_last_report) {
@@ -327,6 +324,8 @@ function getProductStatus(d) {
       return "Rupture de stock";
     } else if (d.status === "Tension") {
       return "Tension d'approvisionnement";
+    } else if (d.status === "Arret") {
+      return "Arrêt de commercialisation";
     }
   } else if (!d.end_date || d.end_date < date_last_report) {
     return "Disponible";
