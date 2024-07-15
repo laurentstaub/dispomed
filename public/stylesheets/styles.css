@@ -1,9 +1,14 @@
 * {
     font-family: Roboto, Times, serif;
-    --gris: rgb(191, 191, 191);
-    --grisleger: rgb(242, 242, 242);
-    --rougerupture: rgb(245, 200, 205);
-    --jaunetension: rgb(252, 236, 166);
+    --blanc: rgb(255, 255, 255);
+    --gris: rgb(150, 150, 150);
+    --grisleger: rgb(220, 220, 220);
+    --rupture: rgb(150, 25, 20);
+    --tension: rgb(245, 100, 100);
+    --rupture-bg: rgba(150, 25, 20, 0.95);
+    --tension-bg: rgba(245, 100, 100, 0.95);
+    --disponible-bg: rgba(10, 59, 16, 0.95);
+    --arret-bg: rgba(150, 150, 150, 0.95);
 }
 
 h1 {
@@ -11,7 +16,7 @@ h1 {
 }
 
 .grid-line {
-    stroke: var(--gris);
+    stroke: var(--blanc);
     stroke-width: 1px;
 }
 
@@ -20,11 +25,11 @@ h1 {
 }
 
 .Rupture {
-    fill: var(--rougerupture);
+    fill: var(--rupture);
 }
 
 .Tension {
-    fill: var(--jaunetension);
+    fill: var(--tension);
 }
 
 .Arret {
@@ -32,7 +37,7 @@ h1 {
 }
 
 .month-line {
-    stroke: var(--gris);
+    stroke: var(--blanc);
     stroke-width: 0.5px;
 }
 
@@ -68,10 +73,13 @@ h1 {
 }
 
 #tooltip {
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  max-width: 300px;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    max-width: 300px;
 }
+
+.tooltip-rupture { background-color: var(--rupture-bg); color: var(--blanc); }
+.tooltip-tension { background-color: var(--tension-bg); color: var(--blanc); }
+.tooltip-disponible { background-color: var(--disponible-bg); color: var(--blanc); }
+.tooltip-arret { background-color: var(--arret-bg); color: var(--blanc); }
