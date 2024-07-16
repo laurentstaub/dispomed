@@ -1,6 +1,7 @@
 * {
     font-family: Roboto, Times, serif;
     --blanc: rgb(255, 255, 255);
+    --noir: rgb(0, 0, 0);
     --gris: rgb(150, 150, 150);
     --grisleger: rgb(220, 220, 220);
     --rupture: rgb(150, 25, 20);
@@ -51,8 +52,8 @@ h1 {
 }
 
 .current-date-line {
-    stroke:rgb(176, 12, 12);
-    stroke-width: 1px;
+    stroke:var(--noir);
+    stroke-width: 2px;
 }
 
 .current-date-label {
