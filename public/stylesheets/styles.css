@@ -3,12 +3,12 @@
     --blanc: rgb(255, 255, 255);
     --noir: rgb(0, 0, 0);
     --gris: rgb(150, 150, 150);
-    --grisleger: rgb(220, 220, 220);
+    --grisleger: rgb(240, 240, 240);
     --rupture: rgb(150, 25, 20);
     --tension: rgb(245, 100, 100);
     --rupture-bg: rgba(150, 25, 20, 0.95);
     --tension-bg: rgba(245, 100, 100, 0.95);
-    --disponible-bg: rgba(10, 59, 16, 0.95);
+    --disponible-bg: rgba(144, 238, 144, 0.95);
     --arret-bg: rgba(150, 150, 150, 0.95);
 }
 
@@ -17,7 +17,7 @@ h1 {
 }
 
 .grid-line {
-    stroke: var(--blanc);
+    stroke: var(--gris);
     stroke-width: 1px;
 }
 
@@ -38,12 +38,12 @@ h1 {
 }
 
 .month-line {
-    stroke: var(--blanc);
+    stroke: var(--grisleger);
     stroke-width: 0.5px;
 }
 
 .year-line {
-    stroke: black;
+    stroke: var(--noir);
     stroke-width: 1;
 }
 

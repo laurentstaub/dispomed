@@ -1,5 +1,5 @@
 // Variables globales du graphique
-let products, xScale, yScale, outerBox, innerChart, originalData, filteredData;
+let products, xScale, yScale, outerBox, innerChart, originalData, periodFilteredData;
 const margin = { top: 50, right: 20, bottom: 30, left: 300 };
 const width = 1000;
 const barHeight = 14;
@@ -29,12 +29,8 @@ function updateVariables(data) {
     .padding(0.1);
 }
 
-function hasEventInChartPeriod(product) {
-  return (
-    (product.start_date <= end_date_chart && product.start_date >= start_date_chart) ||
-    (product.end_date <= end_date_chart && product.end_date >= start_date_chart) ||
-    (product.start_date <= start_date_chart && product.end_date >= end_date_chart)
-  );
+function hasEventInChartPeriod(event) {
+  return !(event.end_date <= start_date_chart);
 }
 
 function customSort(a, b) {
@@ -65,10 +61,10 @@ function filterProducts(searchTerm, data) {
 
   if (searchTerm.trim() === "") {
     // If search is empty, use all original data
-    filterData = filteredData;
+    filterData = periodFilteredData;
   } else {
     // Filter products based on search term
-    filterData = filteredData.filter(d =>
+    filterData = periodFilteredData.filter(d =>
       d.product.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }
@@ -99,6 +95,16 @@ function getProductStatus(d) {
     return { text: "Statut inconnu", class: "" };
 }
 
+function getUniqueProductLength(eventList) {
+  let result = [];
+
+  eventList.forEach(event => {
+    if (!result.includes(event.product)) result.push(event.product);
+  })
+
+  return result.length;
+}
+
 d3.csv("/data/incidents.csv").then(data => {
   const parseTime = d3.timeParse("%Y-%m-%d");
 
@@ -124,11 +130,11 @@ d3.csv("/data/incidents.csv").then(data => {
   //date_last_report.setHours(0, 0, 0, 0);
 
   originalData = data;
-  filteredData = originalData.filter(hasEventInChartPeriod);
-  filteredData.sort(customSort);
+  periodFilteredData = originalData.filter(hasEventInChartPeriod);
+  periodFilteredData.sort(customSort);
 
-  updateVariables(filteredData);
-  drawBarChart(filteredData, true);
+  updateVariables(periodFilteredData);
+  drawBarChart(periodFilteredData, true);
 });
 
 function drawBarChart(data, isInitialSetup) {
@@ -162,28 +168,12 @@ function drawBarChart(data, isInitialSetup) {
   // Ajout du rectancle d'arrière plan du graphique
   innerChart.append("rect")
     .attr("class", "background")
-    .attr("x", 0)
+    .attr("x", -margin.left)
     .attr("y", 0)
-    .attr("width", innerWidth)
+    .attr("width", innerWidth + margin.left)
     .attr("height", innerHeight);
 
   // ADD HORIZONTAL TIME BARS FOR EACH EVENT
-  // innerChart.selectAll("rect.bar")
-  //   .data(data)
-  //   .enter()
-  //   .append("rect")
-  //   .attr("class", d => `bar ${d.status}`)
-  //   .attr("x", d => xScale(d.start_date > start_date_chart ? d.start_date : start_date_chart))
-  //   .attr("y", d => yScale(d.product) + yScale.bandwidth() / 2 - barHeight / 2 - 1)
-  //   .attr("width", d => {
-  //     const startDate = new Date(d.start_date);
-  //     const endDate = new Date(d.end_date);
-  //     const effectiveStartDate = startDate > start_date_chart ? startDate : start_date_chart;
-  //     return Math.max(0, xScale(endDate) - xScale(effectiveStartDate));
-  //   })
-  //   .attr("height", barHeight);
-
-
   innerChart.selectAll("rect.bar")
        .data(data)
        .enter()
@@ -366,7 +356,7 @@ function drawBarChart(data, isInitialSetup) {
   //   .attr("y2", innerHeight)
 
   d3.select("#search-box").on("input", function() {
-    filterProducts(this.value, filteredData);
+    filterProducts(this.value, data);
   });
 
   // Add the vertical line
@@ -378,26 +368,39 @@ function drawBarChart(data, isInitialSetup) {
     .attr("y2", innerHeight);
 
 // Add status bars
-    const groupedData = d3.group(data, d => getProductStatus(d).text);
-    const statusColors = {
-      "Rupture de stock": "var(--rupture)",
-      "Tension d'approvisionnement": "var(--tension)",
-      "Arrêt de commercialisation": "var(--gris)",
-      "Disponible": "var(--disponible-bg)"
-    };
+  const groupedData = d3.group(data, d => getProductStatus(d).text);
+  const statusColors = {
+    "Rupture de stock": "var(--rupture)",
+    "Tension d'approvisionnement": "var(--tension)",
+    "Arrêt de commercialisation": "var(--gris)",
+    "Disponible": "var(--disponible-bg)"
+  };
 
-    let accumulatedHeight = 0;
-    groupedData.forEach((group, status) => {
-      const groupHeight = group.length * barHeight;
-      innerChart.append("rect")
-        .attr("class", "status-bar")
-        .attr("x", -margin.left)
-        .attr("y", accumulatedHeight)
-        .attr("width", statusBarWidth)
-        .attr("height", groupHeight)
-        .attr("fill", statusColors[status]);
-      accumulatedHeight += groupHeight;
-    });
+  // Utilisé pour déterminer la longueur de la barre des produits disponibles
+  const totalProductLength = getUniqueProductLength(data);
+  let accumulatedHeight = 0;
+  let productLeft = totalProductLength;
+
+  groupedData.forEach((group, status) => {
+    const productLength = getUniqueProductLength(group);
+    let groupHeight;
+
+    if (status === "Disponible") {
+      groupHeight = productLeft * barHeight;
+    } else {
+      groupHeight = productLength * barHeight;
+    }
+
+    innerChart.append("rect")
+      .attr("class", "status-bar")
+      .attr("x", -margin.left)
+      .attr("y", accumulatedHeight)
+      .attr("width", statusBarWidth)
+      .attr("height", groupHeight)
+      .attr("fill", statusColors[status]);
+    accumulatedHeight += groupHeight;
+    productLeft -= productLength;
+  });
 
     // Adjust the position of other elements
    // innerChart.attr("transform", `translate(${margin.left}, ${margin.top})`);
