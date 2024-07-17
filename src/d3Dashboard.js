@@ -138,6 +138,9 @@ d3.csv("/data/incidents.csv").then(data => {
 });
 
 function drawBarChart(data, isInitialSetup) {
+  d3.select("#search-box").on("input", function() {
+    filterProducts(this.value, data);
+  });
   console.log(data);
   let outerBox, innerChart;
 
@@ -153,6 +156,15 @@ function drawBarChart(data, isInitialSetup) {
     innerChart = outerBox
       .append("g")
         .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+    // Ajoutez ceci après la création du SVG et de innerChart
+    const title = outerBox.append("text")
+      .attr("class", "chart-title")
+      .attr("x", 0)
+      .attr("y", 10)
+      .attr("text-anchor", "left")
+      .style("font-size", "14px")
+      .style("font-weight", "bold");
   // Sinon, réutilisation de la zone et nettoyage tous les éléments existants
   } else {
     // Mise à jour du SVG existant
@@ -165,6 +177,10 @@ function drawBarChart(data, isInitialSetup) {
         innerChart.selectAll("*").remove();
   }
 
+  const formatDate = d3.timeFormat("%d/%m/%Y");
+    outerBox.select(".chart-title")
+      .text(`Date du dernier rapport : ${formatDate(date_last_report)}`);
+
   // Ajout du rectancle d'arrière plan du graphique
   innerChart.append("rect")
     .attr("class", "background")
@@ -173,7 +189,7 @@ function drawBarChart(data, isInitialSetup) {
     .attr("width", innerWidth + margin.left)
     .attr("height", innerHeight);
 
-  // ADD HORIZONTAL TIME BARS FOR EACH EVENT
+  // Ajout des barres de chaque événement
   innerChart.selectAll("rect.bar")
        .data(data)
        .enter()
@@ -203,20 +219,6 @@ function drawBarChart(data, isInitialSetup) {
        .on("mouseout", function() {
          tooltip.style("opacity", 0);
        });
-
-  // Update grid lines
-  // innerChart.selectAll(".grid-line")
-  //   .attr("x1", 0)
-  //   .attr("x2", innerWidth);
-
-  // Update current date line
-  // innerChart.select(".current-date-line")
-  //   .attr("x1", statusBarWidth + xScale(date_last_report))
-  //   .attr("x2", statusBarWidth + xScale(date_last_report));
-
-  // Update current date label
-  // innerChart.select(".current-date-label")
-  //   .attr("x", statusBarWidth + xScale(date_last_report));
 
 // X-AXIS
   // Top X Axis for years
@@ -315,7 +317,7 @@ function drawBarChart(data, isInitialSetup) {
 
   // Add vertical grid lines for months and years
   const monthTicks = xScale.ticks(d3.timeMonth.every(1));
-  // const yearTicks = xScale.ticks(d3.timeYear.every(1));
+  const yearTicks = xScale.ticks(d3.timeYear.every(1));
 
   // Add horizontal line on top of products
   innerChart.append("line")
@@ -337,27 +339,23 @@ function drawBarChart(data, isInitialSetup) {
       .attr("y2", innerHeight)
 
   // // Add vertical lines for each year beginning
-  // innerChart.selectAll(".year-line")
-  //   .data(yearTicks)
-  //   .enter()
-  //   .append("line")
-  //     .attr("class", "year-line")
-  //     .attr("x1", d => xScale(d))
-  //     .attr("x2", d => xScale(d))
-  //     .attr("y1", 0)
-  //     .attr("y2", innerHeight)
+  innerChart.selectAll(".year-line")
+    .data(yearTicks)
+    .enter()
+    .append("line")
+    .attr("class", "year-line")
+    .attr("x1", d => xScale(d))
+    .attr("x2", d => xScale(d))
+    .attr("y1", 0)
+    .attr("y2", innerHeight);
 
-  // // Add an additional vertical line at the end of the x-axis
-  // innerChart.append("line")
-  //   .attr("class", "end-line")
-  //   .attr("x1", innerWidth)
-  //   .attr("x2", innerWidth)
-  //   .attr("y1", 0)
-  //   .attr("y2", innerHeight)
-
-  d3.select("#search-box").on("input", function() {
-    filterProducts(this.value, data);
-  });
+  // Add an additional vertical line at the end of the x-axis
+  innerChart.append("line")
+    .attr("class", "end-line")
+    .attr("x1", innerWidth)
+    .attr("x2", innerWidth)
+    .attr("y1", 0)
+    .attr("y2", innerHeight);
 
   // Add the vertical line
   innerChart.append("line")
@@ -404,13 +402,4 @@ function drawBarChart(data, isInitialSetup) {
 
     // Adjust the position of other elements
    // innerChart.attr("transform", `translate(${margin.left}, ${margin.top})`);
-
-  const formatTime = d3.utcFormat("%d/%m/%Y")
-  // Add a label for the current date
-  innerChart.append("text")
-    .attr("class", "current-date-label")
-    .attr("x", xScale(date_last_report))
-    .attr("y", innerHeight + 12)
-    .attr("text-anchor", "middle")
-    .text(formatTime(date_last_report));
 }
