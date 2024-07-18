@@ -4,12 +4,14 @@
     --noir: rgb(0, 0, 0);
     --gris: rgb(150, 150, 150);
     --grisleger: rgb(240, 240, 240);
-    --rupture: rgb(150, 25, 20);
-    --tension: rgb(245, 100, 100);
-    --rupture-bg: rgba(150, 25, 20, 0.95);
-    --tension-bg: rgba(245, 100, 100, 0.95);
-    --disponible-bg: rgba(144, 238, 144, 0.95);
-    --arret-bg: rgba(150, 150, 150, 0.95);
+    --beigeleger: rgb(245, 240, 235);
+    --beige: rgb(207, 185, 160);
+    --rupture: rgb(230, 70, 100);
+    --tension: rgb(255, 235, 170);
+    --rupture-bg: rgba(170, 30, 25, 0.9);
+    --tension-bg: rgba(150, 135, 100, 0.9);
+    --disponible-bg: rgba(144, 238, 144, 0.9);
+    --arret-bg: rgba(150, 150, 150, 0.9);
 }
 
 h1 {
@@ -17,11 +19,12 @@ h1 {
 }
 
 .grid-line {
-    stroke: var(--noir);
-    stroke-width: 0.2px;
+    stroke: var(--beige);
+    stroke-dasharray: 1;
+    stroke-width: 0.5px;
 }
 
-.background {
+.x-top-background {
     fill: var(--grisleger);
 }
 
@@ -37,8 +40,14 @@ h1 {
     fill: var(--gris);
 }
 
+.y-axis line {
+    stroke: var(--gris);
+    stroke-width: 1px;
+}
+
 .month-line {
-    stroke: var(--grisleger);
+    stroke: var(--beige);
+    stroke-dasharray: 1;
     stroke-width: 0.5px;
 }
 
@@ -49,7 +58,17 @@ h1 {
 
 .end-line {
     stroke: var(--gris);
-    stroke-width: 1.5px;
+    stroke-width: 1px;
+}
+
+.year-tick line {
+    stroke: var(--gris);
+    stroke-width: 1px;
+}
+
+.month-tick line {
+    stroke: var(--gris);
+    stroke-width: 1px;
 }
 
 .year-tick text {
@@ -58,7 +77,7 @@ h1 {
 
 .current-date-line {
     stroke:var(--gris);
-    stroke-width: 1.5px;
+    stroke-width: 1px;
 }
 
 .current-date-label {
