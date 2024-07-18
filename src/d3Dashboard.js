@@ -141,7 +141,6 @@ function drawBarChart(data, isInitialSetup) {
   d3.select("#search-box").on("input", function() {
     filterProducts(this.value, data);
   });
-  console.log(data);
   let outerBox, innerChart;
 
   // Création de la zone svg si elle n'existe pas
@@ -165,30 +164,27 @@ function drawBarChart(data, isInitialSetup) {
       .attr("text-anchor", "left")
       .style("font-size", "14px")
       .style("font-weight", "bold");
-  // Sinon, réutilisation de la zone et nettoyage tous les éléments existants
-  } else {
-    // Mise à jour du SVG existant
+  } else {  // Mise à jour du SVG existant
     outerBox = d3.select("#dash svg")
       .attr("viewBox", `0, 0, ${width}, ${height}`)
       .attr("height", height);
 
-    innerChart = d3.select("#dash svg g");
-        // Remove all existing elements
-        innerChart.selectAll("*").remove();
+    innerChart = d3.select("#dash svg g"); // Remove all existing elements
+    innerChart.selectAll("*").remove();
   }
 
   const formatDate = d3.timeFormat("%d/%m/%Y");
     outerBox.select(".chart-title")
       .text(`Date du dernier rapport : ${formatDate(date_last_report)}`);
 
-  // Ajout du rectancle d'arrière plan du graphique
   innerChart.append("rect")
-    .attr("class", "background")
-    .attr("x", -margin.left)
-    .attr("y", 0)
-    .attr("width", innerWidth + margin.left)
-    .attr("height", innerHeight);
+    .attr("class", "x-top-background")
+    .attr("x", 0)
+    .attr("y", -margin.top + 10)
+    .attr("width", innerWidth)
+    .attr("height", margin.top - 10);
 
+// EVENTS
   // Ajout des barres de chaque événement
   innerChart.selectAll("rect.bar")
        .data(data)
@@ -207,6 +203,7 @@ function drawBarChart(data, isInitialSetup) {
        .on("mouseover", function(event, d) {
          let statusClass = `tooltip-${d.status.toLowerCase()}`;
          tooltip.html(`
+           <strong>Produit:</strong> ${d.product}<br>
            <strong>Incident:</strong> ${d.status}<br>
            <strong>Début:</strong> ${d3.timeFormat("%d/%m/%Y")(d.start_date)}<br>
            <strong>Fin:</strong> ${d3.timeFormat("%d/%m/%Y")(d.end_date)}
@@ -261,6 +258,10 @@ function drawBarChart(data, isInitialSetup) {
       })
     .style("text-anchor", "middle");
 
+  // Add a class of year-tick
+  monthAxis.selectAll(".tick")
+    .attr("class", "month-tick");
+
   // Adjust x-axis position
   yearAxis.attr("transform", `translate(0,-20)`);
   monthAxis.attr("transform", `translate(0,0)`);
@@ -301,7 +302,6 @@ function drawBarChart(data, isInitialSetup) {
       .on("mouseout", function() {
           d3.select("#tooltip").transition().duration(500).style("opacity", 0);
       });
-
 
 // GRID
   // Add horizontal grid lines manually after bars to ensure they are on top
@@ -357,7 +357,7 @@ function drawBarChart(data, isInitialSetup) {
     .attr("y1", 0)
     .attr("y2", innerHeight);
 
-  // Add the vertical line
+  // Ajouter la ligne du dernier rapport
   innerChart.append("line")
     .attr("class", "current-date-line")
     .attr("x1", xScale(date_last_report))
@@ -400,6 +400,4 @@ function drawBarChart(data, isInitialSetup) {
     productLeft -= productLength;
   });
 
-    // Adjust the position of other elements
-   // innerChart.attr("transform", `translate(${margin.left}, ${margin.top})`);
 }
