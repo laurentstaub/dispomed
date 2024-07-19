@@ -3,13 +3,14 @@ let products, xScale, yScale, outerBox, innerChart, originalData, periodFiltered
 const margin = { top: 50, right: 20, bottom: 30, left: 300 };
 const width = 1000;
 const barHeight = 14;
-const currentDate = new Date();
+// const currentDate = new Date();
+const start_date_chart = new Date(2023, 0, 1);
 const labelMaxLength = 50;
 const statusBarWidth = 20;
 const statusBarSpacing = 5;
 const totalStatusBar = statusBarWidth + statusBarSpacing;
 
-let start_date_chart, end_date_chart, date_last_report;
+let end_date_chart, date_last_report;
 let height, innerWidth, innerHeight;
 
 // Mise à jour des variables globales générales du graphique
@@ -124,7 +125,6 @@ d3.csv("/data/incidents.csv").then(data => {
     }
   });
 
-  start_date_chart = new Date(2023, 0, 1);
   end_date_chart = new Date(d3.max(data, d => d.end_date).getFullYear(), 11, 31);
   date_last_report = d3.max(data, d => d.end_date);
   //date_last_report.setHours(0, 0, 0, 0);
