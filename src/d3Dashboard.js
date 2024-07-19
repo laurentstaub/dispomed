@@ -3,7 +3,6 @@ let products, xScale, yScale, outerBox, innerChart, originalData, periodFiltered
 const margin = { top: 50, right: 20, bottom: 30, left: 300 };
 const width = 1000;
 const barHeight = 14;
-// const currentDate = new Date();
 const start_date_chart = new Date(2023, 0, 1);
 const labelMaxLength = 50;
 const statusBarWidth = 20;
