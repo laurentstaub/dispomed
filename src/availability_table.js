@@ -6,7 +6,7 @@ let endDateChart, dateLastReport;
 // Mise à jour des variables globales générales du graphique
 function updateVariables(data) {
   products = Array.from(new Set(data.map(d => d.product)));
-  const { height, innerWidth, innerHeight } = getChartDimensions(products.length);
+  const { innerWidth, innerHeight } = getChartDimensions(products.length);
 
   xScale = d3.scaleTime()
     .domain([chartConfig.startDateChart, endDateChart])
@@ -19,7 +19,7 @@ function updateVariables(data) {
 }
 
 function hasEventInChartPeriod(event) {
-  return !(event.endDate <= chartConfig.startDateChart);
+  return !(event.end_date <= chartConfig.startDateChart);
 }
 
 function customSort(a, b) {
