@@ -5,10 +5,12 @@
 ## Overview
 This project is a visual dashboard that tracks the availability of pharmaceutical products over time. It provides a clear, color-coded representation of product status across multiple years, allowing for easy identification of supply trends and potential shortages.
 
+![screenshot](https://github.com/laurentstaub/dispomed/blob/main/image.jpg?raw=true)
+
 ## Features
-- **Time-based Visualization**: The dashboard displays product availability from 2021 to 2024, broken down by months.
-- 
-- **Color Coding**: 
+- **Time-based Visualization**: The dashboard displays product availability from 2023 to 2024, broken down by months.
+-
+- **Color Coding**:
   - Red: Indicates a supply rupture or significant shortage
   - Yellow: Represents a tension in the supply chain
 - **Product Search**: Users can search for specific products using the search bar at the top of the dashboard.
