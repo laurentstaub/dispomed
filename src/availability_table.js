@@ -1,26 +1,15 @@
-// Variables globales du graphique
-let products, xScale, yScale, outerBox, innerChart, originalData, periodFilteredData;
-const margin = { top: 50, right: 20, bottom: 30, left: 300 };
-const width = 1000;
-const barHeight = 14;
-const start_date_chart = new Date(2023, 0, 1);
-const labelMaxLength = 50;
-const statusBarWidth = 20;
-const statusBarSpacing = 5;
-const totalStatusBar = statusBarWidth + statusBarSpacing;
+import { chartConfig, getChartDimensions } from './availability_config.js';
 
-let end_date_chart, date_last_report;
-let height, innerWidth, innerHeight;
+let products, xScale, yScale, originalData, periodFilteredData;
+let endDateChart, dateLastReport;
 
 // Mise à jour des variables globales générales du graphique
 function updateVariables(data) {
   products = Array.from(new Set(data.map(d => d.product)));
-  height = products.length * barHeight + margin.top + margin.bottom;
-  innerWidth = width - margin.left - margin.right;
-  innerHeight = height - margin.top - margin.bottom;
+  const { height, innerWidth, innerHeight } = getChartDimensions(products.length);
 
   xScale = d3.scaleTime()
-    .domain([start_date_chart, end_date_chart])
+    .domain([chartConfig.startDateChart, endDateChart])
     .range([0, innerWidth]);
 
   yScale = d3.scaleBand()
@@ -30,12 +19,12 @@ function updateVariables(data) {
 }
 
 function hasEventInChartPeriod(event) {
-  return !(event.end_date <= start_date_chart);
+  return !(event.endDate <= chartConfig.startDateChart);
 }
 
 function customSort(a, b) {
-  const aIsActive = a.end_date >= date_last_report;
-  const bIsActive = b.end_date >= date_last_report;
+  const aIsActive = a.end_date >= dateLastReport;
+  const bIsActive = b.end_date >= dateLastReport;
 
   // First, sort by active status
   if (aIsActive && !bIsActive) return -1;
@@ -48,7 +37,7 @@ function customSort(a, b) {
     if (a.status === "Tension" && b.status !== "Tension") return -1;
     if (a.status !== "Tension" && b.status === "Tension") return 1;
 
-    // If status is the same, sort by start_date (most recent first)
+    // If status is the same, sort by startDate (most recent first)
     return new Date(b.start_date) - new Date(a.start_date);
   }
 
@@ -81,7 +70,7 @@ function groupProductsByStatus(data) {
 function getProductStatus(d) {
     if (d.status === "arret") {
         return { text: "Arrêt de commercialisation", class: "tooltip-arret" };
-    } else if (d.start_date <= date_last_report && d.end_date >= date_last_report) {
+    } else if (d.start_date <= dateLastReport && d.end_date >= dateLastReport) {
         if (d.status === "Rupture") {
             return { text: "Rupture de stock", class: "tooltip-rupture" };
         } else if (d.status === "Tension") {
@@ -89,7 +78,7 @@ function getProductStatus(d) {
         } else if (d.status === "Arret") {
           return { text: "Arrêt de commercialisation", class: "tooltip-arret" };
         }
-    } else if (!d.end_date || d.end_date < date_last_report) {
+    } else if (!d.end_date || d.end_date < dateLastReport) {
         return { text: "Disponible", class: "tooltip-disponible" };
     }
     return { text: "Statut inconnu", class: "" };
@@ -114,7 +103,7 @@ d3.csv("/data/incidents.csv").then(data => {
     d.date_dernier_rapport = parseTime(d.date_dernier_rapport);
 
     if (!d.end_date) {
-      // If end_date is missing, use the max of mise_a_jour_date and date_dernier_rapport
+      // If endDate is missing, use the max of mise_a_jour_date and date_dernier_rapport
       d.end_date = new Date(Math.max(
         d.mise_a_jour_date ? d.mise_a_jour_date : 0,
         d.date_dernier_rapport ? d.date_dernier_rapport : 0
@@ -124,9 +113,9 @@ d3.csv("/data/incidents.csv").then(data => {
     }
   });
 
-  end_date_chart = new Date(d3.max(data, d => d.end_date).getFullYear(), 11, 31);
-  date_last_report = d3.max(data, d => d.end_date);
-  //date_last_report.setHours(0, 0, 0, 0);
+  endDateChart = new Date(d3.max(data, d => d.end_date).getFullYear(), 11, 31);
+  dateLastReport = d3.max(data, d => d.end_date);
+  //dateLastReport.setHours(0, 0, 0, 0);
 
   originalData = data;
   periodFilteredData = originalData.filter(hasEventInChartPeriod);
@@ -140,6 +129,7 @@ function drawBarChart(data, isInitialSetup) {
   d3.select("#search-box").on("input", function() {
     filterProducts(this.value, data);
   });
+  const { height, innerWidth, innerHeight } = getChartDimensions(products.length);
   let outerBox, innerChart;
 
   // Création de la zone svg si elle n'existe pas
@@ -147,13 +137,13 @@ function drawBarChart(data, isInitialSetup) {
     // Création initiale du SVG
     outerBox = d3.select("#dash")
       .append("svg")
-        .attr("viewBox", `0, 0, ${width}, ${height}`)
-        .attr("width", width)
-        .attr("height", height);
+        .attr("viewBox", `0, 0, ${chartConfig.width}, ${height}`)
+        .attr("width", chartConfig.width)
+        .attr("height", chartConfig.height);
 
     innerChart = outerBox
       .append("g")
-        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+        .attr("transform", `translate(${chartConfig.margin.left}, ${chartConfig.margin.top})`);
 
     // Ajoutez ceci après la création du SVG et de innerChart
     const title = outerBox.append("text")
@@ -165,7 +155,7 @@ function drawBarChart(data, isInitialSetup) {
       .style("font-weight", "bold");
   } else {  // Mise à jour du SVG existant
     outerBox = d3.select("#dash svg")
-      .attr("viewBox", `0, 0, ${width}, ${height}`)
+      .attr("viewBox", `0, 0, ${chartConfig.width}, ${height}`)
       .attr("height", height);
 
     innerChart = d3.select("#dash svg g"); // Remove all existing elements
@@ -174,14 +164,14 @@ function drawBarChart(data, isInitialSetup) {
 
   const formatDate = d3.timeFormat("%d/%m/%Y");
     outerBox.select(".chart-title")
-      .text(`Date du dernier rapport : ${formatDate(date_last_report)}`);
+      .text(`Date du dernier rapport : ${formatDate(dateLastReport)}`);
 
   innerChart.append("rect")
     .attr("class", "x-top-background")
     .attr("x", 0)
-    .attr("y", -margin.top + 10)
+    .attr("y", - chartConfig.margin.top + 10)
     .attr("width", innerWidth)
-    .attr("height", margin.top - 10);
+    .attr("height", chartConfig.margin.top - 10);
 
 // EVENTS
   // Ajout des barres de chaque événement
@@ -190,15 +180,15 @@ function drawBarChart(data, isInitialSetup) {
        .enter()
        .append("rect")
        .attr("class", d => `bar ${d.status}`)
-       .attr("x", d => xScale(d.start_date > start_date_chart ? d.start_date : start_date_chart))
-       .attr("y", d => yScale(d.product) + yScale.bandwidth() / 2 - barHeight / 2 - 1)
+       .attr("x", d => xScale(d.start_date > chartConfig.startDateChart ? d.start_date : chartConfig.startDateChart))
+       .attr("y", d => yScale(d.product) + yScale.bandwidth() / 2 - chartConfig.barHeight / 2 - 1)
        .attr("width", d => {
          const startDate = new Date(d.start_date);
          const endDate = new Date(d.end_date);
-         const effectiveStartDate = startDate > start_date_chart ? startDate : start_date_chart;
+         const effectiveStartDate = startDate > chartConfig.startDateChart ? startDate : chartConfig.startDateChart;
          return Math.max(0, xScale(endDate) - xScale(effectiveStartDate));
        })
-       .attr("height", barHeight)
+       .attr("height", chartConfig.barHeight)
        .on("mouseover", function(event, d) {
          let statusClass = `tooltip-${d.status.toLowerCase()}`;
          tooltip.html(`
@@ -278,14 +268,14 @@ function drawBarChart(data, isInitialSetup) {
       .append("g")
       .call(d3.axisLeft(yScale).tickSize(0))
       .selectAll(".tick text")
-      .attr("x", -margin.left + totalStatusBar)
+      .attr("x", - chartConfig.margin.left + chartConfig.statusBarWidth + chartConfig.statusBarSpacing)
       .style("text-anchor", "start")
       .text(function(d) {
-          return d.length > labelMaxLength ? d.substring(0, labelMaxLength) + "..." : d;
+          return d.length > chartConfig.labelMaxLength ? d.substring(0, chartConfig.labelMaxLength) + "..." : d;
       })
       .on("mouseover", function(event, d) {
           const product = data.find(item => item.product === d);
-          if (d.length > labelMaxLength || product) {
+          if (d.length > chartConfig.labelMaxLength || product) {
               const status = getProductStatus(product);
               const tooltip = d3.select("#tooltip");
               tooltip.transition().duration(200).style("opacity", 0.9);
@@ -309,7 +299,7 @@ function drawBarChart(data, isInitialSetup) {
     .enter()
     .append("line")
       .attr("class", "grid-line")
-      .attr("x1", -margin.left)
+      .attr("x1", -chartConfig.margin.left)
       .attr("x2", innerWidth)
       .attr("y1", d => yScale(d) + yScale.bandwidth())
       .attr("y2", d => yScale(d) + yScale.bandwidth())
@@ -321,7 +311,7 @@ function drawBarChart(data, isInitialSetup) {
   // Add horizontal line on top of products
   innerChart.append("line")
     .attr("class", "year-line")
-    .attr("x1", -margin.left)
+    .attr("x1", -chartConfig.margin.left)
     .attr("x2", 0)
     .attr("y1", 0)
     .attr("y2", 0)
@@ -359,8 +349,8 @@ function drawBarChart(data, isInitialSetup) {
   // Ajouter la ligne du dernier rapport
   innerChart.append("line")
     .attr("class", "current-date-line")
-    .attr("x1", xScale(date_last_report))
-    .attr("x2", xScale(date_last_report))
+    .attr("x1", xScale(dateLastReport))
+    .attr("x2", xScale(dateLastReport))
     .attr("y1", 0)
     .attr("y2", innerHeight);
 
@@ -383,16 +373,16 @@ function drawBarChart(data, isInitialSetup) {
     let groupHeight;
 
     if (status === "Disponible") {
-      groupHeight = productLeft * barHeight;
+      groupHeight = productLeft * chartConfig.barHeight;
     } else {
-      groupHeight = productLength * barHeight;
+      groupHeight = productLength * chartConfig.barHeight;
     }
 
     innerChart.append("rect")
       .attr("class", "status-bar")
-      .attr("x", -margin.left)
+      .attr("x", -chartConfig.margin.left)
       .attr("y", accumulatedHeight)
-      .attr("width", statusBarWidth)
+      .attr("width", chartConfig.statusBarWidth)
       .attr("height", groupHeight)
       .attr("fill", statusColors[status]);
     accumulatedHeight += groupHeight;
