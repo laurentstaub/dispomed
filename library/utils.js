@@ -1,7 +1,7 @@
-import { chartConfig } from './availability_config.js';
+import { tableConfig } from '/src/availability_config.js';
 
 export function customSort(a, b) {
-  const dateLastReport = chartConfig.getDateLastReport();
+  const dateLastReport = tableConfig.getDateLastReport();
   const aIsActive = a.end_date >= dateLastReport;
   const bIsActive = b.end_date >= dateLastReport;
 
@@ -25,7 +25,7 @@ export function customSort(a, b) {
 }
 
 export function getProductStatus(d) {
-  const dateLastReport = chartConfig.getDateLastReport();
+  const dateLastReport = tableConfig.getDateLastReport();
 
   if (d.status === "arret") {
     return { text: "Arrêt de commercialisation", class: "tooltip-arret" };
@@ -41,4 +41,18 @@ export function getProductStatus(d) {
       return { text: "Disponible", class: "tooltip-disponible" };
   }
   return { text: "Statut inconnu", class: "" };
+}
+
+export function hasEventInChartPeriod(event) {
+  return !(event.end_date <= tableConfig.startDateChart);
+}
+
+export function getUniqueProductLength(eventList) {
+  let result = [];
+
+  eventList.forEach(event => {
+    if (!result.includes(event.product)) result.push(event.product);
+  })
+
+  return result.length;
 }
