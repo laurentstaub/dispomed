@@ -1,8 +1,15 @@
+let dateLastReport;
+
 export const chartConfig = {
   margin: { top: 50, right: 20, bottom: 30, left: 300 },
   width: 1000,
   barHeight: 14,
   startDateChart: new Date(2023, 0, 1),
+  // LastReportDate is dependant upon the dataset
+  setDateLastReport: (date) => {
+    dateLastReport = date;
+  },
+  getDateLastReport: () => dateLastReport,
   labelMaxLength: 50,
   statusBarWidth: 20,
   statusBarSpacing: 5,
