@@ -2,12 +2,12 @@ import { chartConfig, getChartDimensions } from './availability_config.js';
 import { customSort, getProductStatus } from './utils.js';
 
 let products, xScale, yScale, originalData, periodFilteredData;
-let endDateChart;
 
 // Mise à jour des variables globales générales du graphique
 function updateVariables(data) {
   products = Array.from(new Set(data.map(d => d.product)));
   const { innerWidth, innerHeight } = getChartDimensions(products.length);
+  const endDateChart = chartConfig.getEndDateChart();
 
   xScale = d3.scaleTime()
     .domain([chartConfig.startDateChart, endDateChart])
@@ -74,25 +74,25 @@ d3.csv("/data/incidents.csv").then(data => {
     }
   });
 
-  endDateChart = new Date(d3.max(data, d => d.end_date).getFullYear(), 11, 31);
-  const dateLastReport = d3.max(data, d => d.end_date);
-  chartConfig.setDateLastReport(dateLastReport);
-  //dateLastReport.setHours(0, 0, 0, 0);
+  chartConfig.setEndDateChart(new Date(d3.max(data, d => d.end_date).getFullYear(), 11, 31));
+  chartConfig.setDateLastReport(d3.max(data, d => d.end_date));
 
   originalData = data;
   periodFilteredData = originalData.filter(hasEventInChartPeriod);
   periodFilteredData.sort(customSort);
 
   updateVariables(periodFilteredData);
-  drawBarChart(periodFilteredData, true, dateLastReport);
+  drawBarChart(periodFilteredData, true);
 });
 
-function drawBarChart(data, isInitialSetup, dateLastReport) {
+function drawBarChart(data, isInitialSetup) {
   d3.select("#search-box").on("input", function() {
     filterProducts(this.value, data);
   });
 
   const { height, innerWidth, innerHeight } = getChartDimensions(products.length);
+  const endDateChart = chartConfig.getEndDateChart();
+  const dateLastReport = chartConfig.getDateLastReport();
   let outerBox, innerChart;
 
   // Création de la zone svg si elle n'existe pas
