@@ -1,4 +1,4 @@
-let dateLastReport;
+let dateLastReport, endDateChart;
 
 export const chartConfig = {
   margin: { top: 50, right: 20, bottom: 30, left: 300 },
@@ -10,6 +10,10 @@ export const chartConfig = {
     dateLastReport = date;
   },
   getDateLastReport: () => dateLastReport,
+  setEndDateChart: (date) => {
+    endDateChart = date;
+  },
+  getEndDateChart: () => endDateChart,
   labelMaxLength: 50,
   statusBarWidth: 20,
   statusBarSpacing: 5,
