@@ -1,7 +1,8 @@
 import { chartConfig, getChartDimensions } from './availability_config.js';
+import { customSort, getProductStatus } from './utils.js';
 
 let products, xScale, yScale, originalData, periodFilteredData;
-let endDateChart, dateLastReport;
+let endDateChart;
 
 // Mise à jour des variables globales générales du graphique
 function updateVariables(data) {
@@ -20,29 +21,6 @@ function updateVariables(data) {
 
 function hasEventInChartPeriod(event) {
   return !(event.end_date <= chartConfig.startDateChart);
-}
-
-function customSort(a, b) {
-  const aIsActive = a.end_date >= dateLastReport;
-  const bIsActive = b.end_date >= dateLastReport;
-
-  // First, sort by active status
-  if (aIsActive && !bIsActive) return -1;
-  if (!aIsActive && bIsActive) return 1;
-
-  // If both are active or both are inactive, sort by status
-  if (aIsActive === bIsActive) {
-    if (a.status === "Rupture" && b.status !== "Rupture") return -1;
-    if (a.status !== "Rupture" && b.status === "Rupture") return 1;
-    if (a.status === "Tension" && b.status !== "Tension") return -1;
-    if (a.status !== "Tension" && b.status === "Tension") return 1;
-
-    // If status is the same, sort by startDate (most recent first)
-    return new Date(b.start_date) - new Date(a.start_date);
-  }
-
-  // If we reach here, one is active and one is inactive, but this is handled above
-  return 0;
 }
 
 function filterProducts(searchTerm, data) {
@@ -65,23 +43,6 @@ function filterProducts(searchTerm, data) {
 
 function groupProductsByStatus(data) {
   return d3.groups(data, d => getProductStatus(d).text);
-}
-
-function getProductStatus(d) {
-    if (d.status === "arret") {
-        return { text: "Arrêt de commercialisation", class: "tooltip-arret" };
-    } else if (d.start_date <= dateLastReport && d.end_date >= dateLastReport) {
-        if (d.status === "Rupture") {
-            return { text: "Rupture de stock", class: "tooltip-rupture" };
-        } else if (d.status === "Tension") {
-            return { text: "Tension d'approvisionnement", class: "tooltip-tension" };
-        } else if (d.status === "Arret") {
-          return { text: "Arrêt de commercialisation", class: "tooltip-arret" };
-        }
-    } else if (!d.end_date || d.end_date < dateLastReport) {
-        return { text: "Disponible", class: "tooltip-disponible" };
-    }
-    return { text: "Statut inconnu", class: "" };
 }
 
 function getUniqueProductLength(eventList) {
@@ -114,7 +75,8 @@ d3.csv("/data/incidents.csv").then(data => {
   });
 
   endDateChart = new Date(d3.max(data, d => d.end_date).getFullYear(), 11, 31);
-  dateLastReport = d3.max(data, d => d.end_date);
+  const dateLastReport = d3.max(data, d => d.end_date);
+  chartConfig.setDateLastReport(dateLastReport);
   //dateLastReport.setHours(0, 0, 0, 0);
 
   originalData = data;
@@ -122,13 +84,14 @@ d3.csv("/data/incidents.csv").then(data => {
   periodFilteredData.sort(customSort);
 
   updateVariables(periodFilteredData);
-  drawBarChart(periodFilteredData, true);
+  drawBarChart(periodFilteredData, true, dateLastReport);
 });
 
-function drawBarChart(data, isInitialSetup) {
+function drawBarChart(data, isInitialSetup, dateLastReport) {
   d3.select("#search-box").on("input", function() {
     filterProducts(this.value, data);
   });
+
   const { height, innerWidth, innerHeight } = getChartDimensions(products.length);
   let outerBox, innerChart;
 
@@ -164,7 +127,7 @@ function drawBarChart(data, isInitialSetup) {
 
   const formatDate = d3.timeFormat("%d/%m/%Y");
     outerBox.select(".chart-title")
-      .text(`Date du dernier rapport : ${formatDate(dateLastReport)}`);
+      .text(`Date du dernier rapport : ${formatDate(chartConfig.getDateLastReport())}`);
 
   innerChart.append("rect")
     .attr("class", "x-top-background")
@@ -388,5 +351,4 @@ function drawBarChart(data, isInitialSetup) {
     accumulatedHeight += groupHeight;
     productLeft -= productLength;
   });
-
 }
