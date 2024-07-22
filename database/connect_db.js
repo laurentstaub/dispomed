@@ -1,13 +1,11 @@
-import { Pool } from 'pg';
+// const { Client } = require('pg');
+import pg from 'pg';
+const { Client } = pg;
 
-const pool = new Pool({
+const client = new Client({
   user: 'your_username',
   host: 'localhost',
   database: 'your_database',
   password: 'your_password',
   port: 5432,
 });
-
-module.exports = {
-  query: (text, params) => pool.query(text, params),
-};
