@@ -1,6 +1,7 @@
 import express from "express";
+import './library/config.js';
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT;
 
 app.set("view engine", "pug");
 app.set("views", "./views");
