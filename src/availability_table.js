@@ -37,35 +37,66 @@ function filterProducts(searchTerm) {
   drawBarChart(filterData, false);
 }
 
-d3.csv("/data/incidents.csv").then(data => {
-  const parseTime = d3.timeParse("%Y-%m-%d");
+// d3.csv("/data/incidents.csv").then(data => {
+//   const parseTime = d3.timeParse("%Y-%m-%d");
 
-  data.forEach(d => {
-    d.start_date = parseTime(d.start_date);
-    d.mise_a_jour_date = parseTime(d.mise_a_jour_date);
-    d.date_dernier_rapport = parseTime(d.date_dernier_rapport);
+//   data.forEach(d => {
+//     d.start_date = parseTime(d.start_date);
+//     d.mise_a_jour_date = parseTime(d.mise_a_jour_date);
+//     d.date_dernier_rapport = parseTime(d.date_dernier_rapport);
 
-    if (!d.end_date) {
-      // If endDate is missing, use the max of mise_a_jour_date and date_dernier_rapport
-      d.end_date = new Date(Math.max(
-        d.mise_a_jour_date ? d.mise_a_jour_date : 0,
-        d.date_dernier_rapport ? d.date_dernier_rapport : 0
-      ));
-    } else {
-      d.end_date = parseTime(d.end_date);
-    }
-  });
+//     if (!d.end_date) {
+//       // If endDate is missing, use the max of mise_a_jour_date and date_dernier_rapport
+//       d.end_date = new Date(Math.max(
+//         d.mise_a_jour_date ? d.mise_a_jour_date : 0,
+//         d.date_dernier_rapport ? d.date_dernier_rapport : 0
+//       ));
+//     } else {
+//       d.end_date = parseTime(d.end_date);
+//     }
+//   });
 
-  tableConfig.setEndDateChart(new Date(d3.max(data, d => d.end_date).getFullYear(), 11, 31));
-  tableConfig.setDateLastReport(d3.max(data, d => d.end_date));
+//   tableConfig.setEndDateChart(new Date(d3.max(data, d => d.end_date).getFullYear(), 11, 31));
+//   tableConfig.setDateLastReport(d3.max(data, d => d.end_date));
 
-  originalData = data;
-  periodFilteredData = originalData.filter(hasEventInChartPeriod);
-  periodFilteredData.sort(customSort);
+//   originalData = data;
+//   periodFilteredData = originalData.filter(hasEventInChartPeriod);
+//   periodFilteredData.sort(customSort);
 
-  updateVariables(periodFilteredData);
-  drawBarChart(periodFilteredData, true);
-});
+//   updateVariables(periodFilteredData);
+//   drawBarChart(periodFilteredData, true);
+// });
+
+fetch('/api/incidents')
+  .then(response => response.json())
+  .then(data => {
+    console.log(data)
+    const parseDate = d3.timeParse("%Y-%m-%d");
+
+    data.forEach(d => {
+      d.start_date = parseDate(d.start_date);
+      d.end_date = parseDate(d.end_date);
+      d.mise_a_jour_date = parseDate(d.mise_a_jour_date);
+      d.date_dernier_rapport = parseDate(d.date_dernier_rapport);
+
+      if (!d.end_date) {
+        d.end_date = new Date(Math.max(
+          d.mise_a_jour_date ? d.mise_a_jour_date.getTime() : 0,
+          d.date_dernier_rapport ? d.date_dernier_rapport.getTime() : 0
+        ));
+      }
+    });
+
+    // Le reste de votre code...
+    tableConfig.setEndDateChart(new Date(d3.max(data, d => d.end_date).getFullYear(), 11, 31));
+    tableConfig.setDateLastReport(d3.max(data, d => d.end_date));
+    originalData = data;
+    periodFilteredData = originalData.filter(hasEventInChartPeriod);
+    periodFilteredData.sort(customSort);
+    updateVariables(periodFilteredData);
+    drawBarChart(periodFilteredData, true);
+  })
+  .catch(error => console.error('Error:', error));
 
 function drawBarChart(data, isInitialSetup) {
   d3.select("#search-box").on("input", function() {

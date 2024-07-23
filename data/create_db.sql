@@ -59,8 +59,12 @@ CREATE TEMPORARY TABLE temp_import (
     manufacturer VARCHAR(255)
 );
 
+-- STOP HERE
 -- Copy data from the CSV file into the temporary table
-COPY temp_import FROM './big_table_for_import.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '');
+-- COPY temp_import FROM './big_table_for_import.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '');
+
+-- USE THIS FROM THE PSQL COMMAND LINE WHERE THE DATA TO IMPORT IS
+\copy temp_import FROM 'big_table_for_import.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '');
 
 -- Insert data into normalized tables
 INSERT INTO norm_produits (normalized_name)
