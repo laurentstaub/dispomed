@@ -11,21 +11,22 @@ const CONNECTION = {
 
 const client = new Client(CONNECTION);
 
-async function connectAndQuery() {
+export async function dbQuery(statement, ...parameters) {
+  const client = new Client(CONNECTION);
+
   try {
-    // Connect to the database
     await client.connect();
-    console.log('Connected to the database');
-
-    // Perform a sample query
-    const result = await client.query('SELECT * FROM incidents LIMIT 5');
-    console.log('Query result:', result.rows);
-
-  } catch (error) {
-    console.error('Error:', error);
+    logQuery(statement, parameters);
+    const result = await client.query(statement, parameters);
+    return result;
   } finally {
-    // Close the connection
     await client.end();
-    console.log('Disconnected from the database');
+  }
+}
+
+function logQuery(statement, parameters) {
+  console.log('Executing query:', statement);
+  if (parameters.length > 0) {
+    console.log('Parameters:', parameters);
   }
 }
