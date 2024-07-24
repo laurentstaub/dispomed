@@ -1,14 +1,26 @@
-import { tableConfig, getChartDimensions, setProducts, getProducts } from './availability_config.js';
-import { customSort, getProductStatus, hasEventInChartPeriod, getUniqueProductLength, processDates } from '/library/utils.js';
+import {
+  tableConfig,
+  getChartDimensions,
+  setProducts,
+  getProducts,
+  createScales,
+  getXScale,
+  getYScale
+} from './availability_config.js';
 
-let xScale, yScale;
-let debounceTimer;
+import {
+  customSort,
+  getProductStatus,
+  hasEventInChartPeriod,
+  getUniqueProductLength,
+  processDates,
+  createDebouncedSearch
+} from '/library/utils.js';
+
+const debouncedFetchFilteredData = createDebouncedSearch(fetchFilteredData);
 
 d3.select("#search-box").on("input", function() {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
-    fetchFilteredData(this.value);
-  }, 300);
+  debouncedFetchFilteredData(this.value);
 });
 
 // Initial data fetch
@@ -19,15 +31,7 @@ function updateVariables(data) {
   setProducts(data);
   const { innerWidth, innerHeight } = getChartDimensions(getProducts().length);
   const endDateChart = tableConfig.getEndDateChart();
-
-  xScale = d3.scaleTime()
-    .domain([tableConfig.startDateChart, endDateChart])
-    .range([0, innerWidth]);
-
-  yScale = d3.scaleBand()
-    .domain(getProducts())
-    .range([0, innerHeight])
-    .padding(0.1);
+  createScales(tableConfig.startDateChart, endDateChart, getProducts(), innerWidth, innerHeight);
 }
 
 function fetchAndProcessData(searchTerm = '', isInitialSetup = false) {
@@ -63,6 +67,8 @@ function fetchFilteredData(searchTerm) {
 function drawBarChart(data, isInitialSetup) {
   const { height, innerWidth, innerHeight } = getChartDimensions(getProducts().length);
   const dateLastReport = tableConfig.getDateLastReport();
+  const xScale = getXScale();
+  const yScale = getYScale();
   let outerBox, innerChart;
 
   // Création de la zone svg si elle n'existe pas

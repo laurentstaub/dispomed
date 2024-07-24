@@ -72,3 +72,13 @@ export function processDates(data) {
     ))
   }));
 }
+
+export function createDebouncedSearch(callback, delay = 400) {
+  let debounceTimer;
+  return function(searchTerm) {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      callback(searchTerm);
+    }, delay);
+  };
+}

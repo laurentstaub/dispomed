@@ -1,5 +1,6 @@
 let dateLastReport, endDateChart;
 let products = [];
+let xScale, yScale;
 
 export const tableConfig = {
   margin: { top: 50, right: 20, bottom: 30, left: 300 },
@@ -36,4 +37,25 @@ export function setProducts(data) {
 
 export function getProducts() {
   return products;
+}
+
+export function createScales(startDate, endDate, products, innerWidth, innerHeight) {
+  xScale = d3.scaleTime()
+    .domain([startDate, endDate])
+    .range([0, innerWidth]);
+
+  yScale = d3.scaleBand()
+    .domain(products)
+    .range([0, innerHeight])
+    .padding(0.1);
+
+  return { xScale, yScale };
+}
+
+export function getXScale() {
+  return xScale;
+}
+
+export function getYScale() {
+  return yScale;
 }
