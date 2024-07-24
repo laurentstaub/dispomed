@@ -1,7 +1,15 @@
 import { tableConfig, getChartDimensions } from './availability_config.js';
 import { customSort, getProductStatus, hasEventInChartPeriod, getUniqueProductLength } from '/library/utils.js';
 
-let products, xScale, yScale, originalData, periodFilteredData;
+let products, xScale, yScale;
+let debounceTimer;
+
+d3.select("#search-box").on("input", function() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    fetchFilteredData(this.value);
+  }, 300);
+});
 
 // Mise à jour des variables globales générales du graphique
 function updateVariables(data) {
@@ -19,90 +27,56 @@ function updateVariables(data) {
     .padding(0.1);
 }
 
-function filterProducts(searchTerm) {
-  let filterData;
+function processDates(data) {
+  const parseTime = d3.timeParse("%Y-%m-%d");
 
-  if (searchTerm.trim() === "") {
-    // If search is empty, use period selected data
-    filterData = periodFilteredData;
-  } else {
-    // Filter products based on search term
-    filterData = periodFilteredData.filter(d =>
-      d.product.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }
-
-  // Update variables and redraw chart
-  updateVariables(filterData);
-  drawBarChart(filterData, false);
+  return data.map(d => ({
+    ...d,
+    start_date: parseTime(d.start_date),
+    end_date: parseTime(d.end_date),
+    mise_a_jour_date: parseTime(d.mise_a_jour_date),
+    date_dernier_rapport: parseTime(d.date_dernier_rapport),
+    end_date: d.end_date ? parseTime(d.end_date) : new Date(Math.max(
+      d.mise_a_jour_date ? parseTime(d.mise_a_jour_date) : 0,
+      d.date_dernier_rapport ? parseTime(d.date_dernier_rapport) : 0
+    ))
+  }));
 }
 
-// d3.csv("/data/incidents.csv").then(data => {
-//   const parseTime = d3.timeParse("%Y-%m-%d");
+function fetchAndProcessData(searchTerm = '', isInitialSetup = false) {
+  const queryString = searchTerm ? new URLSearchParams({ product: searchTerm }).toString() : '';
+  const url = `/api/incidents${queryString ? '?' + queryString : ''}`;
 
-//   data.forEach(d => {
-//     d.start_date = parseTime(d.start_date);
-//     d.mise_a_jour_date = parseTime(d.mise_a_jour_date);
-//     d.date_dernier_rapport = parseTime(d.date_dernier_rapport);
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      console.log(data);
+      const processedData = processDates(data);
 
-//     if (!d.end_date) {
-//       // If endDate is missing, use the max of mise_a_jour_date and date_dernier_rapport
-//       d.end_date = new Date(Math.max(
-//         d.mise_a_jour_date ? d.mise_a_jour_date : 0,
-//         d.date_dernier_rapport ? d.date_dernier_rapport : 0
-//       ));
-//     } else {
-//       d.end_date = parseTime(d.end_date);
-//     }
-//   });
-
-//   tableConfig.setEndDateChart(new Date(d3.max(data, d => d.end_date).getFullYear(), 11, 31));
-//   tableConfig.setDateLastReport(d3.max(data, d => d.end_date));
-
-//   originalData = data;
-//   periodFilteredData = originalData.filter(hasEventInChartPeriod);
-//   periodFilteredData.sort(customSort);
-
-//   updateVariables(periodFilteredData);
-//   drawBarChart(periodFilteredData, true);
-// });
-
-fetch('/api/incidents')
-  .then(response => response.json())
-  .then(data => {
-    console.log(data)
-    const parseDate = d3.timeParse("%Y-%m-%d");
-
-    data.forEach(d => {
-      d.start_date = parseDate(d.start_date);
-      d.end_date = parseDate(d.end_date);
-      d.mise_a_jour_date = parseDate(d.mise_a_jour_date);
-      d.date_dernier_rapport = parseDate(d.date_dernier_rapport);
-
-      if (!d.end_date) {
-        d.end_date = new Date(Math.max(
-          d.mise_a_jour_date ? d.mise_a_jour_date.getTime() : 0,
-          d.date_dernier_rapport ? d.date_dernier_rapport.getTime() : 0
-        ));
+      if (isInitialSetup) {
+        tableConfig.setEndDateChart(new Date(d3.max(processedData, d => d.end_date).getFullYear(), 11, 31));
+        tableConfig.setDateLastReport(d3.max(processedData, d => d.end_date));
       }
-    });
 
-    // Le reste de votre code...
-    tableConfig.setEndDateChart(new Date(d3.max(data, d => d.end_date).getFullYear(), 11, 31));
-    tableConfig.setDateLastReport(d3.max(data, d => d.end_date));
-    originalData = data;
-    periodFilteredData = originalData.filter(hasEventInChartPeriod);
-    periodFilteredData.sort(customSort);
-    updateVariables(periodFilteredData);
-    drawBarChart(periodFilteredData, true);
-  })
-  .catch(error => console.error('Error:', error));
+      const periodFilteredData = processedData
+        .filter(hasEventInChartPeriod)
+        .sort(customSort);
+
+      updateVariables(periodFilteredData);
+      drawBarChart(periodFilteredData, isInitialSetup);
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Initial data fetch
+fetchAndProcessData('', true);
+
+// For filtered data (to be used with the search input)
+function fetchFilteredData(searchTerm) {
+  fetchAndProcessData(searchTerm, false);
+}
 
 function drawBarChart(data, isInitialSetup) {
-  d3.select("#search-box").on("input", function() {
-    filterProducts(this.value);
-  });
-
   const { height, innerWidth, innerHeight } = getChartDimensions(products.length);
   const dateLastReport = tableConfig.getDateLastReport();
   let outerBox, innerChart;
