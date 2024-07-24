@@ -56,3 +56,19 @@ export function getUniqueProductLength(eventList) {
 
   return result.length;
 }
+
+export function processDates(data) {
+  const parseTime = d3.timeParse("%Y-%m-%d");
+
+  return data.map(d => ({
+    ...d,
+    start_date: parseTime(d.start_date),
+    end_date: parseTime(d.end_date),
+    mise_a_jour_date: parseTime(d.mise_a_jour_date),
+    date_dernier_rapport: parseTime(d.date_dernier_rapport),
+    end_date: d.end_date ? parseTime(d.end_date) : new Date(Math.max(
+      d.mise_a_jour_date ? parseTime(d.mise_a_jour_date) : 0,
+      d.date_dernier_rapport ? parseTime(d.date_dernier_rapport) : 0
+    ))
+  }));
+}
