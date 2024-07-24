@@ -1,7 +1,7 @@
-import { tableConfig, getChartDimensions } from './availability_config.js';
-import { customSort, getProductStatus, hasEventInChartPeriod, getUniqueProductLength } from '/library/utils.js';
+import { tableConfig, getChartDimensions, setProducts, getProducts } from './availability_config.js';
+import { customSort, getProductStatus, hasEventInChartPeriod, getUniqueProductLength, processDates } from '/library/utils.js';
 
-let products, xScale, yScale;
+let xScale, yScale;
 let debounceTimer;
 
 d3.select("#search-box").on("input", function() {
@@ -11,10 +11,13 @@ d3.select("#search-box").on("input", function() {
   }, 300);
 });
 
+// Initial data fetch
+fetchAndProcessData('', true);
+
 // Mise à jour des variables globales générales du graphique
 function updateVariables(data) {
-  products = Array.from(new Set(data.map(d => d.product)));
-  const { innerWidth, innerHeight } = getChartDimensions(products.length);
+  setProducts(data);
+  const { innerWidth, innerHeight } = getChartDimensions(getProducts().length);
   const endDateChart = tableConfig.getEndDateChart();
 
   xScale = d3.scaleTime()
@@ -22,25 +25,9 @@ function updateVariables(data) {
     .range([0, innerWidth]);
 
   yScale = d3.scaleBand()
-    .domain(products)
+    .domain(getProducts())
     .range([0, innerHeight])
     .padding(0.1);
-}
-
-function processDates(data) {
-  const parseTime = d3.timeParse("%Y-%m-%d");
-
-  return data.map(d => ({
-    ...d,
-    start_date: parseTime(d.start_date),
-    end_date: parseTime(d.end_date),
-    mise_a_jour_date: parseTime(d.mise_a_jour_date),
-    date_dernier_rapport: parseTime(d.date_dernier_rapport),
-    end_date: d.end_date ? parseTime(d.end_date) : new Date(Math.max(
-      d.mise_a_jour_date ? parseTime(d.mise_a_jour_date) : 0,
-      d.date_dernier_rapport ? parseTime(d.date_dernier_rapport) : 0
-    ))
-  }));
 }
 
 function fetchAndProcessData(searchTerm = '', isInitialSetup = false) {
@@ -68,16 +55,13 @@ function fetchAndProcessData(searchTerm = '', isInitialSetup = false) {
     .catch(error => console.error('Error:', error));
 }
 
-// Initial data fetch
-fetchAndProcessData('', true);
-
 // For filtered data (to be used with the search input)
 function fetchFilteredData(searchTerm) {
   fetchAndProcessData(searchTerm, false);
 }
 
 function drawBarChart(data, isInitialSetup) {
-  const { height, innerWidth, innerHeight } = getChartDimensions(products.length);
+  const { height, innerWidth, innerHeight } = getChartDimensions(getProducts().length);
   const dateLastReport = tableConfig.getDateLastReport();
   let outerBox, innerChart;
 
@@ -125,35 +109,35 @@ function drawBarChart(data, isInitialSetup) {
 // EVENTS
   // Ajout des barres de chaque événement
   innerChart.selectAll("rect.bar")
-       .data(data)
-       .enter()
-       .append("rect")
-       .attr("class", d => `bar ${d.status}`)
-       .attr("x", d => xScale(d.start_date > tableConfig.startDateChart ? d.start_date : tableConfig.startDateChart))
-       .attr("y", d => yScale(d.product) + yScale.bandwidth() / 2 - tableConfig.barHeight / 2 - 1)
-       .attr("width", d => {
-         const startDate = new Date(d.start_date);
-         const endDate = new Date(d.end_date);
-         const effectiveStartDate = startDate > tableConfig.startDateChart ? startDate : tableConfig.startDateChart;
-         return Math.max(0, xScale(endDate) - xScale(effectiveStartDate));
-       })
-       .attr("height", tableConfig.barHeight)
-       .on("mouseover", function(event, d) {
-         let statusClass = `tooltip-${d.status.toLowerCase()}`;
-         tooltip.html(`
-           <strong>Produit:</strong> ${d.product}<br>
-           <strong>Incident:</strong> ${d.status}<br>
-           <strong>Début:</strong> ${d3.timeFormat("%d/%m/%Y")(d.start_date)}<br>
-           <strong>Fin:</strong> ${d3.timeFormat("%d/%m/%Y")(d.end_date)}
-         `)
-         .attr("class", statusClass)
-         .style("opacity", 0.9)
-         .style("left", (event.pageX + 10) + "px")
-         .style("top", (event.pageY - 28) + "px");
-       })
-       .on("mouseout", function() {
-         tooltip.style("opacity", 0);
-       });
+    .data(data)
+    .enter()
+    .append("rect")
+    .attr("class", d => `bar ${d.status}`)
+    .attr("x", d => xScale(d.start_date > tableConfig.startDateChart ? d.start_date : tableConfig.startDateChart))
+    .attr("y", d => yScale(d.product) + yScale.bandwidth() / 2 - tableConfig.barHeight / 2 - 1)
+    .attr("width", d => {
+      const startDate = new Date(d.start_date);
+      const endDate = new Date(d.end_date);
+      const effectiveStartDate = startDate > tableConfig.startDateChart ? startDate : tableConfig.startDateChart;
+      return Math.max(0, xScale(endDate) - xScale(effectiveStartDate));
+    })
+    .attr("height", tableConfig.barHeight)
+    .on("mouseover", function(event, d) {
+      let statusClass = `tooltip-${d.status.toLowerCase()}`;
+      tooltip.html(`
+        <strong>Produit:</strong> ${d.product}<br>
+        <strong>Incident:</strong> ${d.status}<br>
+        <strong>Début:</strong> ${d3.timeFormat("%d/%m/%Y")(d.start_date)}<br>
+        <strong>Fin:</strong> ${d3.timeFormat("%d/%m/%Y")(d.end_date)}
+      `)
+      .attr("class", statusClass)
+      .style("opacity", 0.9)
+      .style("left", (event.pageX + 10) + "px")
+      .style("top", (event.pageY - 28) + "px");
+    })
+    .on("mouseout", function() {
+      tooltip.style("opacity", 0);
+    });
 
 // X-AXIS
   // Top X Axis for years
@@ -244,7 +228,7 @@ function drawBarChart(data, isInitialSetup) {
 // GRID
   // Add horizontal grid lines manually after bars to ensure they are on top
   innerChart.selectAll(".grid-line")
-    .data(products)
+    .data(getProducts())
     .enter()
     .append("line")
       .attr("class", "grid-line")

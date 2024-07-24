@@ -1,4 +1,5 @@
 let dateLastReport, endDateChart;
+let products = [];
 
 export const tableConfig = {
   margin: { top: 50, right: 20, bottom: 30, left: 300 },
@@ -28,3 +29,11 @@ export const getChartDimensions = (productsCount) => {
 
   return { height, innerWidth, innerHeight };
 };
+
+export function setProducts(data) {
+  products = Array.from(new Set(data.map(d => d.product)));
+}
+
+export function getProducts() {
+  return products;
+}
