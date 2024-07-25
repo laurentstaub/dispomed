@@ -59,3 +59,27 @@ export function getXScale() {
 export function getYScale() {
   return yScale;
 }
+
+export function processDataMonthlyChart(data) {
+  // Generate an array of all months between start and end dates
+  const allMonths = d3.timeMonth
+    .range(tableConfig.startDateChart, tableConfig.getEndDateChart())
+    .map(d => new Date(d.getFullYear(), d.getMonth(), 15));
+
+  const summaryMonthlyData = allMonths.map(monthDate => {
+    let rupture = 0;
+    let tension = 0;
+
+    data.forEach(product => {
+      // Check if the product's status is active on the 15th of the month
+      if (product.start_date <= monthDate && product.end_date >= monthDate) {
+        if (product.status === "Rupture") rupture++;
+        else if (product.status === "Tension") tension++;
+      }
+    });
+
+    return { date: d3.timeFormat("%Y-%m-%d")(monthDate), rupture, tension };
+  });
+
+  return summaryMonthlyData;
+}
