@@ -18,6 +18,14 @@ h1 {
   color: rgb(10, 59, 16);
 }
 
+.rupture-label {
+    font-size: 12px;
+}
+
+.tension-label {
+    font-size: 12px;
+}
+
 .grid-line {
     stroke: var(--beige);
     stroke-dasharray: 1;
@@ -89,16 +97,26 @@ h1 {
   fill: #333;
 }
 
-#search-container {
-    position: relative;
-    top: 40px;
-    left: 0px;
+#chart-container {
+  position: relative;
+}
+
+#chart-header {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+}
+
+#last-report-date {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 5px;
 }
 
 #search-box {
-    width: 200px;
-    padding: 3px;
-    font-size: 11px;
+  width: 200px;
+  padding: 5px;
 }
 
 #tooltip {

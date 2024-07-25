@@ -41,6 +41,12 @@ function updateVariables(data) {
   createScales(tableConfig.startDateChart, endDateChart, getProducts(), innerWidth, innerHeight);
 }
 
+function updateLastReportDate() {
+  const formatDate = d3.timeFormat("%d/%m/%Y");
+  d3.select("#last-report-date")
+    .text(`Date du dernier rapport : ${formatDate(tableConfig.getDateLastReport())}`);
+}
+
 function fetchAndProcessData(searchTerm = '', isInitialSetup = false) {
   const queryString = searchTerm ? new URLSearchParams({ product: searchTerm }).toString() : '';
   const url = `/api/incidents${queryString ? '?' + queryString : ''}`;
@@ -54,6 +60,7 @@ function fetchAndProcessData(searchTerm = '', isInitialSetup = false) {
       if (isInitialSetup) {
         tableConfig.setEndDateChart(new Date(d3.max(processedData, d => d.end_date).getFullYear(), 11, 31));
         tableConfig.setDateLastReport(d3.max(processedData, d => d.end_date));
+        updateLastReportDate();
       }
 
       const periodFilteredData = processedData
@@ -71,24 +78,40 @@ function fetchAndProcessData(searchTerm = '', isInitialSetup = false) {
 
 function drawSummaryChart(monthlyChartData, isInitialSetup) {
   const width = 1000;
-  const height = 300;
-  const margin = { top: 20, right: 20, bottom: 40, left: 300 };
+  const height = 250;
+  const margin = { top: 50, right: 30, bottom: 50, left: 300 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
 
+  // Parse dates
+  const parseDate = d3.timeParse("%Y-%m-%d");
+  monthlyChartData.forEach(d => {
+    d.date = parseDate(d.date);
+  });
+
+  // Filter out months with no data
+  const filteredData = monthlyChartData.filter(d => d.rupture > 0 || d.tension > 0);
+
   // Create scales
-  const x = d3.scaleBand()
-    .domain(monthlyChartData.map(d => d.date))
-    .range([0, innerWidth])
-    .padding(0.1);
+  const x = d3.scaleTime()
+    .domain(d3.extent(filteredData, d => d.date))
+    .range([0, innerWidth]);
 
   const y = d3.scaleLinear()
-    .domain([0, d3.max(monthlyChartData, d => d.rupture + d.tension)])
+    .domain([0, d3.max(filteredData, d => Math.max(d.rupture, d.tension))])
+    .nice()
     .range([innerHeight, 0]);
 
-  const color = d3.scaleOrdinal()
-    .domain(["rupture", "tension"])
-    .range(["#d53e4f", "#ff8c00"]);
+  // Create line generators
+  const lineRupture = d3.line()
+    .x(d => x(d.date))
+    .y(d => y(d.rupture))
+    .defined(d => d.rupture > 0);
+
+  const lineTension = d3.line()
+    .x(d => x(d.date))
+    .y(d => y(d.tension))
+    .defined(d => d.tension > 0);
 
   // Create SVG
   let svg;
@@ -105,38 +128,69 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
   const g = svg.append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
-  // Create stacked data
-  const stack = d3.stack()
-    .keys(["rupture", "tension"])
-    .order(d3.stackOrderNone)
-    .offset(d3.stackOffsetNone);
+  // Draw lines
+  g.append("path")
+    .datum(filteredData)
+    .attr("fill", "none")
+    .attr("stroke", "#d53e4f")
+    .attr("stroke-width", 1)
+    .attr("d", lineRupture);
 
-  const stackedData = stack(monthlyChartData);
+  g.append("path")
+    .datum(filteredData)
+    .attr("fill", "none")
+    .attr("stroke", "#ff8c00")
+    .attr("stroke-width", 1)
+    .attr("d", lineTension);
 
-  // Draw bars
-  g.selectAll("g")
-    .data(stackedData)
-    .join("g")
-      .attr("fill", d => color(d.key))
-    .selectAll("rect")
-    .data(d => d)
-    .join("rect")
-      .attr("x", d => x(d.data.date))
-      .attr("y", d => y(d[1]))
-      .attr("height", d => y(d[0]) - y(d[1]))
-      .attr("width", x.bandwidth());
+  // Add data points and labels
+  g.selectAll(".rupture-point")
+    .data(filteredData.filter(d => d.rupture > 0))
+    .enter()
+    .append("circle")
+    .attr("class", "rupture-point")
+    .attr("cx", d => x(d.date))
+    .attr("cy", d => y(d.rupture))
+    .attr("r", 2)
+    .attr("fill", "#d53e4f");
+
+  g.selectAll(".rupture-label")
+    .data(filteredData.filter(d => d.rupture > 0))
+    .enter()
+    .append("text")
+    .attr("class", "rupture-label")
+    .attr("x", d => x(d.date))
+    .attr("y", d => y(d.rupture) - 10)
+    .attr("text-anchor", "middle")
+    .text(d => d.rupture);
+
+  g.selectAll(".tension-point")
+    .data(filteredData.filter(d => d.tension > 0))
+    .enter()
+    .append("circle")
+    .attr("class", "tension-point")
+    .attr("cx", d => x(d.date))
+    .attr("cy", d => y(d.tension))
+    .attr("r", 2)
+    .attr("fill", "#ff8c00");
+
+  g.selectAll(".tension-label")
+    .data(filteredData.filter(d => d.tension > 0))
+    .enter()
+    .append("text")
+    .attr("class", "tension-label")
+    .attr("x", d => x(d.date))
+    .attr("y", d => y(d.tension) - 10)
+    .attr("text-anchor", "middle")
+    .text(d => d.tension);
 
   // Add x-axis
   g.append("g")
     .attr("transform", `translate(0,${innerHeight})`)
-    .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%b %Y")))
+    .call(d3.axisBottom(x)
+      .tickFormat(d3.timeFormat("%m/%Y")))
     .selectAll("text")
-      .attr("transform", "rotate(-45)")
-      .style("text-anchor", "end");
-
-  // Add y-axis
-  g.append("g")
-    .call(d3.axisLeft(y));
+      .style("text-anchor", "center");
 
   // Add legend
   const legend = svg.append("g")
@@ -144,22 +198,22 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("font-size", 10)
     .attr("text-anchor", "end")
     .selectAll("g")
-    .data(color.domain().slice().reverse())
+    .data(["Rupture", "Tension"])
     .join("g")
-      .attr("transform", (d, i) => `translate(0,${i * 20})`);
+      .attr("transform", (d, i) => `translate(${width - 20},${i * 20 + 20})`);
 
-  legend.append("rect")
-    .attr("x", width - 19)
-    .attr("width", 19)
-    .attr("height", 19)
-    .attr("fill", color);
+  legend.append("line")
+    .attr("x1", -30)
+    .attr("x2", -10)
+    .attr("stroke", (d, i) => i === 0 ? "#d53e4f" : "#ff8c00");
 
   legend.append("text")
-    .attr("x", width - 24)
-    .attr("y", 9.5)
+    .attr("x", -35)
+    .attr("y", 4)
     .attr("dy", "0.32em")
-    .text(d => d.charAt(0).toUpperCase() + d.slice(1));
-};
+    .text(d => d);
+}
+
 
 function drawBarChart(data, isInitialSetup) {
   const { height, innerWidth, innerHeight } = getChartDimensions(getProducts().length);
@@ -181,14 +235,6 @@ function drawBarChart(data, isInitialSetup) {
       .append("g")
         .attr("transform", `translate(${tableConfig.margin.left}, ${tableConfig.margin.top})`);
 
-    // Ajoutez ceci après la création du SVG et de innerChart
-    const title = outerBox.append("text")
-      .attr("class", "chart-title")
-      .attr("x", 0)
-      .attr("y", 10)
-      .attr("text-anchor", "left")
-      .style("font-size", "14px")
-      .style("font-weight", "bold");
   } else {  // Mise à jour du SVG existant
     outerBox = d3.select("#dash svg")
       .attr("viewBox", `0, 0, ${tableConfig.width}, ${height}`)
@@ -197,10 +243,6 @@ function drawBarChart(data, isInitialSetup) {
     innerChart = d3.select("#dash svg g"); // Remove all existing elements
     innerChart.selectAll("*").remove();
   }
-
-  const formatDate = d3.timeFormat("%d/%m/%Y");
-    outerBox.select(".chart-title")
-      .text(`Date du dernier rapport : ${formatDate(tableConfig.getDateLastReport())}`);
 
   innerChart.append("rect")
     .attr("class", "x-top-background")
