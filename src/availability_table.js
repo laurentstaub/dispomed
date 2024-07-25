@@ -5,7 +5,8 @@ import {
   getProducts,
   createScales,
   getXScale,
-  getYScale
+  getYScale,
+  processDataMonthlyChart,
 } from './availability_config.js';
 
 import {
@@ -17,6 +18,7 @@ import {
   createDebouncedSearch
 } from '/library/utils.js';
 
+let monthlyChartData;
 const debouncedFetchFilteredData = createDebouncedSearch(fetchFilteredData);
 
 d3.select("#search-box").on("input", function() {
@@ -25,6 +27,11 @@ d3.select("#search-box").on("input", function() {
 
 // Initial data fetch
 fetchAndProcessData('', true);
+
+// For filtered data (to be used with the search input)
+export function fetchFilteredData(searchTerm) {
+  fetchAndProcessData(searchTerm, false);
+}
 
 // Mise à jour des variables globales générales du graphique
 function updateVariables(data) {
@@ -52,17 +59,107 @@ function fetchAndProcessData(searchTerm = '', isInitialSetup = false) {
       const periodFilteredData = processedData
         .filter(hasEventInChartPeriod)
         .sort(customSort);
+      monthlyChartData = processDataMonthlyChart(periodFilteredData);
+      console.log(monthlyChartData);
 
       updateVariables(periodFilteredData);
       drawBarChart(periodFilteredData, isInitialSetup);
+      drawSummaryChart(monthlyChartData, isInitialSetup);
     })
     .catch(error => console.error('Error:', error));
 }
 
-// For filtered data (to be used with the search input)
-function fetchFilteredData(searchTerm) {
-  fetchAndProcessData(searchTerm, false);
-}
+function drawSummaryChart(monthlyChartData, isInitialSetup) {
+  const width = 1000;
+  const height = 300;
+  const margin = { top: 20, right: 20, bottom: 40, left: 300 };
+  const innerWidth = width - margin.left - margin.right;
+  const innerHeight = height - margin.top - margin.bottom;
+
+  // Create scales
+  const x = d3.scaleBand()
+    .domain(monthlyChartData.map(d => d.date))
+    .range([0, innerWidth])
+    .padding(0.1);
+
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(monthlyChartData, d => d.rupture + d.tension)])
+    .range([innerHeight, 0]);
+
+  const color = d3.scaleOrdinal()
+    .domain(["rupture", "tension"])
+    .range(["#d53e4f", "#ff8c00"]);
+
+  // Create SVG
+  let svg;
+  if (isInitialSetup) {
+    svg = d3.select("#summary")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height);
+  } else {
+    svg = d3.select("#summary svg");
+    svg.selectAll("*").remove();
+  }
+
+  const g = svg.append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  // Create stacked data
+  const stack = d3.stack()
+    .keys(["rupture", "tension"])
+    .order(d3.stackOrderNone)
+    .offset(d3.stackOffsetNone);
+
+  const stackedData = stack(monthlyChartData);
+
+  // Draw bars
+  g.selectAll("g")
+    .data(stackedData)
+    .join("g")
+      .attr("fill", d => color(d.key))
+    .selectAll("rect")
+    .data(d => d)
+    .join("rect")
+      .attr("x", d => x(d.data.date))
+      .attr("y", d => y(d[1]))
+      .attr("height", d => y(d[0]) - y(d[1]))
+      .attr("width", x.bandwidth());
+
+  // Add x-axis
+  g.append("g")
+    .attr("transform", `translate(0,${innerHeight})`)
+    .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%b %Y")))
+    .selectAll("text")
+      .attr("transform", "rotate(-45)")
+      .style("text-anchor", "end");
+
+  // Add y-axis
+  g.append("g")
+    .call(d3.axisLeft(y));
+
+  // Add legend
+  const legend = svg.append("g")
+    .attr("font-family", "sans-serif")
+    .attr("font-size", 10)
+    .attr("text-anchor", "end")
+    .selectAll("g")
+    .data(color.domain().slice().reverse())
+    .join("g")
+      .attr("transform", (d, i) => `translate(0,${i * 20})`);
+
+  legend.append("rect")
+    .attr("x", width - 19)
+    .attr("width", 19)
+    .attr("height", 19)
+    .attr("fill", color);
+
+  legend.append("text")
+    .attr("x", width - 24)
+    .attr("y", 9.5)
+    .attr("dy", "0.32em")
+    .text(d => d.charAt(0).toUpperCase() + d.slice(1));
+};
 
 function drawBarChart(data, isInitialSetup) {
   const { height, innerWidth, innerHeight } = getChartDimensions(getProducts().length);
@@ -112,7 +209,7 @@ function drawBarChart(data, isInitialSetup) {
     .attr("width", innerWidth)
     .attr("height", tableConfig.margin.top - 10);
 
-// EVENTS
+  // EVENTS
   // Ajout des barres de chaque événement
   innerChart.selectAll("rect.bar")
     .data(data)
@@ -145,7 +242,7 @@ function drawBarChart(data, isInitialSetup) {
       tooltip.style("opacity", 0);
     });
 
-// X-AXIS
+  // X-AXIS
   // Top X Axis for years
   const yearAxis = innerChart
     .append("g")
@@ -201,7 +298,7 @@ function drawBarChart(data, isInitialSetup) {
       .attr("id", "tooltip");
   }
 
-// Y-AXIS
+  // Y-AXIS
   // Produits
   innerChart
       .append("g")
@@ -231,7 +328,7 @@ function drawBarChart(data, isInitialSetup) {
           d3.select("#tooltip").transition().duration(500).style("opacity", 0);
       });
 
-// GRID
+  // GRID
   // Add horizontal grid lines manually after bars to ensure they are on top
   innerChart.selectAll(".grid-line")
     .data(getProducts())
@@ -266,7 +363,7 @@ function drawBarChart(data, isInitialSetup) {
       .attr("y1", 0)
       .attr("y2", innerHeight)
 
-  // // Add vertical lines for each year beginning
+  // Add vertical lines for each year beginning
   innerChart.selectAll(".year-line")
     .data(yearTicks)
     .enter()
@@ -293,7 +390,7 @@ function drawBarChart(data, isInitialSetup) {
     .attr("y1", 0)
     .attr("y2", innerHeight);
 
-// Add status bars
+  // Add status bars
   const groupedData = d3.group(data, d => getProductStatus(d).text);
   const statusColors = {
     "Rupture de stock": "var(--rupture)",
