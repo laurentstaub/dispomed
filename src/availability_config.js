@@ -1,4 +1,4 @@
-let dateLastReport, endDateChart;
+let dateLastReport, startDateChart, endDateChart;
 let products = [];
 let xScale, yScale;
 
@@ -6,8 +6,8 @@ export const tableConfig = {
   margin: { top: 50, right: 20, bottom: 30, left: 300 },
   width: 1000,
   barHeight: 14,
-  startDateChart: new Date(2023, 0, 1),
-  // LastReportDate is dependant upon the dataset
+  setStartDateChart: (date) => startDateChart = date,
+  getStartDateChart: () => startDateChart,
   setDateLastReport: (date) => dateLastReport = date,
   getDateLastReport: () => dateLastReport,
   setEndDateChart: (date) => endDateChart = date,
@@ -63,7 +63,7 @@ export function getYScale() {
 export function processDataMonthlyChart(data) {
   // Generate an array of all months between start and end dates
   const allMonths = d3.timeMonth
-    .range(tableConfig.startDateChart, tableConfig.getEndDateChart())
+    .range(tableConfig.getStartDateChart(), tableConfig.getEndDateChart())
     .map(d => new Date(d.getFullYear(), d.getMonth(), 15));
 
   const summaryMonthlyData = allMonths.map(monthDate => {

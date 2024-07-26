@@ -33,12 +33,26 @@ export function fetchFilteredData(searchTerm) {
   fetchAndProcessData(searchTerm, false);
 }
 
-// Mise à jour des variables globales générales du graphique
+document.getElementById('show-12-months').addEventListener('click', () => updateDateRange(12));
+document.getElementById('show-24-months').addEventListener('click', () => updateDateRange(24));
+
+function updateDateRange(months) {
+  const [startDate, endDate] = getDateRange(tableConfig.getDateLastReport(), months);
+  tableConfig.setStartDateChart(startDate);
+  tableConfig.setEndDateChart(endDate);
+  fetchAndProcessData('', false, months);
+}
+
+function getDateRange(lastReportDate, monthsToShow) {
+  const endDate = d3.timeMonth.ceil(lastReportDate);
+  const startDate = d3.timeMonth.offset(endDate, -monthsToShow);
+  return [startDate, endDate];
+}
+
 function updateVariables(data) {
   setProducts(data);
   const { innerWidth, innerHeight } = getChartDimensions(getProducts().length);
-  const endDateChart = tableConfig.getEndDateChart();
-  createScales(tableConfig.startDateChart, endDateChart, getProducts(), innerWidth, innerHeight);
+  createScales(tableConfig.getStartDateChart(), tableConfig.getEndDateChart(), getProducts(), innerWidth, innerHeight);
 }
 
 function updateLastReportDate() {
@@ -47,7 +61,7 @@ function updateLastReportDate() {
     .text(`Date du dernier rapport : ${formatDate(tableConfig.getDateLastReport())}`);
 }
 
-function fetchAndProcessData(searchTerm = '', isInitialSetup = false) {
+function fetchAndProcessData(searchTerm = '', isInitialSetup = false, monthsToShow = 12) {
   const queryString = searchTerm ? new URLSearchParams({ product: searchTerm }).toString() : '';
   const url = `/api/incidents${queryString ? '?' + queryString : ''}`;
 
@@ -58,28 +72,31 @@ function fetchAndProcessData(searchTerm = '', isInitialSetup = false) {
       const processedData = processDates(data);
 
       if (isInitialSetup) {
-        tableConfig.setEndDateChart(new Date(d3.max(processedData, d => d.end_date).getFullYear(), 11, 31));
-        tableConfig.setDateLastReport(d3.max(processedData, d => d.end_date));
-        updateLastReportDate();
+        const lastReportDate = d3.max(processedData, d => d.end_date);
+        tableConfig.setDateLastReport(lastReportDate);
+        const [startDate, endDate] = getDateRange(lastReportDate, monthsToShow);
+        tableConfig.setStartDateChart(startDate);
+        tableConfig.setEndDateChart(endDate);
       }
 
       const periodFilteredData = processedData
-        .filter(hasEventInChartPeriod)
+        .filter(d => d.start_date < tableConfig.getEndDateChart() && d.end_date >= tableConfig.getStartDateChart())
         .sort(customSort);
-      monthlyChartData = processDataMonthlyChart(periodFilteredData);
-      console.log(monthlyChartData);
 
       updateVariables(periodFilteredData);
       drawBarChart(periodFilteredData, isInitialSetup);
+
+      // Update summary chart
+      const monthlyChartData = processDataMonthlyChart(periodFilteredData);
       drawSummaryChart(monthlyChartData, isInitialSetup);
     })
     .catch(error => console.error('Error:', error));
 }
 
 function drawSummaryChart(monthlyChartData, isInitialSetup) {
-  const width = 1000;
+  const width = tableConfig.width;
   const height = 250;
-  const margin = { top: 50, right: 30, bottom: 50, left: 300 };
+  const margin = { top: 50, right: 30, bottom: 0, left: 300 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
 
@@ -93,9 +110,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
   const filteredData = monthlyChartData.filter(d => d.rupture > 0 || d.tension > 0);
 
   // Create scales
-  const x = d3.scaleTime()
-    .domain(d3.extent(filteredData, d => d.date))
-    .range([0, innerWidth]);
+  const xScale = getXScale();
 
   const y = d3.scaleLinear()
     .domain([0, d3.max(filteredData, d => Math.max(d.rupture, d.tension))])
@@ -104,12 +119,12 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 
   // Create line generators
   const lineRupture = d3.line()
-    .x(d => x(d.date))
+    .x(d => xScale(d.date))
     .y(d => y(d.rupture))
     .defined(d => d.rupture > 0);
 
   const lineTension = d3.line()
-    .x(d => x(d.date))
+    .x(d => xScale(d.date))
     .y(d => y(d.tension))
     .defined(d => d.tension > 0);
 
@@ -149,7 +164,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .enter()
     .append("circle")
     .attr("class", "rupture-point")
-    .attr("cx", d => x(d.date))
+    .attr("cx", d => xScale(d.date))
     .attr("cy", d => y(d.rupture))
     .attr("r", 2)
     .attr("fill", "#d53e4f");
@@ -159,7 +174,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .enter()
     .append("text")
     .attr("class", "rupture-label")
-    .attr("x", d => x(d.date))
+    .attr("x", d => xScale(d.date))
     .attr("y", d => y(d.rupture) - 10)
     .attr("text-anchor", "middle")
     .text(d => d.rupture);
@@ -169,7 +184,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .enter()
     .append("circle")
     .attr("class", "tension-point")
-    .attr("cx", d => x(d.date))
+    .attr("cx", d => xScale(d.date))
     .attr("cy", d => y(d.tension))
     .attr("r", 2)
     .attr("fill", "#ff8c00");
@@ -179,18 +194,10 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .enter()
     .append("text")
     .attr("class", "tension-label")
-    .attr("x", d => x(d.date))
+    .attr("x", d => xScale(d.date))
     .attr("y", d => y(d.tension) - 10)
     .attr("text-anchor", "middle")
     .text(d => d.tension);
-
-  // Add x-axis
-  g.append("g")
-    .attr("transform", `translate(0,${innerHeight})`)
-    .call(d3.axisBottom(x)
-      .tickFormat(d3.timeFormat("%m/%Y")))
-    .selectAll("text")
-      .style("text-anchor", "center");
 
   // Add legend
   const legend = svg.append("g")
@@ -213,7 +220,6 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("dy", "0.32em")
     .text(d => d);
 }
-
 
 function drawBarChart(data, isInitialSetup) {
   const { height, innerWidth, innerHeight } = getChartDimensions(getProducts().length);
@@ -258,12 +264,12 @@ function drawBarChart(data, isInitialSetup) {
     .enter()
     .append("rect")
     .attr("class", d => `bar ${d.status}`)
-    .attr("x", d => xScale(d.start_date > tableConfig.startDateChart ? d.start_date : tableConfig.startDateChart))
+    .attr("x", d => xScale(d.start_date > tableConfig.getStartDateChart() ? d.start_date : tableConfig.getStartDateChart()))
     .attr("y", d => yScale(d.product) + yScale.bandwidth() / 2 - tableConfig.barHeight / 2 - 1)
     .attr("width", d => {
       const startDate = new Date(d.start_date);
       const endDate = new Date(d.end_date);
-      const effectiveStartDate = startDate > tableConfig.startDateChart ? startDate : tableConfig.startDateChart;
+      const effectiveStartDate = startDate > tableConfig.getStartDateChart() ? startDate : tableConfig.getStartDateChart();
       return Math.max(0, xScale(endDate) - xScale(effectiveStartDate));
     })
     .attr("height", tableConfig.barHeight)
