@@ -153,10 +153,35 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 
   g.append("path")
     .datum(filteredData)
+    .attr("class", "tension-line")
     .attr("fill", "none")
-    .attr("stroke", "#ff8c00")
+    .attr("stroke", "#ffebaa")
     .attr("stroke-width", 1)
     .attr("d", lineTension);
+
+  // Create area generators
+  const areaRupture = d3.area()
+    .x(d => xScale(d.date))
+    .y0(innerHeight)
+    .y1(d => y(d.rupture))
+    .defined(d => d.rupture > 0);
+
+  const areaTension = d3.area()
+    .x(d => xScale(d.date))
+    .y0(innerHeight)
+    .y1(d => y(d.tension))
+    .defined(d => d.tension > 0);
+
+  // Draw areas
+  g.append("path")
+    .datum(filteredData)
+    .attr("class", "area rupture-area")
+    .attr("d", areaRupture);
+
+  g.append("path")
+    .datum(filteredData)
+    .attr("class", "area tension-area")
+    .attr("d", areaTension);
 
   // Add data points and labels
   g.selectAll(".rupture-point")

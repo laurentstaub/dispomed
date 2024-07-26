@@ -7,7 +7,8 @@
     --beigeleger: rgb(245, 240, 235);
     --beige: rgb(207, 185, 160);
     --rupture: rgb(230, 70, 100);
-    --tension: rgb(255, 235, 170);
+    // --tension: rgb(255, 235, 170);
+    --tension: rgb(255, 200, 100);
     --rupture-bg: rgba(170, 30, 25, 0.9);
     --tension-bg: rgba(150, 135, 100, 0.9);
     --disponible-bg: rgba(144, 238, 144, 0.9);
@@ -24,6 +25,14 @@ h1 {
 
 .tension-label {
     font-size: 10px;
+}
+
+.rupture-area {
+  fill: rgba(213, 62, 79, 0.2);
+}
+
+.tension-area {
+  fill: rgba(255, 140, 0, 0.05);
 }
 
 .grid-line {
