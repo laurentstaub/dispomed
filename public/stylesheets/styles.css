@@ -7,10 +7,11 @@
     --beigeleger: rgb(245, 240, 235);
     --beige: rgb(207, 185, 160);
     --rupture: rgb(230, 70, 100);
-    // --tension: rgb(255, 235, 170);
-    --tension: rgb(255, 200, 100);
-    --rupture-bg: rgba(170, 30, 25, 0.9);
+    --rupture-bg: rgba(230, 70, 100, 0.9);
+    --rupture-area: rgba(230, 70, 100, 0.1);
+    --tension: rgb(255, 235, 170);
     --tension-bg: rgba(150, 135, 100, 0.9);
+    --tension-area: rgba(255, 235, 170, 0.1);
     --disponible-bg: rgba(144, 238, 144, 0.9);
     --arret-bg: rgba(150, 150, 150, 0.9);
 }
@@ -27,12 +28,20 @@ h1 {
     font-size: 10px;
 }
 
+.rupture-point {
+    fill: var(--rupture);
+}
+
+.tension-point {
+    fill: var(--tension);
+}
+
 .rupture-area {
-  fill: rgba(213, 62, 79, 0.2);
+  fill: var(--rupture-area);
 }
 
 .tension-area {
-  fill: rgba(255, 140, 0, 0.05);
+  fill: var(--tension-area);
 }
 
 .grid-line {
@@ -70,7 +79,7 @@ h1 {
 
 .year-line {
     stroke: var(--gris);
-    stroke-width: 1.5px;
+    stroke-width: 1px;
 }
 
 .end-line {

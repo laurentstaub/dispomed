@@ -191,8 +191,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("class", "rupture-point")
     .attr("cx", d => xScale(d.date))
     .attr("cy", d => y(d.rupture))
-    .attr("r", 2)
-    .attr("fill", "#d53e4f");
+    .attr("r", 2);
 
   g.selectAll(".rupture-label")
     .data(filteredData.filter(d => d.rupture > 0))
@@ -211,8 +210,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("class", "tension-point")
     .attr("cx", d => xScale(d.date))
     .attr("cy", d => y(d.tension))
-    .attr("r", 2)
-    .attr("fill", "#ff8c00");
+    .attr("r", 2);
 
   g.selectAll(".tension-label")
     .data(filteredData.filter(d => d.tension > 0))
@@ -244,6 +242,14 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("y", 4)
     .attr("dy", "0.32em")
     .text(d => d);
+
+  g.append("line")
+     .attr("x1", 0)
+     .attr("y1", innerHeight)
+     .attr("x2", innerWidth)
+     .attr("y2", innerHeight)
+     .attr("stroke", "black") // Set the line color
+     .attr("stroke-width", 1); // Set the line thickness
 }
 
 function drawBarChart(data, isInitialSetup) {
@@ -275,12 +281,14 @@ function drawBarChart(data, isInitialSetup) {
     innerChart.selectAll("*").remove();
   }
 
-  innerChart.append("rect")
-    .attr("class", "x-top-background")
-    .attr("x", 0)
-    .attr("y", - tableConfig.margin.top + 10)
-    .attr("width", innerWidth)
-    .attr("height", tableConfig.margin.top - 10);
+  // innerChart.append("rect")
+  //   .attr("class", "x-top-background")
+  //   .attr("x", 0)
+  //   .attr("y", - tableConfig.margin.top + 10)
+  //   .attr("width", innerWidth)
+  //   .attr("height", tableConfig.margin.top - 10);
+
+
 
   // EVENTS
   // Ajout des barres de chaque événement
@@ -462,6 +470,7 @@ function drawBarChart(data, isInitialSetup) {
     .attr("x2", xScale(dateLastReport))
     .attr("y1", 0)
     .attr("y2", innerHeight);
+
 
   // Add status bars
   const groupedData = d3.group(data, d => getProductStatus(d).text);

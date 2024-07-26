@@ -14,13 +14,7 @@ export const tableConfig = {
   getEndDateChart: () => endDateChart,
   labelMaxLength: 50,
   statusBarWidth: 20,
-  statusBarSpacing: 5,
-  colors: {
-    rupture: "var(--rupture)",
-    tension: "var(--tension)",
-    arret: "var(--gris)",
-    disponible: "var(--disponible-bg)"
-  }
+  statusBarSpacing: 5
 };
 
 export const getChartDimensions = (productsCount) => {
@@ -64,14 +58,14 @@ export function processDataMonthlyChart(data) {
   // Generate an array of all months between start and end dates
   const allMonths = d3.timeMonth
     .range(tableConfig.getStartDateChart(), tableConfig.getEndDateChart())
-    .map(d => new Date(d.getFullYear(), d.getMonth(), 15));
+    .map(d => new Date(d.getFullYear(), d.getMonth(), 1));
 
   const summaryMonthlyData = allMonths.map(monthDate => {
     let rupture = 0;
     let tension = 0;
 
     data.forEach(product => {
-      // Check if the product's status is active on the 15th of the month
+      // Check if the product's status is active on the 1st of the month
       if (product.start_date <= monthDate && product.end_date >= monthDate) {
         if (product.status === "Rupture") rupture++;
         else if (product.status === "Tension") tension++;
