@@ -124,6 +124,40 @@ button {
   fill: #333;
 }
 
+.flex-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 0px;
+}
+
+#controls-and-search {
+  width: 300px;
+  height: 250px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+#chart-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0px;
+}
+
+#chart-controls button {
+  flex: 1 0 calc(50% - 5px);
+}
+
+#search-box {
+  width: 200px;
+  padding: 5px;
+}
+
+#summary {
+  flex: 1;
+  height: 250px;
+}
+
 #chart-container {
   position: relative;
 }
@@ -145,10 +179,7 @@ button {
   margin-bottom: 5px;
 }
 
-#search-box {
-  width: 200px;
-  padding: 5px;
-}
+
 
 #tooltip {
     padding: 8px;
