@@ -20,6 +20,15 @@ h1 {
   color: rgb(10, 59, 16);
 }
 
+button {
+    font-size: 10px;
+    width: 120px;
+}
+
+.button-left {
+    margin-right: 5px;
+}
+
 .rupture-label {
     font-size: 10px;
 }
@@ -117,6 +126,10 @@ h1 {
 
 #chart-container {
   position: relative;
+}
+
+#chart-controls {
+    width: 300px;
 }
 
 #chart-header {
