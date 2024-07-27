@@ -33,8 +33,10 @@ export function fetchFilteredData(searchTerm) {
   fetchAndProcessData(searchTerm, false);
 }
 
+document.getElementById('show-6-months').addEventListener('click', () => updateDateRange(6));
 document.getElementById('show-12-months').addEventListener('click', () => updateDateRange(12));
 document.getElementById('show-24-months').addEventListener('click', () => updateDateRange(24));
+document.getElementById('show-all-data').addEventListener('click', () => showAllData());
 
 function updateDateRange(months) {
   const [startDate, endDate] = getDateRange(tableConfig.getDateLastReport(), months);
@@ -47,6 +49,14 @@ function getDateRange(lastReportDate, monthsToShow) {
   const endDate = d3.timeMonth.ceil(lastReportDate);
   const startDate = d3.timeMonth.offset(endDate, -monthsToShow);
   return [startDate, endDate];
+}
+
+function showAllData() {
+  const startDate = new Date(2021, 4, 1); // May 1, 2021
+  const endDate = tableConfig.getDateLastReport();
+  tableConfig.setStartDateChart(startDate);
+  tableConfig.setEndDateChart(endDate);
+  fetchAndProcessData('', false);
 }
 
 function updateVariables(data) {

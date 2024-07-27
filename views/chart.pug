@@ -29,15 +29,19 @@ html(lang="en")
         h2 Incidents de disponibilité par produit
         p Ce graphique montre les incidents de disponibilité pour chaque produit
         div#chart-container
-          div#chart-header
-            div#chart-controls
-                button#show-12-months Derniers 12 mois
-                button#show-24-months Derniers 24 mois
+            div#chart-header
             div#last-report-date
+            div#chart-controls
+                p Echelle de temps
+                button#show-6-months.button-left Derniers 6 mois
+                button#show-12-months.button-right Derniers 12 mois
+                button#show-24-months.button-left Derniers 24 mois
+                button#show-all-data.button-right Toutes les données
+            p Recherches
             input(type="text" id="search-box" placeholder="Rechercher un produit...")
-        div#summary
-        div#tooltip(style="position: absolute; opacity: 0; pointer-events: none;")
-        div#search-container
+            div#summary
+            div#tooltip(style="position: absolute; opacity: 0; pointer-events: none;")
+        // div#search-container
 
         div#dash
         script(type="module" src="/src/availability_table.js")
