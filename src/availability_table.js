@@ -104,9 +104,9 @@ function fetchAndProcessData(searchTerm = '', isInitialSetup = false, monthsToSh
 }
 
 function drawSummaryChart(monthlyChartData, isInitialSetup) {
-  const width = tableConfig.width;
+  const width = 700;
   const height = 250;
-  const margin = { top: 50, right: 30, bottom: 0, left: 300 };
+  const margin = { top: 50, right: 0, bottom: 0, left: 0 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
 
@@ -258,8 +258,8 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
      .attr("y1", innerHeight)
      .attr("x2", innerWidth)
      .attr("y2", innerHeight)
-     .attr("stroke", "black") // Set the line color
-     .attr("stroke-width", 1); // Set the line thickness
+     .attr("stroke", "black")
+     .attr("stroke-width", 1);
 }
 
 function drawBarChart(data, isInitialSetup) {
