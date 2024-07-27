@@ -3,7 +3,7 @@ let products = [];
 let xScale, yScale;
 
 export const tableConfig = {
-  margin: { top: 50, right: 20, bottom: 30, left: 300 },
+  margin: { top: 40, right: 20, bottom: 30, left: 300 },
   width: 1000,
   barHeight: 14,
   setStartDateChart: (date) => startDateChart = date,

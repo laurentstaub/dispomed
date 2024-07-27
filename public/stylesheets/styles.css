@@ -25,10 +25,6 @@ button {
     width: 120px;
 }
 
-.button-left {
-    margin-right: 5px;
-}
-
 .rupture-label {
     font-size: 10px;
 }
@@ -131,17 +127,28 @@ button {
 }
 
 #controls-and-search {
-  width: 300px;
-  height: 250px;
+  height: 220px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
+.chart-controls-container {
+  border: 1px solid #ccc;
+  padding: 15px;
+  width: 248px;
+}
+
 #chart-controls {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0px;
+  flex-direction: column;
+  width: 100%;
+}
+
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 #chart-controls button {
@@ -149,7 +156,8 @@ button {
 }
 
 #search-box {
-  width: 200px;
+  flex: 0 0 calc(10% - 5px);
+  font-size: 10px;
   padding: 5px;
 }
 
@@ -179,7 +187,19 @@ button {
   margin-bottom: 5px;
 }
 
+.chart-button {
+  flex: 1;
+  padding: 5px;
+  text-align: center;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 0px;
+  cursor: pointer;
+}
 
+.chart-button:hover {
+  background-color: #e0e0e0;
+}
 
 #tooltip {
     padding: 8px;

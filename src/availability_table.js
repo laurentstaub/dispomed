@@ -106,7 +106,7 @@ function fetchAndProcessData(searchTerm = '', isInitialSetup = false, monthsToSh
 function drawSummaryChart(monthlyChartData, isInitialSetup) {
   const width = 700;
   const height = 250;
-  const margin = { top: 50, right: 0, bottom: 0, left: 0 };
+  const margin = { top: 50, right: 0, bottom: 0, left: 20 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
 
