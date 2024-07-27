@@ -33,10 +33,46 @@ export function fetchFilteredData(searchTerm) {
   fetchAndProcessData(searchTerm, false);
 }
 
-document.getElementById('show-6-months').addEventListener('click', () => updateDateRange(6));
-document.getElementById('show-12-months').addEventListener('click', () => updateDateRange(12));
-document.getElementById('show-24-months').addEventListener('click', () => updateDateRange(24));
-document.getElementById('show-all-data').addEventListener('click', () => showAllData());
+// document.getElementById('show-6-months').addEventListener('click', () => updateDateRange(6));
+// document.getElementById('show-12-months').addEventListener('click', () => updateDateRange(12));
+// document.getElementById('show-24-months').addEventListener('click', () => updateDateRange(24));
+// document.getElementById('show-all-data').addEventListener('click', () => showAllData());
+
+// Get all period buttons
+const periodButtons = document.querySelectorAll('.chart-button');
+
+// Function to highlight selected button and update chart
+function selectPeriod(button, months) {
+  periodButtons.forEach(btn => btn.classList.remove('button-selected'));
+  button.classList.add('button-selected');
+}
+
+// Add click event listeners to buttons
+document.getElementById('show-6-months').addEventListener('click', function() {
+  updateDateRange(6)
+  selectPeriod(this, 6);
+});
+
+document.getElementById('show-12-months').addEventListener('click', function() {
+  updateDateRange(12)
+  selectPeriod(this, 12);
+});
+
+document.getElementById('show-24-months').addEventListener('click', function() {
+  updateDateRange(24)
+  selectPeriod(this, 24);
+});
+
+document.getElementById('show-all-data').addEventListener('click', function() {
+  showAllData();
+  selectPeriod(this, null); // null indicates all data
+});
+
+// Set default to 12 months on page load
+window.addEventListener('load', function() {
+  const defaultButton = document.getElementById('show-12-months');
+  selectPeriod(defaultButton, 12);
+});
 
 function updateDateRange(months) {
   const [startDate, endDate] = getDateRange(tableConfig.getDateLastReport(), months);
