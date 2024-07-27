@@ -32,14 +32,16 @@ section
         div#chart-header
         div#last-report-date
         div.flex-container
-            div#controls-and-search
+            div#controls-and-search.chart-controls-container
                 div#chart-controls
-                p Echelle de temps
-                button#show-6-months.button-left Derniers 6 mois
-                button#show-12-months.button-right Derniers 12 mois
-                button#show-24-months.button-left Derniers 24 mois
-                button#show-all-data.button-right Toutes les données
-                p Recherches
+                p.controls Echelle de temps
+                div.button-row
+                    button#show-6-months.chart-button Derniers 6 mois
+                    button#show-12-months.chart-button Derniers 12 mois
+                div.button-row
+                    button#show-24-months.chart-button Derniers 24 mois
+                    button#show-all-data.chart-button Toutes les données
+                p.controls Recherches
                 input(type="text" id="search-box" placeholder="Rechercher un produit...")
             div#summary
             div#tooltip(style="position: absolute; opacity: 0; pointer-events: none;")
