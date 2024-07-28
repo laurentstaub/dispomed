@@ -43,10 +43,6 @@ export function getProductStatus(d) {
   return { text: "Statut inconnu", class: "" };
 }
 
-export function hasEventInChartPeriod(event) {
-  return !(event.end_date <= tableConfig.startDateChart);
-}
-
 export function getUniqueProductLength(eventList) {
   let result = [];
 
