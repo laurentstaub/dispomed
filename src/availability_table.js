@@ -1,5 +1,6 @@
 import {
   tableConfig,
+  reportConfig,
   getChartDimensions,
   setProducts,
   getProducts,
@@ -68,9 +69,9 @@ window.addEventListener('load', function() {
 });
 
 function updateDateRange(months) {
-  const [startDate, endDate] = getDateRange(tableConfig.getDateLastReport(), months);
-  tableConfig.setStartDateChart(startDate);
-  tableConfig.setEndDateChart(endDate);
+  const [startDate, endDate] = getDateRange(reportConfig.getDateLastReport(), months);
+  reportConfig.setStartDateChart(startDate);
+  reportConfig.setEndDateChart(endDate);
   fetchAndProcessData('', false, months);
 }
 
@@ -82,22 +83,22 @@ function getDateRange(lastReportDate, monthsToShow) {
 
 function showAllData() {
   const startDate = new Date(2021, 4, 1); // May 1, 2021
-  const endDate = tableConfig.getDateLastReport();
-  tableConfig.setStartDateChart(startDate);
-  tableConfig.setEndDateChart(endDate);
+  const endDate = reportConfig.getDateLastReport();
+  reportConfig.setStartDateChart(startDate);
+  reportConfig.setEndDateChart(endDate);
   fetchAndProcessData('', false);
 }
 
 function updateVariables(data) {
   setProducts(data);
   const { innerWidth, innerHeight } = getChartDimensions(getProducts().length);
-  createScales(tableConfig.getStartDateChart(), tableConfig.getEndDateChart(), getProducts(), innerWidth, innerHeight);
+  createScales(reportConfig.getStartDateChart(), reportConfig.getEndDateChart(), getProducts(), innerWidth, innerHeight);
 }
 
 function updateLastReportDate() {
   const formatDate = d3.timeFormat("%d/%m/%Y");
   d3.select("#last-report-date")
-    .text(`Date du dernier rapport : ${formatDate(tableConfig.getDateLastReport())}`);
+    .text(`Date du dernier rapport : ${formatDate(reportConfig.getDateLastReport())}`);
 }
 
 function fetchAndProcessData(searchTerm = '', isInitialSetup = false, monthsToShow = 12) {
@@ -112,14 +113,14 @@ function fetchAndProcessData(searchTerm = '', isInitialSetup = false, monthsToSh
 
       if (isInitialSetup) {
         const lastReportDate = d3.max(processedData, d => d.end_date);
-        tableConfig.setDateLastReport(lastReportDate);
+        reportConfig.setDateLastReport(lastReportDate);
         const [startDate, endDate] = getDateRange(lastReportDate, monthsToShow);
-        tableConfig.setStartDateChart(startDate);
-        tableConfig.setEndDateChart(endDate);
+        reportConfig.setStartDateChart(startDate);
+        reportConfig.setEndDateChart(endDate);
       }
 
       const periodFilteredData = processedData
-        .filter(d => d.start_date < tableConfig.getEndDateChart() && d.end_date >= tableConfig.getStartDateChart())
+        .filter(d => d.start_date < reportConfig.getEndDateChart() && d.end_date >= reportConfig.getStartDateChart())
         .sort(customSort);
 
       updateVariables(periodFilteredData);
@@ -294,7 +295,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 
 function drawBarChart(data, isInitialSetup) {
   const { height, innerWidth, innerHeight } = getChartDimensions(getProducts().length);
-  const dateLastReport = tableConfig.getDateLastReport();
+  const dateLastReport = reportConfig.getDateLastReport();
   const xScale = getXScale();
   const yScale = getYScale();
   let outerBox, innerChart;
@@ -337,12 +338,12 @@ function drawBarChart(data, isInitialSetup) {
     .enter()
     .append("rect")
     .attr("class", d => `bar ${d.status}`)
-    .attr("x", d => xScale(d.start_date > tableConfig.getStartDateChart() ? d.start_date : tableConfig.getStartDateChart()))
+    .attr("x", d => xScale(d.start_date > reportConfig.getStartDateChart() ? d.start_date : reportConfig.getStartDateChart()))
     .attr("y", d => yScale(d.product) + yScale.bandwidth() / 2 - tableConfig.barHeight / 2 - 1)
     .attr("width", d => {
       const startDate = new Date(d.start_date);
       const endDate = new Date(d.end_date);
-      const effectiveStartDate = startDate > tableConfig.getStartDateChart() ? startDate : tableConfig.getStartDateChart();
+      const effectiveStartDate = startDate > reportConfig.getStartDateChart() ? startDate : reportConfig.getStartDateChart();
       return Math.max(0, xScale(endDate) - xScale(effectiveStartDate));
     })
     .attr("height", tableConfig.barHeight)
