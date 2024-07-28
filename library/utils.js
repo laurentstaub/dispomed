@@ -1,7 +1,7 @@
-import { tableConfig } from '/src/availability_config.js';
+import { reportConfig, tableConfig } from '/src/availability_config.js';
 
 export function customSort(a, b) {
-  const dateLastReport = tableConfig.getDateLastReport();
+  const dateLastReport = reportConfig.getDateLastReport();
   const aIsActive = a.end_date >= dateLastReport;
   const bIsActive = b.end_date >= dateLastReport;
 
@@ -25,7 +25,7 @@ export function customSort(a, b) {
 }
 
 export function getProductStatus(d) {
-  const dateLastReport = tableConfig.getDateLastReport();
+  const dateLastReport = reportConfig.getDateLastReport();
 
   if (d.status === "arret") {
     return { text: "Arrêt de commercialisation", class: "tooltip-arret" };

@@ -2,16 +2,19 @@ let dateLastReport, startDateChart, endDateChart;
 let products = [];
 let xScale, yScale;
 
-export const tableConfig = {
-  margin: { top: 40, right: 20, bottom: 30, left: 300 },
-  width: 1000,
-  barHeight: 14,
+export const reportConfig = {
   setStartDateChart: (date) => startDateChart = date,
   getStartDateChart: () => startDateChart,
   setDateLastReport: (date) => dateLastReport = date,
   getDateLastReport: () => dateLastReport,
   setEndDateChart: (date) => endDateChart = date,
   getEndDateChart: () => endDateChart,
+}
+
+export const tableConfig = {
+  margin: { top: 40, right: 20, bottom: 30, left: 300 },
+  width: 1000,
+  barHeight: 14,
   labelMaxLength: 50,
   statusBarWidth: 20,
   statusBarSpacing: 5
@@ -57,7 +60,7 @@ export function getYScale() {
 export function processDataMonthlyChart(data) {
   // Generate an array of all months between start and end dates
   const allMonths = d3.timeMonth
-    .range(tableConfig.getStartDateChart(), tableConfig.getEndDateChart())
+    .range(reportConfig.getStartDateChart(), reportConfig.getEndDateChart())
     .map(d => new Date(d.getFullYear(), d.getMonth(), 1));
 
   const summaryMonthlyData = allMonths.map(monthDate => {
