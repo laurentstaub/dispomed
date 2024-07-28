@@ -214,7 +214,27 @@ button {
     max-width: 300px;
 }
 
-.tooltip-rupture { background-color: var(--rupture-bg); color: var(--blanc); }
-.tooltip-tension { background-color: var(--tension-bg); color: var(--blanc); }
-.tooltip-disponible { background-color: var(--disponible-bg); color: var(--blanc); }
-.tooltip-arret { background-color: var(--arret-bg); color: var(--blanc); }
+.tooltip-rupture {
+    background-color: var(--rupture-bg);
+    color: var(--blanc);
+}
+
+.tooltip-tension {
+    background-color: var(--tension-bg);
+    color: var(--blanc);
+}
+
+.tooltip-disponible {
+    background-color: var(--disponible-bg);
+    color: var(--blanc);
+}
+
+.tooltip-arret {
+    background-color: var(--arret-bg);
+    color: var(--blanc);
+}
+
+p.controls {
+    font-size: 12px;
+    margin: 0;
+}

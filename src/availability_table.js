@@ -12,13 +12,11 @@ import {
 import {
   customSort,
   getProductStatus,
-  hasEventInChartPeriod,
   getUniqueProductLength,
   processDates,
   createDebouncedSearch
 } from '/library/utils.js';
 
-let monthlyChartData;
 const debouncedFetchFilteredData = createDebouncedSearch(fetchFilteredData);
 
 d3.select("#search-box").on("input", function() {
@@ -27,16 +25,13 @@ d3.select("#search-box").on("input", function() {
 
 // Initial data fetch
 fetchAndProcessData('', true);
+updateLastReportDate();
+
 
 // For filtered data (to be used with the search input)
-export function fetchFilteredData(searchTerm) {
+function fetchFilteredData(searchTerm) {
   fetchAndProcessData(searchTerm, false);
 }
-
-// document.getElementById('show-6-months').addEventListener('click', () => updateDateRange(6));
-// document.getElementById('show-12-months').addEventListener('click', () => updateDateRange(12));
-// document.getElementById('show-24-months').addEventListener('click', () => updateDateRange(24));
-// document.getElementById('show-all-data').addEventListener('click', () => showAllData());
 
 // Get all period buttons
 const periodButtons = document.querySelectorAll('.chart-button');
