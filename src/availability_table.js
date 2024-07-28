@@ -1,7 +1,7 @@
 import {
-  tableConfig,
-  reportConfig,
-  getChartDimensions,
+  config,
+  getTableDimensions,
+  getSummaryChartDimensions,
   setProducts,
   getProducts,
   createScales,
@@ -69,9 +69,9 @@ window.addEventListener('load', function() {
 });
 
 function updateDateRange(months) {
-  const [startDate, endDate] = getDateRange(reportConfig.getDateLastReport(), months);
-  reportConfig.setStartDateChart(startDate);
-  reportConfig.setEndDateChart(endDate);
+  const [startDate, endDate] = getDateRange(config.report.getDateLastReport(), months);
+  config.report.setStartDateChart(startDate);
+  config.report.setEndDateChart(endDate);
   fetchAndProcessData('', false, months);
 }
 
@@ -83,22 +83,22 @@ function getDateRange(lastReportDate, monthsToShow) {
 
 function showAllData() {
   const startDate = new Date(2021, 4, 1); // May 1, 2021
-  const endDate = reportConfig.getDateLastReport();
-  reportConfig.setStartDateChart(startDate);
-  reportConfig.setEndDateChart(endDate);
+  const endDate = config.report.getDateLastReport();
+  config.report.setStartDateChart(startDate);
+  config.report.setEndDateChart(endDate);
   fetchAndProcessData('', false);
 }
 
 function updateVariables(data) {
   setProducts(data);
-  const { innerWidth, innerHeight } = getChartDimensions(getProducts().length);
-  createScales(reportConfig.getStartDateChart(), reportConfig.getEndDateChart(), getProducts(), innerWidth, innerHeight);
+  const { innerWidth, innerHeight } = getTableDimensions(getProducts().length);
+  createScales(config.report.getStartDateChart(), config.report.getEndDateChart(), getProducts(), innerWidth, innerHeight);
 }
 
 function updateLastReportDate() {
   const formatDate = d3.timeFormat("%d/%m/%Y");
   d3.select("#last-report-date")
-    .text(`Date du dernier rapport : ${formatDate(reportConfig.getDateLastReport())}`);
+    .text(`Date du dernier rapport : ${formatDate(config.report.getDateLastReport())}`);
 }
 
 function fetchAndProcessData(searchTerm = '', isInitialSetup = false, monthsToShow = 12) {
@@ -113,14 +113,14 @@ function fetchAndProcessData(searchTerm = '', isInitialSetup = false, monthsToSh
 
       if (isInitialSetup) {
         const lastReportDate = d3.max(processedData, d => d.end_date);
-        reportConfig.setDateLastReport(lastReportDate);
+        config.report.setDateLastReport(lastReportDate);
         const [startDate, endDate] = getDateRange(lastReportDate, monthsToShow);
-        reportConfig.setStartDateChart(startDate);
-        reportConfig.setEndDateChart(endDate);
+        config.report.setStartDateChart(startDate);
+        config.report.setEndDateChart(endDate);
       }
 
       const periodFilteredData = processedData
-        .filter(d => d.start_date < reportConfig.getEndDateChart() && d.end_date >= reportConfig.getStartDateChart())
+        .filter(d => d.start_date < config.report.getEndDateChart() && d.end_date >= config.report.getStartDateChart())
         .sort(customSort);
 
       updateVariables(periodFilteredData);
@@ -135,11 +135,8 @@ function fetchAndProcessData(searchTerm = '', isInitialSetup = false, monthsToSh
 }
 
 function drawSummaryChart(monthlyChartData, isInitialSetup) {
-  const width = 700;
-  const height = 250;
-  const margin = { top: 50, right: 0, bottom: 0, left: 20 };
-  const innerWidth = width - margin.left - margin.right;
-  const innerHeight = height - margin.top - margin.bottom;
+  const { innerWidth, innerHeight } = getSummaryChartDimensions();
+  const margin = config.summaryChart.margin;
 
   // Parse dates
   const parseDate = d3.timeParse("%Y-%m-%d");
@@ -174,8 +171,8 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
   if (isInitialSetup) {
     svg = d3.select("#summary")
       .append("svg")
-      .attr("width", width)
-      .attr("height", height);
+      .attr("width", config.summaryChart.width)
+      .attr("height", config.summaryChart.height);
   } else {
     svg = d3.select("#summary svg");
     svg.selectAll("*").remove();
@@ -271,7 +268,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .selectAll("g")
     .data(["Rupture", "Tension"])
     .join("g")
-      .attr("transform", (d, i) => `translate(${width - 20},${i * 20 + 20})`);
+      .attr("transform", (d, i) => `translate(${config.summaryChart.width - 20},${i * 20 + 20})`);
 
   legend.append("line")
     .attr("x1", -30)
@@ -294,8 +291,8 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 }
 
 function drawBarChart(data, isInitialSetup) {
-  const { height, innerWidth, innerHeight } = getChartDimensions(getProducts().length);
-  const dateLastReport = reportConfig.getDateLastReport();
+  const { height, innerWidth, innerHeight } = getTableDimensions(getProducts().length);
+  const dateLastReport = config.report.getDateLastReport();
   const xScale = getXScale();
   const yScale = getYScale();
   let outerBox, innerChart;
@@ -305,31 +302,22 @@ function drawBarChart(data, isInitialSetup) {
     // Création initiale du SVG
     outerBox = d3.select("#dash")
       .append("svg")
-        .attr("viewBox", `0, 0, ${tableConfig.width}, ${height}`)
-        .attr("width", tableConfig.width)
-        .attr("height", tableConfig.height);
+        .attr("viewBox", `0, 0, ${config.table.width}, ${height}`)
+        .attr("width", config.table.width)
+        .attr("height", config.table.height);
 
     innerChart = outerBox
       .append("g")
-        .attr("transform", `translate(${tableConfig.margin.left}, ${tableConfig.margin.top})`);
+        .attr("transform", `translate(${config.table.margin.left}, ${config.table.margin.top})`);
 
   } else {  // Mise à jour du SVG existant
     outerBox = d3.select("#dash svg")
-      .attr("viewBox", `0, 0, ${tableConfig.width}, ${height}`)
+      .attr("viewBox", `0, 0, ${config.table.width}, ${height}`)
       .attr("height", height);
 
     innerChart = d3.select("#dash svg g"); // Remove all existing elements
     innerChart.selectAll("*").remove();
   }
-
-  // innerChart.append("rect")
-  //   .attr("class", "x-top-background")
-  //   .attr("x", 0)
-  //   .attr("y", - tableConfig.margin.top + 10)
-  //   .attr("width", innerWidth)
-  //   .attr("height", tableConfig.margin.top - 10);
-
-
 
   // EVENTS
   // Ajout des barres de chaque événement
@@ -338,15 +326,15 @@ function drawBarChart(data, isInitialSetup) {
     .enter()
     .append("rect")
     .attr("class", d => `bar ${d.status}`)
-    .attr("x", d => xScale(d.start_date > reportConfig.getStartDateChart() ? d.start_date : reportConfig.getStartDateChart()))
-    .attr("y", d => yScale(d.product) + yScale.bandwidth() / 2 - tableConfig.barHeight / 2 - 1)
+    .attr("x", d => xScale(d.start_date > config.report.getStartDateChart() ? d.start_date : config.report.getStartDateChart()))
+    .attr("y", d => yScale(d.product) + yScale.bandwidth() / 2 - config.table.barHeight / 2 - 1)
     .attr("width", d => {
       const startDate = new Date(d.start_date);
       const endDate = new Date(d.end_date);
-      const effectiveStartDate = startDate > reportConfig.getStartDateChart() ? startDate : reportConfig.getStartDateChart();
+      const effectiveStartDate = startDate > config.report.getStartDateChart() ? startDate : config.report.getStartDateChart();
       return Math.max(0, xScale(endDate) - xScale(effectiveStartDate));
     })
-    .attr("height", tableConfig.barHeight)
+    .attr("height", config.table.barHeight)
     .on("mouseover", function(event, d) {
       let statusClass = `tooltip-${d.status.toLowerCase()}`;
       tooltip.html(`
@@ -426,14 +414,14 @@ function drawBarChart(data, isInitialSetup) {
       .append("g")
       .call(d3.axisLeft(yScale).tickSize(0))
       .selectAll(".tick text")
-      .attr("x", - tableConfig.margin.left + tableConfig.statusBarWidth + tableConfig.statusBarSpacing)
+      .attr("x", - config.table.margin.left + config.table.statusBarWidth + config.table.statusBarSpacing)
       .style("text-anchor", "start")
       .text(function(d) {
-          return d.length > tableConfig.labelMaxLength ? d.substring(0, tableConfig.labelMaxLength) + "..." : d;
+          return d.length > config.table.labelMaxLength ? d.substring(0, config.table.labelMaxLength) + "..." : d;
       })
       .on("mouseover", function(event, d) {
           const product = data.find(item => item.product === d);
-          if (d.length > tableConfig.labelMaxLength || product) {
+          if (d.length > config.table.labelMaxLength || product) {
               const status = getProductStatus(product);
               const tooltip = d3.select("#tooltip");
               tooltip.transition().duration(200).style("opacity", 0.9);
@@ -457,7 +445,7 @@ function drawBarChart(data, isInitialSetup) {
     .enter()
     .append("line")
       .attr("class", "grid-line")
-      .attr("x1", -tableConfig.margin.left)
+      .attr("x1", -config.table.margin.left)
       .attr("x2", innerWidth)
       .attr("y1", d => yScale(d) + yScale.bandwidth())
       .attr("y2", d => yScale(d) + yScale.bandwidth())
@@ -469,7 +457,7 @@ function drawBarChart(data, isInitialSetup) {
   // Add horizontal line on top of products
   innerChart.append("line")
     .attr("class", "year-line")
-    .attr("x1", -tableConfig.margin.left)
+    .attr("x1", -config.table.margin.left)
     .attr("x2", 0)
     .attr("y1", 0)
     .attr("y2", 0)
@@ -532,16 +520,16 @@ function drawBarChart(data, isInitialSetup) {
     let groupHeight;
 
     if (status === "Disponible") {
-      groupHeight = productLeft * tableConfig.barHeight;
+      groupHeight = productLeft * config.table.barHeight;
     } else {
-      groupHeight = productLength * tableConfig.barHeight;
+      groupHeight = productLength * config.table.barHeight;
     }
 
     innerChart.append("rect")
       .attr("class", "status-bar")
-      .attr("x", -tableConfig.margin.left)
+      .attr("x", -config.table.margin.left)
       .attr("y", accumulatedHeight)
-      .attr("width", tableConfig.statusBarWidth)
+      .attr("width", config.table.statusBarWidth)
       .attr("height", groupHeight)
       .attr("fill", statusColors[status]);
     accumulatedHeight += groupHeight;
