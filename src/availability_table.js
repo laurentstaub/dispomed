@@ -25,8 +25,6 @@ d3.select("#search-box").on("input", function() {
 
 // Initial data fetch
 fetchAndProcessData('', true);
-updateLastReportDate();
-
 
 // For filtered data (to be used with the search input)
 function fetchFilteredData(searchTerm) {
@@ -125,6 +123,7 @@ function fetchAndProcessData(searchTerm = '', isInitialSetup = false, monthsToSh
         .sort(customSort);
 
       updateVariables(periodFilteredData);
+      updateLastReportDate();
       drawBarChart(periodFilteredData, isInitialSetup);
 
       // Update summary chart
