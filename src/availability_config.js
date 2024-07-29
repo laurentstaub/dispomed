@@ -37,14 +37,18 @@ export function getProducts() {
   return products;
 }
 
-let ATCClass = [];
+let ATCClasses = [];
 
 export function setATCClasses(data) {
-  ATCClass = Array.from(new Set(data.map(d => d.classe_atc)));
+  ATCClasses = Array.from(new Set(data.map(d => d.classe_atc))).sort();
+  ATCClasses = ATCClasses.map((ATCClass) => {
+    return { code: ATCClass.slice(0, 1), name: ATCClass.slice(4) };
+  })
+
 }
 
 export function getATCClasses() {
-  return ATCClass;
+  return ATCClasses;
 }
 
 
