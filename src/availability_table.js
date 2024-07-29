@@ -113,16 +113,17 @@ function fetchAndProcessData(searchTerm = '', isInitialSetup = false, monthsToSh
 
       if (isInitialSetup) {
         const lastReportDate = d3.max(processedData, d => d.end_date);
-        config.report.setDateLastReport(lastReportDate);
         const [startDate, endDate] = getDateRange(lastReportDate, monthsToShow);
+        config.report.setDateLastReport(lastReportDate);
         config.report.setStartDateChart(startDate);
         config.report.setEndDateChart(endDate);
       }
 
       const periodFilteredData = processedData
-        .filter(d => d.start_date < config.report.getEndDateChart() && d.end_date >= config.report.getStartDateChart())
+        .filter(d => d.end_date >= config.report.getStartDateChart())
         .sort(customSort);
 
+      console.log(periodFilteredData);
       updateVariables(periodFilteredData);
       updateLastReportDate();
       drawBarChart(periodFilteredData, isInitialSetup);
@@ -184,17 +185,12 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
   // Draw lines
   g.append("path")
     .datum(filteredData)
-    .attr("fill", "none")
-    .attr("stroke", "#d53e4f")
-    .attr("stroke-width", 1)
+    .attr("class", "tension-line")
     .attr("d", lineRupture);
 
   g.append("path")
     .datum(filteredData)
     .attr("class", "tension-line")
-    .attr("fill", "none")
-    .attr("stroke", "#ffebaa")
-    .attr("stroke-width", 1)
     .attr("d", lineTension);
 
   // Create area generators
@@ -259,27 +255,6 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("y", d => y(d.tension) - 10)
     .attr("text-anchor", "middle")
     .text(d => d.tension);
-
-  // Add legend
-  const legend = svg.append("g")
-    .attr("font-family", "sans-serif")
-    .attr("font-size", 10)
-    .attr("text-anchor", "end")
-    .selectAll("g")
-    .data(["Rupture", "Tension"])
-    .join("g")
-      .attr("transform", (d, i) => `translate(${config.summaryChart.width - 20},${i * 20 + 20})`);
-
-  legend.append("line")
-    .attr("x1", -30)
-    .attr("x2", -10)
-    .attr("stroke", (d, i) => i === 0 ? "#d53e4f" : "#ff8c00");
-
-  legend.append("text")
-    .attr("x", -35)
-    .attr("y", 4)
-    .attr("dy", "0.32em")
-    .text(d => d);
 
   g.append("line")
      .attr("x1", 0)
