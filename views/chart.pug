@@ -42,6 +42,16 @@ section
                     button#show-24-months.chart-button Derniers 24 mois
                     button#show-all-data.chart-button Toutes les données
                 p.controls Recherches
+                details.atc-selector
+                    summary.atc-button Select ATC Classes
+                    .atc-options
+                        .atc-option
+                        input(type="checkbox" id="atc1" name="atc" value="A")
+                        label(for="atc1") Class A - Alimentary tract and metabolism
+                        .atc-option
+                        input(type="checkbox" id="atc2" name="atc" value="B")
+                        label(for="atc2") Class B - Blood and blood forming organs
+                        //- Add more checkboxes as needed
                 input(type="text" id="search-box" placeholder="Rechercher un produit...")
             div#summary
             div#tooltip(style="position: absolute; opacity: 0; pointer-events: none;")

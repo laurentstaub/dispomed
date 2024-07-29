@@ -138,6 +138,59 @@ button {
   gap: 0px;
 }
 
+.atc-selector {
+  display: inline-block;
+}
+
+.atc-button {
+  display: inline-block;
+  font-size: 10px;
+  padding: 10px 20px;
+  background-color: #f0f0f0;
+  border: 2px solid #ccc;
+  cursor: pointer;
+  user-select: none;
+}
+
+.atc-button:hover {
+  background-color: #e0e0e0;
+}
+
+.atc-selector[open] .atc-button {
+  background-color: #d0d0d0;
+}
+
+.atc-options {
+  font-size: 10px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+.atc-option {
+  margin-bottom: 5px;
+}
+
+.atc-option label {
+  margin-left: 5px;
+}
+
+/* Remove default arrow */
+.atc-button::-webkit-details-marker {
+  display: none;
+}
+
+.atc-button::after {
+  content: '▼';
+  margin-left: 5px;
+  transition: transform 0.3s;
+}
+
+.atc-selector[open] .atc-button::after {
+  transform: rotate(180deg);
+}
+
+
 #controls-and-search {
   height: 220px;
   display: flex;
