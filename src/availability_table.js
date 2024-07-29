@@ -4,6 +4,8 @@ import {
   getSummaryChartDimensions,
   setProducts,
   getProducts,
+  getATCClasses,
+  setATCClasses,
   createScales,
   getXScale,
   getYScale,
@@ -90,7 +92,6 @@ function showAllData() {
 }
 
 function updateVariables(data) {
-  setProducts(data);
   const { innerWidth, innerHeight } = getTableDimensions(getProducts().length);
   createScales(config.report.getStartDateChart(), config.report.getEndDateChart(), getProducts(), innerWidth, innerHeight);
 }
@@ -124,7 +125,10 @@ function fetchAndProcessData(searchTerm = '', isInitialSetup = false, monthsToSh
         .sort(customSort);
 
       console.log(periodFilteredData);
+      setProducts(periodFilteredData);
       updateVariables(periodFilteredData);
+      setATCClasses(periodFilteredData);
+      console.log(getATCClasses());
       updateLastReportDate();
       drawBarChart(periodFilteredData, isInitialSetup);
 

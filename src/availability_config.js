@@ -37,6 +37,18 @@ export function getProducts() {
   return products;
 }
 
+let ATCClass = [];
+
+export function setATCClasses(data) {
+  ATCClass = Array.from(new Set(data.map(d => d.classe_atc)));
+}
+
+export function getATCClasses() {
+  return ATCClass;
+}
+
+
+
 // Chart-related functions
 let xScale, yScale;
 
