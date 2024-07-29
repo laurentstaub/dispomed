@@ -25,6 +25,18 @@ button {
     width: 120px;
 }
 
+.tension-line {
+    fill: none;
+    stroke: var(--tension);
+    stroke-width: 1;
+}
+
+.rupture-line {
+    fill: none;
+    stroke: var(--rupture);
+    stroke-width: 1;
+}
+
 .rupture-label {
     font-size: 10px;
 }
