@@ -1,4 +1,5 @@
-import { config } from '/src/availability_config.js';
+import * as d3 from 'd3';
+import { config } from '../src/availability_config.js';
 
 export function customSort(a, b) {
   const dateLastReport = config.report.getDateLastReport();
