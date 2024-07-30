@@ -1,6 +1,13 @@
 import express from "express";
 import './library/config.js';
 import { dbQuery } from './database/connect_db.js';
+import { fetchAndProcessData } from './src/fetch_data.js';
+import {
+  setProducts,
+  setATCClasses,
+  getATCClasses,
+} from './src/availability_config.js';
+
 const app = express();
 const PORT = process.env.PORT;
 
@@ -8,6 +15,14 @@ app.set("view engine", "pug");
 app.set("views", "./views");
 
 app.use(express.static("."));
+
+app.get("/", async (req, res) => {
+  const passedIndata = await fetchAndProcessData();
+  // console.log(passedIndata);
+  setProducts(passedIndata);
+  setATCClasses(passedIndata);
+  res.render("chart", { ATCClasses: getATCClasses() });
+});
 
 app.get('/api/incidents', async (req, res) => {
   const { product, status, startDate, endDate, sortBy, sortOrder } = req.query;
@@ -71,10 +86,6 @@ app.get('/api/incidents', async (req, res) => {
     console.error('Error fetching incidents:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-});
-
-app.get("/", (req, res) => {
-  res.render("chart");
 });
 
 app.listen(PORT, () =>

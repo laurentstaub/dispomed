@@ -18,16 +18,13 @@ import {
   getUniqueProductLength,
   processDates,
   createDebouncedSearch
-} from '/library/utils.js';
+} from '../library/utils.js';
 
 const debouncedFetchFilteredData = createDebouncedSearch(fetchFilteredData);
 
 d3.select("#search-box").on("input", function() {
   debouncedFetchFilteredData(this.value);
 });
-
-// Initial data fetch
-fetchAndProcessData('', true);
 
 // For filtered data (to be used with the search input)
 function fetchFilteredData(searchTerm) {
@@ -70,18 +67,7 @@ window.addEventListener('load', function() {
   selectPeriod(defaultButton, 12);
 });
 
-function updateDateRange(months) {
-  const [startDate, endDate] = getDateRange(config.report.getDateLastReport(), months);
-  config.report.setStartDateChart(startDate);
-  config.report.setEndDateChart(endDate);
-  fetchAndProcessData('', false, months);
-}
 
-function getDateRange(lastReportDate, monthsToShow) {
-  const endDate = d3.timeMonth.ceil(lastReportDate);
-  const startDate = d3.timeMonth.offset(endDate, -monthsToShow);
-  return [startDate, endDate];
-}
 
 function showAllData() {
   const startDate = new Date(2021, 4, 1); // May 1, 2021
@@ -94,49 +80,6 @@ function showAllData() {
 function updateVariables(data) {
   const { innerWidth, innerHeight } = getTableDimensions(getProducts().length);
   createScales(config.report.getStartDateChart(), config.report.getEndDateChart(), getProducts(), innerWidth, innerHeight);
-}
-
-function updateLastReportDate() {
-  const formatDate = d3.timeFormat("%d/%m/%Y");
-  d3.select("#last-report-date")
-    .text(`Date du dernier rapport : ${formatDate(config.report.getDateLastReport())}`);
-}
-
-function fetchAndProcessData(searchTerm = '', isInitialSetup = false, monthsToShow = 12) {
-  const queryString = searchTerm ? new URLSearchParams({ product: searchTerm }).toString() : '';
-  const url = `/api/incidents${queryString ? '?' + queryString : ''}`;
-
-  fetch(url)
-    .then(response => response.json())
-    .then(data => {
-      console.log(data);
-      const processedData = processDates(data);
-
-      if (isInitialSetup) {
-        const lastReportDate = d3.max(processedData, d => d.end_date);
-        const [startDate, endDate] = getDateRange(lastReportDate, monthsToShow);
-        config.report.setDateLastReport(lastReportDate);
-        config.report.setStartDateChart(startDate);
-        config.report.setEndDateChart(endDate);
-      }
-
-      const periodFilteredData = processedData
-        .filter(d => d.end_date >= config.report.getStartDateChart())
-        .sort(customSort);
-
-      console.log(periodFilteredData);
-      setProducts(periodFilteredData);
-      updateVariables(periodFilteredData);
-      setATCClasses(periodFilteredData);
-      console.log(getATCClasses());
-      updateLastReportDate();
-      drawBarChart(periodFilteredData, isInitialSetup);
-
-      // Update summary chart
-      const monthlyChartData = processDataMonthlyChart(periodFilteredData);
-      drawSummaryChart(monthlyChartData, isInitialSetup);
-    })
-    .catch(error => console.error('Error:', error));
 }
 
 function drawSummaryChart(monthlyChartData, isInitialSetup) {
