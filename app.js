@@ -20,7 +20,7 @@ app.get("/", async (req, res) => {
 });
 
 app.get('/api/incidents', async (req, res) => {
-  const { product, status, startDate, endDate } = req.query;
+  const { product, monthsToShow } = req.query;
 
 
   try {
@@ -52,28 +52,13 @@ WITH incidents_with_sorting AS (
   LEFT JOIN molecules m ON pm.molecule_id = m.id
   LEFT JOIN molecules_classe_atc mca ON m.id = mca.molecule_id
   LEFT JOIN classe_atc ca ON mca.classe_atc_id = ca.id
-  WHERE i.calculated_end_date >= ((SELECT MAX(calculated_end_date) FROM incidents) - INTERVAL '12 months')`;
+  WHERE i.calculated_end_date >= ((SELECT MAX(calculated_end_date) FROM incidents) - INTERVAL '${monthsToShow} months')`;
 
      const params = [];
 
      if (product) {
        query += ` AND p.name ILIKE $${params.length + 1}`;
        params.push(`%${product}%`);
-     }
-
-     if (status) {
-       query += ` AND i.status = $${params.length + 1}`;
-       params.push(status);
-     }
-
-     if (startDate) {
-       query += ` AND i.start_date >= $${params.length + 1}`;
-       params.push(startDate);
-     }
-
-     if (endDate) {
-       query += ` AND i.end_date >= $${params.length + 1}`;
-       params.push(endDate);
      }
 
      query += `

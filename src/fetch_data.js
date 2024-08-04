@@ -28,12 +28,13 @@ export async function fetchATCClasses() {
 
 export async function fetchTableChartData(searchTerm = '', monthsToShow = 12) {
   const baseUrl = 'http://localhost:3000'; // Or server's base URL
-  const queryString = searchTerm ? new URLSearchParams({ product: searchTerm }).toString() : '';
+  const queryString = new URLSearchParams({ product: searchTerm, monthsToShow: monthsToShow }).toString();
   const url = `${baseUrl}/api/incidents${queryString ? '?' + queryString : ''}`;
 
   return fetch(url)
     .then(response => response.json())
     .then(data => {
+      console.log(data);
       const processedData = processDates(data);
       const lastReportDate = Math.max(...processedData.map(d => new Date(d.calculated_end_date)));
       const [startDate, endDate] = getDateRange(lastReportDate, monthsToShow);
