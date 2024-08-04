@@ -1,36 +1,12 @@
-import * as d3 from 'd3';
-import { config } from '../src/availability_config.js';
+import { config } from '../src/draw_config.js';
 
-export function customSort(a, b) {
-  const dateLastReport = config.report.getDateLastReport();
-  const aIsActive = a.end_date >= dateLastReport;
-  const bIsActive = b.end_date >= dateLastReport;
-
-  // First, sort by active status
-  if (aIsActive && !bIsActive) return -1;
-  if (!aIsActive && bIsActive) return 1;
-
-  // If both are active or both are inactive, sort by status
-  if (aIsActive === bIsActive) {
-    if (a.status === "Rupture" && b.status !== "Rupture") return -1;
-    if (a.status !== "Rupture" && b.status === "Rupture") return 1;
-    if (a.status === "Tension" && b.status !== "Tension") return -1;
-    if (a.status !== "Tension" && b.status === "Tension") return 1;
-
-    // If status is the same, sort by startDate (most recent first)
-    return new Date(b.start_date) - new Date(a.start_date);
-  }
-
-  // If we reach here, one is active and one is inactive, but this is handled above
-  return 0;
-}
 
 export function getProductStatus(d) {
   const dateLastReport = config.report.getDateLastReport();
 
   if (d.status === "arret") {
     return { text: "Arrêt de commercialisation", class: "tooltip-arret" };
-  } else if (d.start_date <= dateLastReport && d.end_date >= dateLastReport) {
+  } else if (d.start_date <= dateLastReport && d.calculated_end_date >= dateLastReport) {
     if (d.status === "Rupture") {
       return { text: "Rupture de stock", class: "tooltip-rupture" };
     } else if (d.status === "Tension") {
@@ -38,7 +14,7 @@ export function getProductStatus(d) {
     } else if (d.status === "Arret") {
       return { text: "Arrêt de commercialisation", class: "tooltip-arret" };
     }
-  } else if (!d.end_date || d.end_date < dateLastReport) {
+  } else if (!d.calculated_end_date || d.calculated_end_date < dateLastReport) {
       return { text: "Disponible", class: "tooltip-disponible" };
   }
   return { text: "Statut inconnu", class: "" };
@@ -54,8 +30,27 @@ export function getUniqueProductLength(eventList) {
   return result.length;
 }
 
+function createTimeParse(format) {
+  // This function only handles "%Y-%m-%d" format
+  if (format !== "%Y-%m-%d") {
+    throw new Error("Only %Y-%m-%d format is supported in this example");
+  }
+
+  return function parseTime(dateString) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return null;
+
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+
+    // Check if the date is valid
+    if (isNaN(date.getTime())) return null;
+
+    return date;
+  };
+}
+
 export function processDates(data) {
-  const parseTime = d3.timeParse("%Y-%m-%d");
+  const parseTime = createTimeParse("%Y-%m-%d");
 
   return data.map(d => ({
     ...d,
@@ -63,10 +58,8 @@ export function processDates(data) {
     end_date: parseTime(d.end_date),
     mise_a_jour_date: parseTime(d.mise_a_jour_date),
     date_dernier_rapport: parseTime(d.date_dernier_rapport),
-    end_date: d.end_date ? parseTime(d.end_date) : new Date(Math.max(
-      d.mise_a_jour_date ? parseTime(d.mise_a_jour_date) : 0,
-      d.date_dernier_rapport ? parseTime(d.date_dernier_rapport) : 0
-    ))
+    end_date: parseTime(d.end_date),
+    calculated_end_date: parseTime(d.calculated_end_date)
   }));
 }
 
