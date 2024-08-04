@@ -36,7 +36,7 @@ d3.select("#search-box").on("input", function() {
 const periodButtons = document.querySelectorAll('.chart-button');
 
 // Function to highlight selected button and update chart
-function selectPeriod(button, months) {
+function selectButton(button, months) {
   periodButtons.forEach(btn => btn.classList.remove('button-selected'));
   button.classList.add('button-selected');
 }
@@ -45,39 +45,38 @@ function selectPeriod(button, months) {
 document.getElementById('show-6-months').addEventListener('click', function() {
   setMonthsToShow(6);
   handleSearch(getSearchTerm());
-  selectPeriod(this, 6);
+  selectButton(this, 6);
 });
 
 document.getElementById('show-12-months').addEventListener('click', function() {
   setMonthsToShow(12);
   handleSearch(getSearchTerm());
-  selectPeriod(this, 12);
+  selectButton(this, 12);
 });
 
 document.getElementById('show-24-months').addEventListener('click', function() {
   setMonthsToShow(24);
   handleSearch(getSearchTerm());
-  selectPeriod(this, 24);
+  selectButton(this, 24);
 });
 
 document.getElementById('show-all-data').addEventListener('click', function() {
-  showAllData();
-  selectPeriod(this, null); // null indicates all data
+  const end = new Date(config.report.getDateLastReport());
+  const start = new Date(2021, 4, 1);
+  const yearsFromStart = end.getFullYear() - start.getFullYear();
+  const monthsFromStart = end.getMonth() - start.getMonth();
+  const monthsDiff = (yearsFromStart) * 12 + monthsFromStart + 1;
+
+  setMonthsToShow(monthsDiff);
+  handleSearch(getSearchTerm());
+  selectButton(this, monthsDiff);
 });
 
 // Set default to 12 months on page load
 window.addEventListener('load', function() {
   const defaultButton = document.getElementById('show-12-months');
-  selectPeriod(defaultButton, 12);
+  selectButton(defaultButton, 12);
 });
-
-function showAllData() {
-  const startDate = new Date(2021, 4, 1); // May 1, 2021
-  const endDate = config.report.getDateLastReport();
-
-  config.report.setStartDateChart(startDate);
-  config.report.setEndDateChart(endDate);
-}
 
 let data = await fetchTableChartData();
 let monthlyData = processDataMonthlyChart(data);
