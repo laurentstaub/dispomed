@@ -37,6 +37,7 @@ export function getProducts() {
   return products;
 }
 
+// Setting and getting ATC classes
 let ATCClasses = [];
 
 export function setATCClasses(data) {
@@ -44,14 +45,32 @@ export function setATCClasses(data) {
   ATCClasses = ATCClasses.map((ATCClass) => {
     return { code: ATCClass.slice(0, 1), name: ATCClass.slice(4) };
   })
-
 }
 
 export function getATCClasses() {
   return ATCClasses;
 }
 
+// Setting and getting searchTerm
+let searchTerm = '';
 
+export function setSearchTerm(word) {
+  searchTerm = word;
+}
+
+export function getSearchTerm() {
+  return searchTerm;
+}
+
+let monthsToShow = 12;
+
+export function setMonthsToShow(period) {
+  monthsToShow = period;
+}
+
+export function getMonthsToShow() {
+  return monthsToShow;
+}
 
 // Chart-related functions
 let xScale, yScale;
@@ -103,7 +122,7 @@ export function processDataMonthlyChart(data) {
     let tension = 0;
 
     data.forEach(product => {
-      if (product.start_date <= monthDate && product.end_date >= monthDate) {
+      if (product.start_date <= monthDate && product.calculated_end_date >= monthDate) {
         if (product.status === "Rupture") rupture++;
         else if (product.status === "Tension") tension++;
       }

@@ -106,3 +106,15 @@ ON CONFLICT (molecule_id, classe_atc_id) DO NOTHING;
 
 -- Clean up
 DROP TABLE temp_import;
+
+-- insert a column in the db to get the end dates calculated below
+ALTER TABLE incidents ADD COLUMN calculated_end_date DATE;
+
+UPDATE incidents
+SET calculated_end_date = COALESCE(
+    end_date,
+    GREATEST(
+        COALESCE(mise_a_jour, '1900-01-01'),
+        COALESCE(date_dernier_rapport, '1900-01-01')
+    )
+);

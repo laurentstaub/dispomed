@@ -2,34 +2,35 @@ import {
   config,
   getTableDimensions,
   getSummaryChartDimensions,
-  setProducts,
   getProducts,
-  getATCClasses,
-  setATCClasses,
+  setSearchTerm,
+  getSearchTerm,
+  setMonthsToShow,
+  getMonthsToShow,
   createScales,
   getXScale,
   getYScale,
   processDataMonthlyChart,
-} from './availability_config.js';
+} from './draw_config.js';
 
 import {
-  customSort,
   getProductStatus,
   getUniqueProductLength,
-  processDates,
-  createDebouncedSearch
+  createDebouncedSearch,
 } from '../library/utils.js';
 
-const debouncedFetchFilteredData = createDebouncedSearch(fetchFilteredData);
+import { fetchTableChartData } from './fetch_data.js';
 
+// Set up debounced search
+const debouncedSearch = createDebouncedSearch(handleSearch);
+
+// Attach event listener to search box
 d3.select("#search-box").on("input", function() {
-  debouncedFetchFilteredData(this.value);
+  const searchTerm = this.value;
+  setSearchTerm(this.value);
+  console.log('Search term:', searchTerm); // For debugging
+  debouncedSearch(searchTerm);
 });
-
-// For filtered data (to be used with the search input)
-function fetchFilteredData(searchTerm) {
-  fetchAndProcessData(searchTerm, false);
-}
 
 // Get all period buttons
 const periodButtons = document.querySelectorAll('.chart-button');
@@ -42,17 +43,20 @@ function selectPeriod(button, months) {
 
 // Add click event listeners to buttons
 document.getElementById('show-6-months').addEventListener('click', function() {
-  updateDateRange(6)
+  setMonthsToShow(6);
+  handleSearch(getSearchTerm());
   selectPeriod(this, 6);
 });
 
 document.getElementById('show-12-months').addEventListener('click', function() {
-  updateDateRange(12)
+  setMonthsToShow(12);
+  handleSearch(getSearchTerm());
   selectPeriod(this, 12);
 });
 
 document.getElementById('show-24-months').addEventListener('click', function() {
-  updateDateRange(24)
+  setMonthsToShow(24);
+  handleSearch(getSearchTerm());
   selectPeriod(this, 24);
 });
 
@@ -67,8 +71,6 @@ window.addEventListener('load', function() {
   selectPeriod(defaultButton, 12);
 });
 
-
-
 function showAllData() {
   const startDate = new Date(2021, 4, 1); // May 1, 2021
   const endDate = config.report.getDateLastReport();
@@ -77,144 +79,27 @@ function showAllData() {
   fetchAndProcessData('', false);
 }
 
-function updateVariables(data) {
-  const { innerWidth, innerHeight } = getTableDimensions(getProducts().length);
-  createScales(config.report.getStartDateChart(), config.report.getEndDateChart(), getProducts(), innerWidth, innerHeight);
+let data = await fetchTableChartData();
+let monthlyData = processDataMonthlyChart(data);
+console.log(data);
+
+drawTableChart(data, true);
+drawSummaryChart(monthlyData, true);
+
+export async function handleSearch(searchTerm) {
+  const monthsToShow = getMonthsToShow();
+  console.log('Searching for:', searchTerm); // Debugging
+  console.log('Searching for period:', monthsToShow);
+  data = await fetchTableChartData(searchTerm, monthsToShow);
+  monthlyData = processDataMonthlyChart(data);
+  drawTableChart(data, false);
+  drawSummaryChart(monthlyData, false);
 }
 
-function drawSummaryChart(monthlyChartData, isInitialSetup) {
-  const { innerWidth, innerHeight } = getSummaryChartDimensions();
-  const margin = config.summaryChart.margin;
-
-  // Parse dates
-  const parseDate = d3.timeParse("%Y-%m-%d");
-  monthlyChartData.forEach(d => {
-    d.date = parseDate(d.date);
-  });
-
-  // Filter out months with no data
-  const filteredData = monthlyChartData.filter(d => d.rupture > 0 || d.tension > 0);
-
-  // Create scales
-  const xScale = getXScale();
-
-  const y = d3.scaleLinear()
-    .domain([0, d3.max(filteredData, d => Math.max(d.rupture, d.tension))])
-    .nice()
-    .range([innerHeight, 0]);
-
-  // Create line generators
-  const lineRupture = d3.line()
-    .x(d => xScale(d.date))
-    .y(d => y(d.rupture))
-    .defined(d => d.rupture > 0);
-
-  const lineTension = d3.line()
-    .x(d => xScale(d.date))
-    .y(d => y(d.tension))
-    .defined(d => d.tension > 0);
-
-  // Create SVG
-  let svg;
-  if (isInitialSetup) {
-    svg = d3.select("#summary")
-      .append("svg")
-      .attr("width", config.summaryChart.width)
-      .attr("height", config.summaryChart.height);
-  } else {
-    svg = d3.select("#summary svg");
-    svg.selectAll("*").remove();
-  }
-
-  const g = svg.append("g")
-    .attr("transform", `translate(${margin.left},${margin.top})`);
-
-  // Draw lines
-  g.append("path")
-    .datum(filteredData)
-    .attr("class", "tension-line")
-    .attr("d", lineRupture);
-
-  g.append("path")
-    .datum(filteredData)
-    .attr("class", "tension-line")
-    .attr("d", lineTension);
-
-  // Create area generators
-  const areaRupture = d3.area()
-    .x(d => xScale(d.date))
-    .y0(innerHeight)
-    .y1(d => y(d.rupture))
-    .defined(d => d.rupture > 0);
-
-  const areaTension = d3.area()
-    .x(d => xScale(d.date))
-    .y0(innerHeight)
-    .y1(d => y(d.tension))
-    .defined(d => d.tension > 0);
-
-  // Draw areas
-  g.append("path")
-    .datum(filteredData)
-    .attr("class", "area rupture-area")
-    .attr("d", areaRupture);
-
-  g.append("path")
-    .datum(filteredData)
-    .attr("class", "area tension-area")
-    .attr("d", areaTension);
-
-  // Add data points and labels
-  g.selectAll(".rupture-point")
-    .data(filteredData.filter(d => d.rupture > 0))
-    .enter()
-    .append("circle")
-    .attr("class", "rupture-point")
-    .attr("cx", d => xScale(d.date))
-    .attr("cy", d => y(d.rupture))
-    .attr("r", 2);
-
-  g.selectAll(".rupture-label")
-    .data(filteredData.filter(d => d.rupture > 0))
-    .enter()
-    .append("text")
-    .attr("class", "rupture-label")
-    .attr("x", d => xScale(d.date))
-    .attr("y", d => y(d.rupture) - 10)
-    .attr("text-anchor", "middle")
-    .text(d => d.rupture);
-
-  g.selectAll(".tension-point")
-    .data(filteredData.filter(d => d.tension > 0))
-    .enter()
-    .append("circle")
-    .attr("class", "tension-point")
-    .attr("cx", d => xScale(d.date))
-    .attr("cy", d => y(d.tension))
-    .attr("r", 2);
-
-  g.selectAll(".tension-label")
-    .data(filteredData.filter(d => d.tension > 0))
-    .enter()
-    .append("text")
-    .attr("class", "tension-label")
-    .attr("x", d => xScale(d.date))
-    .attr("y", d => y(d.tension) - 10)
-    .attr("text-anchor", "middle")
-    .text(d => d.tension);
-
-  g.append("line")
-     .attr("x1", 0)
-     .attr("y1", innerHeight)
-     .attr("x2", innerWidth)
-     .attr("y2", innerHeight)
-     .attr("stroke", "black")
-     .attr("stroke-width", 1);
-}
-
-function drawBarChart(data, isInitialSetup) {
+function drawTableChart(data, isInitialSetup) {
   const { height, innerWidth, innerHeight } = getTableDimensions(getProducts().length);
   const dateLastReport = config.report.getDateLastReport();
+  createScales(config.report.getStartDateChart(), config.report.getEndDateChart(), getProducts(), innerWidth, innerHeight);
   const xScale = getXScale();
   const yScale = getYScale();
   let outerBox, innerChart;
@@ -251,8 +136,8 @@ function drawBarChart(data, isInitialSetup) {
     .attr("x", d => xScale(d.start_date > config.report.getStartDateChart() ? d.start_date : config.report.getStartDateChart()))
     .attr("y", d => yScale(d.product) + yScale.bandwidth() / 2 - config.table.barHeight / 2 - 1)
     .attr("width", d => {
-      const startDate = new Date(d.start_date);
-      const endDate = new Date(d.end_date);
+      const startDate = d.start_date;
+      const endDate = d.calculated_end_date;
       const effectiveStartDate = startDate > config.report.getStartDateChart() ? startDate : config.report.getStartDateChart();
       return Math.max(0, xScale(endDate) - xScale(effectiveStartDate));
     })
@@ -263,7 +148,7 @@ function drawBarChart(data, isInitialSetup) {
         <strong>Produit:</strong> ${d.product}<br>
         <strong>Incident:</strong> ${d.status}<br>
         <strong>Début:</strong> ${d3.timeFormat("%d/%m/%Y")(d.start_date)}<br>
-        <strong>Fin:</strong> ${d3.timeFormat("%d/%m/%Y")(d.end_date)}
+        <strong>Fin:</strong> ${d3.timeFormat("%d/%m/%Y")(d.calculated_end_date)}
       `)
       .attr("class", statusClass)
       .style("opacity", 0.9)
@@ -457,4 +342,134 @@ function drawBarChart(data, isInitialSetup) {
     accumulatedHeight += groupHeight;
     productLeft -= productLength;
   });
+}
+
+function drawSummaryChart(monthlyChartData, isInitialSetup) {
+  const { innerWidth, innerHeight } = getSummaryChartDimensions();
+  const margin = config.summaryChart.margin;
+
+  // Parse dates
+  const parseDate = d3.timeParse("%Y-%m-%d");
+  monthlyChartData.forEach(d => {
+    d.date = parseDate(d.date);
+  });
+
+  // Filter out months with no data
+  const filteredData = monthlyChartData.filter(d => d.rupture > 0 || d.tension > 0);
+
+  // Create scales
+  const xScale = getXScale();
+
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(filteredData, d => Math.max(d.rupture, d.tension))])
+    .nice()
+    .range([innerHeight, 0]);
+
+  // Create line generators
+  const lineRupture = d3.line()
+    .x(d => xScale(d.date))
+    .y(d => y(d.rupture))
+    .defined(d => d.rupture > 0);
+
+  const lineTension = d3.line()
+    .x(d => xScale(d.date))
+    .y(d => y(d.tension))
+    .defined(d => d.tension > 0);
+
+  // Create SVG
+  let svg;
+  if (isInitialSetup) {
+    svg = d3.select("#summary")
+      .append("svg")
+      .attr("width", config.summaryChart.width)
+      .attr("height", config.summaryChart.height);
+  } else {
+    svg = d3.select("#summary svg");
+    svg.selectAll("*").remove();
+  }
+
+  const g = svg.append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  // Draw lines
+  g.append("path")
+    .datum(filteredData)
+    .attr("class", "tension-line")
+    .attr("d", lineRupture);
+
+  g.append("path")
+    .datum(filteredData)
+    .attr("class", "tension-line")
+    .attr("d", lineTension);
+
+  // Create area generators
+  const areaRupture = d3.area()
+    .x(d => xScale(d.date))
+    .y0(innerHeight)
+    .y1(d => y(d.rupture))
+    .defined(d => d.rupture > 0);
+
+  const areaTension = d3.area()
+    .x(d => xScale(d.date))
+    .y0(innerHeight)
+    .y1(d => y(d.tension))
+    .defined(d => d.tension > 0);
+
+  // Draw areas
+  g.append("path")
+    .datum(filteredData)
+    .attr("class", "area rupture-area")
+    .attr("d", areaRupture);
+
+  g.append("path")
+    .datum(filteredData)
+    .attr("class", "area tension-area")
+    .attr("d", areaTension);
+
+  // Add data points and labels
+  g.selectAll(".rupture-point")
+    .data(filteredData.filter(d => d.rupture > 0))
+    .enter()
+    .append("circle")
+    .attr("class", "rupture-point")
+    .attr("cx", d => xScale(d.date))
+    .attr("cy", d => y(d.rupture))
+    .attr("r", 2);
+
+  g.selectAll(".rupture-label")
+    .data(filteredData.filter(d => d.rupture > 0))
+    .enter()
+    .append("text")
+    .attr("class", "rupture-label")
+    .attr("x", d => xScale(d.date))
+    .attr("y", d => y(d.rupture) - 10)
+    .attr("text-anchor", "middle")
+    .text(d => d.rupture);
+
+  g.selectAll(".tension-point")
+    .data(filteredData.filter(d => d.tension > 0))
+    .enter()
+    .append("circle")
+    .attr("class", "tension-point")
+    .attr("cx", d => xScale(d.date))
+    .attr("cy", d => y(d.tension))
+    .attr("r", 2);
+
+  g.selectAll(".tension-label")
+    .data(filteredData.filter(d => d.tension > 0))
+    .enter()
+    .append("text")
+    .attr("class", "tension-label")
+    .attr("x", d => xScale(d.date))
+    .attr("y", d => y(d.tension) - 10)
+    .attr("text-anchor", "middle")
+    .text(d => d.tension);
+
+  g.append("line")
+     .attr("x1", 0)
+     .attr("y1", innerHeight)
+     .attr("x2", innerWidth)
+     .attr("y2", innerHeight)
+     .attr("stroke", "black")
+     .attr("stroke-width", 1);
 }
