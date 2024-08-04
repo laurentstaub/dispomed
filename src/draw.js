@@ -74,9 +74,9 @@ window.addEventListener('load', function() {
 function showAllData() {
   const startDate = new Date(2021, 4, 1); // May 1, 2021
   const endDate = config.report.getDateLastReport();
+
   config.report.setStartDateChart(startDate);
   config.report.setEndDateChart(endDate);
-  fetchAndProcessData('', false);
 }
 
 let data = await fetchTableChartData();
@@ -89,7 +89,7 @@ drawSummaryChart(monthlyData, true);
 export async function handleSearch(searchTerm) {
   const monthsToShow = getMonthsToShow();
   console.log('Searching for:', searchTerm); // Debugging
-  console.log('Searching for period:', monthsToShow);
+  console.log('Searching for period:', monthsToShow); // Debugging
   data = await fetchTableChartData(searchTerm, monthsToShow);
   monthlyData = processDataMonthlyChart(data);
   drawTableChart(data, false);
