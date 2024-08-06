@@ -7,9 +7,11 @@ import {
   processDates,
 } from '../library/utils.js';
 
-export async function fetchATCClasses() {
+// First query to run
+export async function fetchATCClasses(monthsToShow = 12) {
   const baseUrl = 'http://localhost:3000'; // Or server's base URL
-  const url = `${baseUrl}/api/incidents/ATCClasses`;
+  const queryString = new URLSearchParams({ monthsToShow: monthsToShow }).toString();
+  const url = `${baseUrl}/api/incidents/ATCClasses${queryString ? '?' + queryString : ''}`;
 
   return fetch(url)
     .then(response => response.json())
@@ -26,9 +28,9 @@ export async function fetchATCClasses() {
     });
 }
 
-export async function fetchTableChartData(searchTerm = '', monthsToShow = 12) {
+export async function fetchTableChartData(searchTerm = '', monthsToShow = 12, atcClass = '') {
   const baseUrl = 'http://localhost:3000'; // Or server's base URL
-  const queryString = new URLSearchParams({ product: searchTerm, monthsToShow: monthsToShow }).toString();
+  const queryString = new URLSearchParams({ product: searchTerm, monthsToShow: monthsToShow, atcClass: atcClass }).toString();
   const url = `${baseUrl}/api/incidents${queryString ? '?' + queryString : ''}`;
 
   return fetch(url)

@@ -72,6 +72,17 @@ export function getMonthsToShow() {
   return monthsToShow;
 }
 
+let atcCode = null;
+
+// Setting and getting ATC class
+export function setATCClass(atcCodeLetter) {
+  atcCode = atcCodeLetter;
+}
+
+export function getATCClass() {
+  return atcCode;
+}
+
 // Chart-related functions
 let xScale, yScale;
 

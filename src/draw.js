@@ -7,6 +7,8 @@ import {
   getSearchTerm,
   setMonthsToShow,
   getMonthsToShow,
+  setATCClass,
+  getATCClass,
   createScales,
   getXScale,
   getYScale,
@@ -21,7 +23,18 @@ import {
 
 import { fetchTableChartData } from './fetch_data.js';
 
-// Set up debounced search
+export async function handleSearch(searchTerm) {
+  const monthsToShow = getMonthsToShow();
+  const atcClass = getATCClass();
+  console.log('Searching for:', searchTerm); // Debugging
+  console.log('Searching for period:', monthsToShow); // Debugging
+  data = await fetchTableChartData(searchTerm, monthsToShow, atcClass);
+  monthlyData = processDataMonthlyChart(data);
+  drawTableChart(data, false);
+  drawSummaryChart(monthlyData, false);
+}
+
+// Set up debounced search to avoid querying too often
 const debouncedSearch = createDebouncedSearch(handleSearch);
 
 // Attach event listener to search box
@@ -31,6 +44,15 @@ d3.select("#search-box").on("input", function() {
   console.log('Search term:', searchTerm); // For debugging
   debouncedSearch(searchTerm);
 });
+
+// Attach event listener to ATC class choice
+d3.select("#atc").on("input", function() {
+  // Only the ATC class code is returned as value is the code only
+  const atcClass = this.value;
+  setATCClass(atcClass);
+  console.log(this.value);
+  debouncedSearch(getSearchTerm());
+})
 
 // Get all period buttons
 const periodButtons = document.querySelectorAll('.chart-button');
@@ -78,22 +100,43 @@ window.addEventListener('load', function() {
   selectButton(defaultButton, 12);
 });
 
+// Wait for the DOM to load
+document.addEventListener('DOMContentLoaded', function() {
+    // Select all checkboxes and add listener
+    const checkboxes = d3.selectAll('input[type="checkbox"][name="atc"]');
+    checkboxes.on('change', updateSelectedItems);
+
+    function updateSelectedItems() {
+      const checkedBoxes = d3.selectAll('input[type="checkbox"][name="atc"]:checked');
+
+      // Get the selected ATC classes
+      const selectedATCs = checkedBoxes.nodes().map(checkbox => {
+        return {
+          code: checkbox.value
+        };
+      });
+
+        // Update the selected items list
+        const selectedList = d3.select('#selected-atc-list');
+
+        // Remove existing items
+        selectedList.selectAll('li').remove();
+
+        // Add new items
+        selectedList.selectAll('li')
+            .data(selectedATCs)
+            .enter()
+            .append('li')
+            .text(d => `${d.code}`);
+    }
+});
+
 let data = await fetchTableChartData();
 let monthlyData = processDataMonthlyChart(data);
 console.log(data);
 
 drawTableChart(data, true);
 drawSummaryChart(monthlyData, true);
-
-export async function handleSearch(searchTerm) {
-  const monthsToShow = getMonthsToShow();
-  console.log('Searching for:', searchTerm); // Debugging
-  console.log('Searching for period:', monthsToShow); // Debugging
-  data = await fetchTableChartData(searchTerm, monthsToShow);
-  monthlyData = processDataMonthlyChart(data);
-  drawTableChart(data, false);
-  drawSummaryChart(monthlyData, false);
-}
 
 function drawTableChart(data, isInitialSetup) {
   const { height, innerWidth, innerHeight } = getTableDimensions(getProducts().length);
@@ -217,28 +260,28 @@ function drawTableChart(data, isInitialSetup) {
   // Y-AXIS
   // Produits
   innerChart
-      .append("g")
-      .call(d3.axisLeft(yScale).tickSize(0))
-      .selectAll(".tick text")
-      .attr("x", - config.table.margin.left + config.table.statusBarWidth + config.table.statusBarSpacing)
-      .style("text-anchor", "start")
-      .text(function(d) {
-          return d.length > config.table.labelMaxLength ? d.substring(0, config.table.labelMaxLength) + "..." : d;
-      })
-      .on("mouseover", function(event, d) {
-          const product = data.find(item => item.product === d);
-          if (d.length > config.table.labelMaxLength || product) {
-              const status = getProductStatus(product);
-              const tooltip = d3.select("#tooltip");
-              tooltip.transition().duration(200).style("opacity", 0.9);
-              tooltip.html(`
-                  <strong>Produit:</strong> ${d}<br>
-                  <strong>Statut:</strong> ${status.text}
-              `)
-              .attr("class", status.class)
-              .style("left", (event.pageX + 10) + "px")
-              .style("top", (event.pageY - 28) + "px");
-          }
+    .append("g")
+    .call(d3.axisLeft(yScale).tickSize(0))
+    .selectAll(".tick text")
+    .attr("x", - config.table.margin.left + config.table.statusBarWidth + config.table.statusBarSpacing)
+    .style("text-anchor", "start")
+    .text(function(d) {
+      return d.length > config.table.labelMaxLength ? d.substring(0, config.table.labelMaxLength) + "..." : d;
+    })
+    .on("mouseover", function(event, d) {
+      const product = data.find(item => item.product === d);
+      if (d.length > config.table.labelMaxLength || product) {
+        const status = getProductStatus(product);
+        const tooltip = d3.select("#tooltip");
+        tooltip.transition().duration(200).style("opacity", 0.9);
+        tooltip.html(`
+          <strong>Produit:</strong> ${d}<br>
+          <strong>Statut:</strong> ${status.text}
+        `)
+          .attr("class", status.class)
+          .style("left", (event.pageX + 10) + "px")
+          .style("top", (event.pageY - 28) + "px");
+        }
       })
       .on("mouseout", function() {
           d3.select("#tooltip").transition().duration(500).style("opacity", 0);
@@ -298,7 +341,7 @@ function drawTableChart(data, isInitialSetup) {
     .attr("y1", 0)
     .attr("y2", innerHeight);
 
-  // Ajouter la ligne du dernier rapport
+  // Add the last line of the reports
   innerChart.append("line")
     .attr("class", "current-date-line")
     .attr("x1", xScale(dateLastReport))
@@ -307,7 +350,7 @@ function drawTableChart(data, isInitialSetup) {
     .attr("y2", innerHeight);
 
 
-  // Add status bars
+  // Add status bars on the left of the chart
   const groupedData = d3.group(data, d => getProductStatus(d).text);
   const statusColors = {
     "Rupture de stock": "var(--rupture)",
@@ -316,7 +359,7 @@ function drawTableChart(data, isInitialSetup) {
     "Disponible": "var(--disponible-bg)"
   };
 
-  // Utilisé pour déterminer la longueur de la barre des produits disponibles
+  // Used to get the height of the chart (variable to products)
   const totalProductLength = getUniqueProductLength(data);
   let accumulatedHeight = 0;
   let productLeft = totalProductLength;
