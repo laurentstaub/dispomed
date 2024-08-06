@@ -29,14 +29,14 @@ section
                     button#show-all-data.chart-button Toutes les données
                 p.controls Recherches
                 .atc-wrapper
-                    details.atc-selector
-                        summary.atc-button Select ATC Classes
-                        .atc-options
-                            each atcClass in ATCClasses
-                                .atc-option
-                                    input(type="checkbox" id=`atc-${atcClass.code}` name="atc" value=atcClass.code)
-                                    label(for=`atc-${atcClass.code}`)= `${atcClass.code} - ${atcClass.name}`
-
+                    select.atc-selector#atc(name="atc")
+                        option(value="") Choisir une classe ATC
+                        each atcClass in ATCClasses
+                            option(value=atcClass.code)= `${atcClass.code} - ${atcClass.name}`
+                    select.atc-selector(name="molecule")
+                        option(value="") Choisir une molécule
+                        each atcClass in ATCClasses
+                            option(value=atcClass.code)= `${atcClass.code} - ${atcClass.name}`
 
                 input(type="text" id="search-box" placeholder="Rechercher un produit...")
             div#summary

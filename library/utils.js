@@ -1,6 +1,5 @@
 import { config } from '../src/draw_config.js';
 
-
 export function getProductStatus(d) {
   const dateLastReport = config.report.getDateLastReport();
 
@@ -20,6 +19,7 @@ export function getProductStatus(d) {
   return { text: "Statut inconnu", class: "" };
 }
 
+// Used to get the unique product list from the SQL query
 export function getUniqueProductLength(eventList) {
   let result = [];
 
@@ -30,6 +30,7 @@ export function getUniqueProductLength(eventList) {
   return result.length;
 }
 
+// Used to process dates in the processDates function
 function createTimeParse(format) {
   // This function only handles "%Y-%m-%d" format
   if (format !== "%Y-%m-%d") {
@@ -49,6 +50,7 @@ function createTimeParse(format) {
   };
 }
 
+// Parses dates from the sql query
 export function processDates(data) {
   const parseTime = createTimeParse("%Y-%m-%d");
 
