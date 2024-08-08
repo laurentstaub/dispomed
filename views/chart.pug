@@ -19,26 +19,28 @@ section
         div#last-report-date
         div.flex-container
             div#controls-and-search.chart-controls-container
-                div#chart-controls
+                p.controls Recherches
+                    .atc-wrapper
+                        select.atc-selector#atc(name="atc")
+                            option(value="") Choisir une classe ATC
+                            each atcClass in ATCClasses
+                                option(value=atcClass.code)= `${atcClass.code} - ${atcClass.description}`
+                        select.atc-selector(name="molecule")
+                            option(value="") Choisir une molécule
+                            each molecule in molecules
+                                option(value=molecules.code)=`${molecule.name}`
+                    input(type="text" id="search-box" placeholder="Rechercher un produit...")
+
+                // div#chart-controls
                 p.controls Echelle de temps
                 div.button-row
-                    button#show-6-months.chart-button Derniers 6 mois
+                    // button#show-6-months.chart-button Derniers 6 mois
                     button#show-12-months.chart-button Derniers 12 mois
-                div.button-row
                     button#show-24-months.chart-button Derniers 24 mois
+                div.button-row
                     button#show-all-data.chart-button Toutes les données
-                p.controls Recherches
-                .atc-wrapper
-                    select.atc-selector#atc(name="atc")
-                        option(value="") Choisir une classe ATC
-                        each atcClass in ATCClasses
-                            option(value=atcClass.code)= `${atcClass.code} - ${atcClass.name}`
-                    select.atc-selector(name="molecule")
-                        option(value="") Choisir une molécule
-                        each atcClass in ATCClasses
-                            option(value=atcClass.code)= `${atcClass.code} - ${atcClass.name}`
 
-                input(type="text" id="search-box" placeholder="Rechercher un produit...")
+
             div#summary
             div#tooltip(style="position: absolute; opacity: 0; pointer-events: none;")
         div#dash

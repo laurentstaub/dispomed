@@ -51,6 +51,9 @@ export function getATCClasses() {
   return ATCClasses;
 }
 
+// Setting and getting Molecules
+let molecules = [];
+
 // Setting and getting searchTerm
 let searchTerm = '';
 
@@ -72,7 +75,7 @@ export function getMonthsToShow() {
   return monthsToShow;
 }
 
-let atcCode = null;
+let atcCode = '';
 
 // Setting and getting ATC class
 export function setATCClass(atcCodeLetter) {

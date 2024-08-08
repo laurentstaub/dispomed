@@ -16,12 +16,45 @@ export async function fetchATCClasses(monthsToShow = 12) {
   return fetch(url)
     .then(response => response.json())
     .then(data => {
-      console.log(data);
-      let classesArray = data.map(classe => classe.classe_atc);
-      return classesArray.map(ATCClass => {
-        return { code: ATCClass.slice(0, 1), name: ATCClass.slice(4) }
+      const atcClasses = new Map();
+      const allMolecules = new Set();
+      const atcMoleculeMap = new Map();
+
+      data.forEach(row => {
+        // get the unique ATC classes
+        atcClasses.set(row.atc_code, row.atc_description);
+
+        if (row.molecule_id && row.molecule_name) {
+          const molecule = { id: row.molecule_id, name: row.molecule_name };
+          allMolecules.add(molecule);
+
+          if (!atcMoleculeMap.has(row.atc_code)) {
+            atcMoleculeMap.set(row.atc_code, new Set());
+          }
+          atcMoleculeMap.get(row.atc_code).add(molecule);
+        }
       });
+
+      const atcClassesList = Array.from(atcClasses, ([code, description]) => ({ code, description }));
+      const allMoleculesList = Array.from(allMolecules).sort((a, b) => a.name.localeCompare(b.name));
+
+      for (let [atcCode, molecules] of atcMoleculeMap) {
+        atcMoleculeMap.set(atcCode, Array.from(molecules));
+      }
+
+      return {
+        atcClassesList,
+        allMoleculesList,
+        atcMoleculeMap
+      };
     })
+
+      // console.log(data);
+      // let classesArray = data.map(classe => classe.classe_atc);
+      // return classesArray.map(ATCClass => {
+      //   return { code: ATCClass.slice(0, 1), name: ATCClass.slice(4) }
+      // })
+
     .catch(error => {
       console.error('Error:', error);
       throw error;
