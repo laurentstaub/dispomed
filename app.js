@@ -14,9 +14,10 @@ app.use(express.static("."));
 app.use(cors());
 
 app.get("/", async (req, res) => {
-  let ATCClasses = await fetchATCClasses();
+  let { atcClassesList, allMoleculesList } = await fetchATCClasses();
   // let molecules = await fetchMolecules();
-  res.render("chart", { ATCClasses: ATCClasses });
+  console.log(allMoleculesList);
+  res.render("chart", { ATCClasses: atcClassesList, molecules: allMoleculesList });
 });
 
 app.get('/api/incidents', async (req, res) => {
@@ -94,7 +95,10 @@ app.get('/api/incidents/ATCClasses', async (req, res) => {
           FROM incidents
       )
       SELECT DISTINCT
-          ca.code || ' - ' || ca.description AS classe_atc
+          ca.code AS atc_code,
+          ca.description AS atc_description,
+          m.id AS molecule_id,
+          m.name AS molecule_name
       FROM incidents i
       CROSS JOIN maxDate
       JOIN produits p ON i.product_id = p.id
@@ -103,8 +107,8 @@ app.get('/api/incidents/ATCClasses', async (req, res) => {
       LEFT JOIN molecules_classe_atc mca ON m.id = mca.molecule_id
       LEFT JOIN classe_atc ca ON mca.classe_atc_id = ca.id
       WHERE i.calculated_end_date >= (maxDate.max_end_date - INTERVAL '${monthsToShow} months')
-        AND ca.code IS NOT NULL
-      ORDER BY classe_atc;
+          AND ca.code IS NOT NULL
+      ORDER BY ca.code, m.name;
      `;
 
     const result = await dbQuery(query);

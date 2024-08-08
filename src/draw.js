@@ -64,11 +64,11 @@ function selectButton(button, months) {
 }
 
 // Add click event listeners to buttons
-document.getElementById('show-6-months').addEventListener('click', function() {
-  setMonthsToShow(6);
-  handleSearch(getSearchTerm());
-  selectButton(this, 6);
-});
+// document.getElementById('show-6-months').addEventListener('click', function() {
+//   setMonthsToShow(6);
+//   handleSearch(getSearchTerm());
+//   selectButton(this, 6);
+// });
 
 document.getElementById('show-12-months').addEventListener('click', function() {
   setMonthsToShow(12);
