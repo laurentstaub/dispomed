@@ -15,7 +15,6 @@ app.use(cors());
 
 app.get("/", async (req, res) => {
   let { atcClassesList, allMoleculesList } = await fetchATCClasses();
-  // let molecules = await fetchMolecules();
   console.log(allMoleculesList);
   res.render("chart", { ATCClasses: atcClassesList, molecules: allMoleculesList });
 });

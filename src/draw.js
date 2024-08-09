@@ -1,20 +1,4 @@
-import {
-  config,
-  getTableDimensions,
-  getSummaryChartDimensions,
-  getProducts,
-  setSearchTerm,
-  getSearchTerm,
-  setMonthsToShow,
-  getMonthsToShow,
-  setATCClass,
-  getATCClass,
-  createScales,
-  getXScale,
-  getYScale,
-  processDataMonthlyChart,
-} from './draw_config.js';
-
+import { configManager } from './draw_config.js';
 import {
   getProductStatus,
   getUniqueProductLength,
@@ -24,14 +8,32 @@ import {
 import { fetchTableChartData } from './fetch_data.js';
 
 export async function handleSearch(searchTerm) {
-  const monthsToShow = getMonthsToShow();
-  const atcClass = getATCClass();
-  console.log('Searching for:', searchTerm); // Debugging
-  console.log('Searching for period:', monthsToShow); // Debugging
-  data = await fetchTableChartData(searchTerm, monthsToShow, atcClass);
+  const monthsToShow = configManager.getMonthsToShow();
+  const atcClass = configManager.getATCClass();
+  const molecule = configManager.getMolecule();
+  console.log('Searching for:', searchTerm);
+  console.log('Searching for period:', monthsToShow);
+  console.log('ATC Class:', atcClass);
+  console.log('Molecule:', molecule);
+  data = await fetchTableChartData(searchTerm, monthsToShow, atcClass, molecule);
   monthlyData = processDataMonthlyChart(data);
   drawTableChart(data, false);
   drawSummaryChart(monthlyData, false);
+}
+
+function updateMoleculeDropdown(atcClass) {
+  const moleculeSelect = d3.select("#molecule");
+  const { allMolecules, atcMoleculeMap } = window.atcData;
+
+  let molecules = atcClass ? atcMoleculeMap[atcClass] || [] : allMolecules;
+
+  moleculeSelect.selectAll("option")
+    .data([{ id: "", name: "Choisir une molécule" }, ...molecules], d => d.id)
+    .join("option")
+    .attr("value", d => d.id)
+    .text(d => d.name);
+
+  configManager.setMolecule(""); // Reset molecule selection
 }
 
 // Set up debounced search to avoid querying too often
@@ -40,7 +42,7 @@ const debouncedSearch = createDebouncedSearch(handleSearch);
 // Attach event listener to search box
 d3.select("#search-box").on("input", function() {
   const searchTerm = this.value;
-  setSearchTerm(this.value);
+  configManager.setSearchTerm(this.value);
   console.log('Search term:', searchTerm); // For debugging
   debouncedSearch(searchTerm);
 });
@@ -49,9 +51,17 @@ d3.select("#search-box").on("input", function() {
 d3.select("#atc").on("input", function() {
   // Only the ATC class code is returned as value is the code only
   const atcClass = this.value;
-  setATCClass(atcClass);
-  console.log(this.value);
-  debouncedSearch(getSearchTerm());
+  configManager.setATCClass(atcClass);
+  updateMoleculeDropdown(atcClass);
+  debouncedSearch(configManager.getSearchTerm());
+})
+
+// Attach event listener to molecule choice
+d3.select("#molecule").on("input", function() {
+  // Only
+  const molecule = this.value;
+  configManager.setMolecule(molecule);
+  console.log(molecule);
 })
 
 // Get all period buttons
@@ -63,34 +73,27 @@ function selectButton(button, months) {
   button.classList.add('button-selected');
 }
 
-// Add click event listeners to buttons
-// document.getElementById('show-6-months').addEventListener('click', function() {
-//   setMonthsToShow(6);
-//   handleSearch(getSearchTerm());
-//   selectButton(this, 6);
-// });
-
 document.getElementById('show-12-months').addEventListener('click', function() {
-  setMonthsToShow(12);
-  handleSearch(getSearchTerm());
+  configManager.setMonthsToShow(12);
+  handleSearch(configManager.getSearchTerm());
   selectButton(this, 12);
 });
 
 document.getElementById('show-24-months').addEventListener('click', function() {
-  setMonthsToShow(24);
-  handleSearch(getSearchTerm());
+  configManager.setMonthsToShow(24);
+  handleSearch(configManager.getSearchTerm());
   selectButton(this, 24);
 });
 
 document.getElementById('show-all-data').addEventListener('click', function() {
-  const end = new Date(config.report.getDateLastReport());
+  const end = new Date(configManager.getDateLastReport());
   const start = new Date(2021, 4, 1);
   const yearsFromStart = end.getFullYear() - start.getFullYear();
   const monthsFromStart = end.getMonth() - start.getMonth();
   const monthsDiff = (yearsFromStart) * 12 + monthsFromStart + 1;
 
-  setMonthsToShow(monthsDiff);
-  handleSearch(getSearchTerm());
+  configManager.setMonthsToShow(monthsDiff);
+  handleSearch(configManager.getSearchTerm());
   selectButton(this, monthsDiff);
 });
 
@@ -132,18 +135,18 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 let data = await fetchTableChartData();
-let monthlyData = processDataMonthlyChart(data);
+let monthlyData = configManager.processDataMonthlyChart(data);
 console.log(data);
 
 drawTableChart(data, true);
 drawSummaryChart(monthlyData, true);
 
 function drawTableChart(data, isInitialSetup) {
-  const { height, innerWidth, innerHeight } = getTableDimensions(getProducts().length);
-  const dateLastReport = config.report.getDateLastReport();
-  createScales(config.report.getStartDateChart(), config.report.getEndDateChart(), getProducts(), innerWidth, innerHeight);
-  const xScale = getXScale();
-  const yScale = getYScale();
+  const { height, innerWidth, innerHeight } = configManager.getTableDimensions(configManager.getProducts().length);
+  const dateLastReport = configManager.getDateLastReport();
+  configManager.createScales(configManager.getStartDateChart(), configManager.getEndDateChart(), configManager.getProducts(), innerWidth, innerHeight);
+  const xScale = configManager.getXScale();
+  const yScale = configManager.getYScale();
   let outerBox, innerChart;
 
   // Création de la zone svg si elle n'existe pas
@@ -151,17 +154,17 @@ function drawTableChart(data, isInitialSetup) {
     // Création initiale du SVG
     outerBox = d3.select("#dash")
       .append("svg")
-        .attr("viewBox", `0, 0, ${config.table.width}, ${height}`)
-        .attr("width", config.table.width)
-        .attr("height", config.table.height);
+        .attr("viewBox", `0, 0, ${configManager.config.table.width}, ${height}`)
+        .attr("width", configManager.config.table.width)
+        .attr("height", configManager.config.table.height);
 
     innerChart = outerBox
       .append("g")
-        .attr("transform", `translate(${config.table.margin.left}, ${config.table.margin.top})`);
+        .attr("transform", `translate(${configManager.config.table.margin.left}, ${configManager.config.table.margin.top})`);
 
   } else {  // Mise à jour du SVG existant
     outerBox = d3.select("#dash svg")
-      .attr("viewBox", `0, 0, ${config.table.width}, ${height}`)
+      .attr("viewBox", `0, 0, ${configManager.config.table.width}, ${height}`)
       .attr("height", height);
 
     innerChart = d3.select("#dash svg g"); // Remove all existing elements
@@ -175,15 +178,15 @@ function drawTableChart(data, isInitialSetup) {
     .enter()
     .append("rect")
     .attr("class", d => `bar ${d.status}`)
-    .attr("x", d => xScale(d.start_date > config.report.getStartDateChart() ? d.start_date : config.report.getStartDateChart()))
-    .attr("y", d => yScale(d.product) + yScale.bandwidth() / 2 - config.table.barHeight / 2 - 1)
+    .attr("x", d => xScale(d.start_date > configManager.getStartDateChart() ? d.start_date : configManager.getStartDateChart()))
+    .attr("y", d => yScale(d.product) + yScale.bandwidth() / 2 - configManager.config.table.barHeight / 2 - 1)
     .attr("width", d => {
       const startDate = d.start_date;
       const endDate = d.calculated_end_date;
-      const effectiveStartDate = startDate > config.report.getStartDateChart() ? startDate : config.report.getStartDateChart();
+      const effectiveStartDate = startDate > configManager.getStartDateChart() ? startDate : configManager.getStartDateChart();
       return Math.max(0, xScale(endDate) - xScale(effectiveStartDate));
     })
-    .attr("height", config.table.barHeight)
+    .attr("height", configManager.config.table.barHeight)
     .on("mouseover", function(event, d) {
       let statusClass = `tooltip-${d.status.toLowerCase()}`;
       tooltip.html(`
@@ -263,14 +266,14 @@ function drawTableChart(data, isInitialSetup) {
     .append("g")
     .call(d3.axisLeft(yScale).tickSize(0))
     .selectAll(".tick text")
-    .attr("x", - config.table.margin.left + config.table.statusBarWidth + config.table.statusBarSpacing)
+    .attr("x", - configManager.config.table.margin.left + configManager.config.table.statusBarWidth + configManager.config.table.statusBarSpacing)
     .style("text-anchor", "start")
     .text(function(d) {
-      return d.length > config.table.labelMaxLength ? d.substring(0, config.table.labelMaxLength) + "..." : d;
+      return d.length > configManager.config.table.labelMaxLength ? d.substring(0, configManager.config.table.labelMaxLength) + "..." : d;
     })
     .on("mouseover", function(event, d) {
       const product = data.find(item => item.product === d);
-      if (d.length > config.table.labelMaxLength || product) {
+      if (d.length > configManager.config.table.labelMaxLength || product) {
         const status = getProductStatus(product);
         const tooltip = d3.select("#tooltip");
         tooltip.transition().duration(200).style("opacity", 0.9);
@@ -290,11 +293,11 @@ function drawTableChart(data, isInitialSetup) {
   // GRID
   // Add horizontal grid lines manually after bars to ensure they are on top
   innerChart.selectAll(".grid-line")
-    .data(getProducts())
+    .data(configManager.getProducts())
     .enter()
     .append("line")
       .attr("class", "grid-line")
-      .attr("x1", -config.table.margin.left)
+      .attr("x1", -configManager.config.table.margin.left)
       .attr("x2", innerWidth)
       .attr("y1", d => yScale(d) + yScale.bandwidth())
       .attr("y2", d => yScale(d) + yScale.bandwidth())
@@ -306,7 +309,7 @@ function drawTableChart(data, isInitialSetup) {
   // Add horizontal line on top of products
   innerChart.append("line")
     .attr("class", "year-line")
-    .attr("x1", -config.table.margin.left)
+    .attr("x1", -configManager.config.table.margin.left)
     .attr("x2", 0)
     .attr("y1", 0)
     .attr("y2", 0)
@@ -369,16 +372,16 @@ function drawTableChart(data, isInitialSetup) {
     let groupHeight;
 
     if (status === "Disponible") {
-      groupHeight = productLeft * config.table.barHeight;
+      groupHeight = productLeft * configManager.config.table.barHeight;
     } else {
-      groupHeight = productLength * config.table.barHeight;
+      groupHeight = productLength * configManager.config.table.barHeight;
     }
 
     innerChart.append("rect")
       .attr("class", "status-bar")
-      .attr("x", -config.table.margin.left)
+      .attr("x", -configManager.config.table.margin.left)
       .attr("y", accumulatedHeight)
-      .attr("width", config.table.statusBarWidth)
+      .attr("width", configManager.config.table.statusBarWidth)
       .attr("height", groupHeight)
       .attr("fill", statusColors[status]);
     accumulatedHeight += groupHeight;
@@ -387,8 +390,8 @@ function drawTableChart(data, isInitialSetup) {
 }
 
 function drawSummaryChart(monthlyChartData, isInitialSetup) {
-  const { innerWidth, innerHeight } = getSummaryChartDimensions();
-  const margin = config.summaryChart.margin;
+  const { innerWidth, innerHeight } = configManager.getSummaryChartDimensions();
+  const margin = configManager.config.summaryChart.margin;
 
   // Parse dates
   const parseDate = d3.timeParse("%Y-%m-%d");
@@ -400,7 +403,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
   const filteredData = monthlyChartData.filter(d => d.rupture > 0 || d.tension > 0);
 
   // Create scales
-  const xScale = getXScale();
+  const xScale = configManager.getXScale();
 
   const y = d3.scaleLinear()
     .domain([0, d3.max(filteredData, d => Math.max(d.rupture, d.tension))])
@@ -423,8 +426,8 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
   if (isInitialSetup) {
     svg = d3.select("#summary")
       .append("svg")
-      .attr("width", config.summaryChart.width)
-      .attr("height", config.summaryChart.height);
+      .attr("width", configManager.config.summaryChart.width)
+      .attr("height", configManager.config.summaryChart.height);
   } else {
     svg = d3.select("#summary svg");
     svg.selectAll("*").remove();

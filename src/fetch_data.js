@@ -1,11 +1,5 @@
-import {
-  config,
-  setProducts,
-} from './draw_config.js';
-
-import {
-  processDates,
-} from '../library/utils.js';
+import { configManager } from './draw_config.js';
+import { processDates } from '../library/utils.js';
 
 // First query to run
 export async function fetchATCClasses(monthsToShow = 12) {
@@ -49,12 +43,6 @@ export async function fetchATCClasses(monthsToShow = 12) {
       };
     })
 
-      // console.log(data);
-      // let classesArray = data.map(classe => classe.classe_atc);
-      // return classesArray.map(ATCClass => {
-      //   return { code: ATCClass.slice(0, 1), name: ATCClass.slice(4) }
-      // })
-
     .catch(error => {
       console.error('Error:', error);
       throw error;
@@ -73,11 +61,11 @@ export async function fetchTableChartData(searchTerm = '', monthsToShow = 12, at
       const processedData = processDates(data);
       const lastReportDate = Math.max(...processedData.map(d => new Date(d.calculated_end_date)));
       const [startDate, endDate] = getDateRange(lastReportDate, monthsToShow);
-      config.report.setDateLastReport(lastReportDate);
-      config.report.setStartDateChart(startDate);
-      config.report.setEndDateChart(endDate);
+      configManager.setDateLastReport(lastReportDate);
+      configManager.setStartDateChart(startDate);
+      configManager.setEndDateChart(endDate);
 
-      setProducts(processedData);
+      configManager.setProducts(processedData);
       return processedData;
     })
     .catch(error => {
