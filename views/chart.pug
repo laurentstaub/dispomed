@@ -25,7 +25,7 @@ section
                             option(value="") Choisir une classe ATC
                             each atcClass in ATCClasses
                                 option(value=atcClass.code)= `${atcClass.code} - ${atcClass.description}`
-                        select.atc-selector(name="molecule")
+                        select.atc-selector#molecule(name="molecule")
                             option(value="") Choisir une molécule
                             each molecule in molecules
                                 option(value=molecules.code)=`${molecule.name}`

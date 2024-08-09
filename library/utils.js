@@ -1,7 +1,7 @@
-import { config } from '../src/draw_config.js';
+import { configManager } from '../src/draw_config.js';
 
 export function getProductStatus(d) {
-  const dateLastReport = config.report.getDateLastReport();
+  const dateLastReport = configManager.getDateLastReport();
 
   if (d.status === "arret") {
     return { text: "Arrêt de commercialisation", class: "tooltip-arret" };
