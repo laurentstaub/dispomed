@@ -22,9 +22,9 @@ section
                 p.controls Recherches
                     .atc-wrapper
                         select.atc-selector#atc(name="atc")
-                            option(value="") Choisir une classe ATC
+                            option(value="" selected=selectedAtcClass === "") Choisir une classe ATC
                             each atcClass in ATCClasses
-                                option(value=atcClass.code)= `${atcClass.code} - ${atcClass.description}`
+                                option(value=atcClass.code, selected=atcClass.code === selectedAtcClass)= `${atcClass.code} - ${atcClass.description}`
                         select.atc-selector#molecule(name="molecule")
                             option(value="") Choisir une molécule
                             each molecule in molecules
