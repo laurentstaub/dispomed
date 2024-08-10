@@ -13,7 +13,7 @@ export async function handleSearch(searchTerm) {
   const atcClass = configManager.getATCClass();
   const molecule = configManager.getMolecule();
 
-  data = await fetchTableChartData(searchTerm, monthsToShow, atcClass, molecule);
+  data = await fetchTableChartData(monthsToShow, searchTerm, atcClass, molecule);
   monthlyData = configManager.processDataMonthlyChart(data);
   drawTableChart(data, false);
   drawSummaryChart(monthlyData, false);
@@ -27,7 +27,7 @@ function updateMoleculeDropdown(atcClass) {
     .map(molecule => {
       const mol_id = molecule.split(" - ")[0];
       const mol_name = molecule.split(" - ")[1];
-      return { code: mol_id, name: mol_name }
+      return { code: mol_id, name: mol_name };
     });
 
   console.log('Updating molecule dropdown for ATC class:', atcClass);
@@ -43,7 +43,7 @@ function updateMoleculeDropdown(atcClass) {
 // Set up debounced search to avoid querying too often
 const debouncedSearch = createDebouncedSearch(handleSearch);
 
-// Attach event listener to search box
+// Event listeners for search
 d3.select("#search-box").on("input", function() {
   const searchTerm = this.value;
   configManager.setSearchTerm(this.value);
@@ -61,6 +61,7 @@ d3.select("#molecule").on("input", function () {
   const molecule = this.value;
   configManager.setMolecule(molecule);
   console.log('Molecule from molecule listener:', molecule);
+  handleSearch(configManager.getSearchTerm());
 });
 
 // Get all period buttons

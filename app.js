@@ -3,7 +3,6 @@ import cors from 'cors';
 import './library/config.js';
 import { dbQuery } from './database/connect_db.js';
 import ATCDataManager from "./src/atc_data_manager.js";
-import { configManager } from "./src/draw_config.js";
 
 const app = express();
 const PORT = process.env.PORT;
@@ -24,7 +23,7 @@ app.get("/", async (req, res) => {
 });
 
 app.get('/api/incidents', async (req, res) => {
-  const { product, monthsToShow, atcClass } = req.query;
+  const { monthsToShow, product, atcClass, molecule } = req.query;
 
   try {
     let query = `
@@ -72,6 +71,12 @@ app.get('/api/incidents', async (req, res) => {
           paramsCounter += 1;
           query += ` AND ca.code = $${paramsCounter}`;
           params.push(atcClass);
+        }
+
+        if (molecule) {
+          paramsCounter += 1;
+          query += ` AND m.name = $${paramsCounter}`;
+          params.push(molecule);
         }
 
         query += `
