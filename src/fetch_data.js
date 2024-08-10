@@ -1,9 +1,14 @@
 import { configManager } from './draw_config.js';
 import { processDates } from '../library/utils.js';
 
-export async function fetchTableChartData(searchTerm = '', monthsToShow = 12, atcClass = '') {
+export async function fetchTableChartData(monthsToShow = 12, searchTerm = '', atcClass = '', molecule = '') {
   const baseUrl = 'http://localhost:3000';
-  const queryString = new URLSearchParams({ product: searchTerm, monthsToShow: monthsToShow, atcClass: atcClass }).toString();
+  const queryString = new URLSearchParams({
+    monthsToShow: monthsToShow,
+    product: searchTerm,
+    atcClass: atcClass,
+    molecule: molecule
+  }).toString();
   const url = `${baseUrl}/api/incidents${queryString ? '?' + queryString : ''}`;
 
   return fetch(url)
