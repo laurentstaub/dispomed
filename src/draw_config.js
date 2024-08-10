@@ -35,11 +35,11 @@ class ConfigManager {
     this.atcCode = '';
     this.xScale = null;
     this.yScale = null;
+    this.moleculeMap = [];
 
     instance = this;
   }
 
-  // Report-related methods
   setStartDateChart(date) { this.config.report.startDateChart = date; }
   getStartDateChart() { return this.config.report.startDateChart; }
   setDateLastReport(date) { this.config.report.dateLastReport = date; }
@@ -47,32 +47,29 @@ class ConfigManager {
   setEndDateChart(date) { this.config.report.endDateChart = date; }
   getEndDateChart() { return this.config.report.endDateChart; }
 
-  // Products-related methods
   setProducts(data) {
     this.products = Array.from(new Set(data.map(d => d.product)));
   }
   getProducts() { return this.products; }
 
-  // ATC classes methods
   setATCClasses(data) {
     this.ATCClasses = Array.from(new Set(data.map(d => d.classe_atc))).sort()
       .map(ATCClass => ({ code: ATCClass.slice(0, 1), name: ATCClass.slice(4) }));
   }
   getATCClasses() { return this.ATCClasses; }
 
-  // Molecule methods
   setMolecule(data) { this.molecule = data; }
   getMolecule() { return this.molecule; }
 
-  // Search term methods
+  setMoleculeMap(mapping) { this.moleculeMap = mapping; }
+  getMoleculeMap() { return this.moleculeMap; }
+
   setSearchTerm(word) { this.searchTerm = word; }
   getSearchTerm() { return this.searchTerm; }
 
-  // Months to show methods
   setMonthsToShow(period) { this.monthsToShow = period; }
   getMonthsToShow() { return this.monthsToShow; }
 
-  // ATC class methods
   setATCClass(atcCodeLetter) { this.atcCode = atcCodeLetter; }
   getATCClass() { return this.atcCode; }
 

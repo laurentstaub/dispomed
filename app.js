@@ -2,7 +2,8 @@ import express from "express";
 import cors from 'cors';
 import './library/config.js';
 import { dbQuery } from './database/connect_db.js';
-import { fetchATCClasses } from './src/fetch_data.js';
+import ATCDataManager from "./src/atc_data_manager.js";
+import { configManager } from "./src/draw_config.js";
 
 const app = express();
 const PORT = process.env.PORT;
@@ -14,9 +15,12 @@ app.use(express.static("."));
 app.use(cors());
 
 app.get("/", async (req, res) => {
-  let { atcClassesList, allMoleculesList } = await fetchATCClasses();
-  console.log(allMoleculesList);
-  res.render("chart", { ATCClasses: atcClassesList, molecules: allMoleculesList });
+  await ATCDataManager.fetchAndInitialize(12); // 12 for 12 months as default report time length
+  const atcClasses = ATCDataManager.getATCClasses();
+  const selectedAtcClass = req.query.atcClass || "";
+  const molecules = ATCDataManager.getMolecules(selectedAtcClass || "");
+  console.log('Molecules from get', molecules);
+  res.render("chart", { ATCClasses: atcClasses, molecules: molecules, selectedAtcClass: selectedAtcClass });
 });
 
 app.get('/api/incidents', async (req, res) => {
@@ -34,7 +38,8 @@ app.get('/api/incidents', async (req, res) => {
             TO_CHAR(i.mise_a_jour, 'YYYY-MM-DD') AS mise_a_jour,
             TO_CHAR(i.date_dernier_rapport, 'YYYY-MM-DD') AS date_dernier_rapport,
             TO_CHAR(i.calculated_end_date, 'YYYY-MM-DD') AS calculated_end_date,
-            STRING_AGG(DISTINCT m.name, ', ') AS molecules,
+            STRING_AGG(DISTINCT m.name, ', ') AS molecule,
+            STRING_AGG(DISTINCT m.id::text, ', ') AS molecule_id,
             STRING_AGG(DISTINCT ca.code || ' - ' || ca.description, ', ') AS classe_atc,
             STRING_AGG(DISTINCT ca.code, ', ') AS atc_code,
             CASE

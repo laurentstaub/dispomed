@@ -1,4 +1,5 @@
 import { configManager } from './draw_config.js';
+import ATCDataManager from './atc_data_manager.js';
 import {
   getProductStatus,
   getUniqueProductLength,
@@ -11,29 +12,32 @@ export async function handleSearch(searchTerm) {
   const monthsToShow = configManager.getMonthsToShow();
   const atcClass = configManager.getATCClass();
   const molecule = configManager.getMolecule();
-  console.log('Searching for:', searchTerm);
-  console.log('Searching for period:', monthsToShow);
-  console.log('ATC Class:', atcClass);
-  console.log('Molecule:', molecule);
+
   data = await fetchTableChartData(searchTerm, monthsToShow, atcClass, molecule);
-  monthlyData = processDataMonthlyChart(data);
+  monthlyData = configManager.processDataMonthlyChart(data);
   drawTableChart(data, false);
   drawSummaryChart(monthlyData, false);
+  updateMoleculeDropdown(atcClass);
 }
 
 function updateMoleculeDropdown(atcClass) {
   const moleculeSelect = d3.select("#molecule");
-  const { allMolecules, atcMoleculeMap } = window.atcData;
+  const molecules = data.map(incident => `${incident.molecule_id} - ${incident.molecule}`);
+  const uniqueMolecules = [...new Set(molecules)]
+    .map(molecule => {
+      const mol_id = molecule.split(" - ")[0];
+      const mol_name = molecule.split(" - ")[1];
+      return { code: mol_id, name: mol_name }
+    });
 
-  let molecules = atcClass ? atcMoleculeMap[atcClass] || [] : allMolecules;
+  console.log('Updating molecule dropdown for ATC class:', atcClass);
+  console.log('Molecules:', uniqueMolecules);
 
   moleculeSelect.selectAll("option")
-    .data([{ id: "", name: "Choisir une molécule" }, ...molecules], d => d.id)
+    .data([{ code: "", name: "Choisir une molécule" }, ...uniqueMolecules])
     .join("option")
-    .attr("value", d => d.id)
+    .attr("value", d => d.code)
     .text(d => d.name);
-
-  configManager.setMolecule(""); // Reset molecule selection
 }
 
 // Set up debounced search to avoid querying too often
@@ -43,26 +47,21 @@ const debouncedSearch = createDebouncedSearch(handleSearch);
 d3.select("#search-box").on("input", function() {
   const searchTerm = this.value;
   configManager.setSearchTerm(this.value);
-  console.log('Search term:', searchTerm); // For debugging
+  console.log('Search term from search box listener:', searchTerm); // For debugging
   debouncedSearch(searchTerm);
 });
 
-// Attach event listener to ATC class choice
-d3.select("#atc").on("input", function() {
-  // Only the ATC class code is returned as value is the code only
+d3.select("#atc").on("input", function () {
   const atcClass = this.value;
   configManager.setATCClass(atcClass);
-  updateMoleculeDropdown(atcClass);
-  debouncedSearch(configManager.getSearchTerm());
-})
+  handleSearch(configManager.getSearchTerm());
+});
 
-// Attach event listener to molecule choice
-d3.select("#molecule").on("input", function() {
-  // Only
+d3.select("#molecule").on("input", function () {
   const molecule = this.value;
   configManager.setMolecule(molecule);
-  console.log(molecule);
-})
+  console.log('Molecule from molecule listener:', molecule);
+});
 
 // Get all period buttons
 const periodButtons = document.querySelectorAll('.chart-button');
@@ -73,13 +72,14 @@ function selectButton(button, months) {
   button.classList.add('button-selected');
 }
 
-document.getElementById('show-12-months').addEventListener('click', function() {
+// Attach event listeners to period buttons
+d3.select('#show-12-months').on('click', function() {
   configManager.setMonthsToShow(12);
   handleSearch(configManager.getSearchTerm());
   selectButton(this, 12);
 });
 
-document.getElementById('show-24-months').addEventListener('click', function() {
+d3.select('#show-24-months').on('click', function() {
   configManager.setMonthsToShow(24);
   handleSearch(configManager.getSearchTerm());
   selectButton(this, 24);
@@ -97,46 +97,14 @@ document.getElementById('show-all-data').addEventListener('click', function() {
   selectButton(this, monthsDiff);
 });
 
-// Set default to 12 months on page load
+// Set default to 12 months button on page load
 window.addEventListener('load', function() {
   const defaultButton = document.getElementById('show-12-months');
   selectButton(defaultButton, 12);
 });
 
-// Wait for the DOM to load
-document.addEventListener('DOMContentLoaded', function() {
-    // Select all checkboxes and add listener
-    const checkboxes = d3.selectAll('input[type="checkbox"][name="atc"]');
-    checkboxes.on('change', updateSelectedItems);
-
-    function updateSelectedItems() {
-      const checkedBoxes = d3.selectAll('input[type="checkbox"][name="atc"]:checked');
-
-      // Get the selected ATC classes
-      const selectedATCs = checkedBoxes.nodes().map(checkbox => {
-        return {
-          code: checkbox.value
-        };
-      });
-
-        // Update the selected items list
-        const selectedList = d3.select('#selected-atc-list');
-
-        // Remove existing items
-        selectedList.selectAll('li').remove();
-
-        // Add new items
-        selectedList.selectAll('li')
-            .data(selectedATCs)
-            .enter()
-            .append('li')
-            .text(d => `${d.code}`);
-    }
-});
-
 let data = await fetchTableChartData();
 let monthlyData = configManager.processDataMonthlyChart(data);
-console.log(data);
 
 drawTableChart(data, true);
 drawSummaryChart(monthlyData, true);
