@@ -1,7 +1,7 @@
 import { configManager } from './draw_config.js';
 import { processDates } from '../library/utils.js';
 
-export async function fetchTableChartData(monthsToShow = 12, searchTerm = '', atcClass = '', molecule = '') {
+export async function fetchTableChartData(isInitialSetup, monthsToShow = 12, searchTerm = '', atcClass = '', molecule = '') {
   const baseUrl = 'http://localhost:3000';
   const queryString = new URLSearchParams({
     monthsToShow: monthsToShow,
@@ -21,14 +21,37 @@ export async function fetchTableChartData(monthsToShow = 12, searchTerm = '', at
       configManager.setDateLastReport(lastReportDate);
       configManager.setStartDateChart(startDate);
       configManager.setEndDateChart(endDate);
-
       configManager.setProducts(processedData);
+
+      if (isInitialSetup) {
+        const atcMoleculeFullMap = data.map(d => {
+          return {
+            molecule: `${d.molecule_id} - ${d.molecule}`,
+            atcClass: d.atc_code,
+          }
+        });
+
+        // To get the unique atcClass/molecules couples
+        let mappedAtcMolecules = [...new Map(atcMoleculeFullMap.map((line) => {
+          return [
+            line['molecule'], line['atcClass']
+          ];
+        }))];
+
+        let arrayAtcMolecules = mappedAtcMolecules.map(line => {
+          return {
+            atcClass: line[1],
+            moleculeName: line[0].split(" - ")[1],
+            moleculeId: line[0].split(" - ")[0],
+          }
+        });
+        console.log(arrayAtcMolecules);
+
+        configManager.setMoleculeClassMap(arrayAtcMolecules);
+      }
+
       return processedData;
     })
-    .catch(error => {
-      console.error('Error:', error);
-      throw error;
-    });
 }
 
 function getDateRange(lastReportDate, monthsToShow) {

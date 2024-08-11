@@ -18,7 +18,6 @@ app.get("/", async (req, res) => {
   const atcClasses = ATCDataManager.getATCClasses();
   const selectedAtcClass = req.query.atcClass || "";
   const molecules = ATCDataManager.getMolecules(selectedAtcClass || "");
-  console.log('Molecules from get', molecules);
   res.render("chart", { ATCClasses: atcClasses, molecules: molecules, selectedAtcClass: selectedAtcClass });
 });
 
@@ -26,7 +25,7 @@ app.get('/api/incidents', async (req, res) => {
   const { monthsToShow, product, atcClass, molecule } = req.query;
 
   try {
-    let query = `
+      let query = `
         WITH incidents_with_sorting AS (
           SELECT
             i.id,
