@@ -29,13 +29,13 @@ class ConfigManager {
 
     this.products = [];
     this.ATCClasses = [];
-    this.molecule = [];
+    this.molecule = '';
     this.searchTerm = '';
     this.monthsToShow = 12;
     this.atcCode = '';
     this.xScale = null;
     this.yScale = null;
-    this.moleculeMap = [];
+    this.moleculeClassMap = [];
 
     instance = this;
   }
@@ -61,8 +61,8 @@ class ConfigManager {
   setMolecule(data) { this.molecule = data; }
   getMolecule() { return this.molecule; }
 
-  setMoleculeMap(mapping) { this.moleculeMap = mapping; }
-  getMoleculeMap() { return this.moleculeMap; }
+  setMoleculeClassMap(filteredList) { this.moleculeClassMap = filteredList; }
+  getMoleculeClassMap() { return this.moleculeClassMap; }
 
   setSearchTerm(word) { this.searchTerm = word; }
   getSearchTerm() { return this.searchTerm; }

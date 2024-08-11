@@ -1,11 +1,9 @@
 import { configManager } from './draw_config.js';
-import ATCDataManager from './atc_data_manager.js';
 import {
   getProductStatus,
   getUniqueProductLength,
   createDebouncedSearch,
 } from '../library/utils.js';
-
 import { fetchTableChartData } from './fetch_data.js';
 
 export async function handleSearch(searchTerm) {
@@ -23,6 +21,8 @@ export async function handleSearch(searchTerm) {
 function updateMoleculeDropdown(atcClass) {
   const moleculeSelect = d3.select("#molecule");
   const molecules = data.map(incident => `${incident.molecule_id} - ${incident.molecule}`);
+  const selectedMoleculeId = configManager.getMolecule();
+
   const uniqueMolecules = [...new Set(molecules)]
     .map(molecule => {
       const mol_id = molecule.split(" - ")[0];
@@ -32,16 +32,26 @@ function updateMoleculeDropdown(atcClass) {
 
   console.log('Updating molecule dropdown for ATC class:', atcClass);
   console.log('Molecules:', uniqueMolecules);
+  console.log(selectedMoleculeId);
 
   moleculeSelect.selectAll("option")
-    .data([{ code: "", name: "Choisir une molécule" }, ...uniqueMolecules])
-    .join("option")
-    .attr("value", d => d.code)
+    .data([{ code: "", name: 'Choisir une molécule' }, ...uniqueMolecules])
+    .join('option')
+    .attr('value', d => d.code)
     .text(d => d.name);
+
+  if (selectedMoleculeId) {
+    moleculeSelect.selectAll(`option[value='${selectedMoleculeId}']`)
+      .attr('selected', 'selected')
+  }
 }
 
 // Set up debounced search to avoid querying too often
 const debouncedSearch = createDebouncedSearch(handleSearch);
+
+d3.select("#reinitialiser").on('click', function () {
+  location.reload();
+});
 
 // Event listeners for search
 d3.select("#search-box").on("input", function() {
@@ -49,11 +59,6 @@ d3.select("#search-box").on("input", function() {
   configManager.setSearchTerm(this.value);
   debouncedSearch(searchTerm);
 });
-
-d3.select("#reinitialiser").on('click', function() {
-  console.log("reload");
-  location.reload();
-})
 
 d3.select("#atc").on("input", function() {
   const atcClass = this.value;
@@ -107,7 +112,7 @@ window.addEventListener('load', function() {
   selectButton(defaultButton, 12);
 });
 
-let data = await fetchTableChartData();
+let data = await fetchTableChartData(true);
 let monthlyData = configManager.processDataMonthlyChart(data);
 
 drawTableChart(data, true);
