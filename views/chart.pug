@@ -19,6 +19,7 @@ section
         div#last-report-date
         div.flex-container
             div#controls-and-search.chart-controls-container
+                button#reinitialiser Réinitialiser la recherche
                 p.controls Recherches
                     .atc-wrapper
                         select.atc-selector#atc(name="atc")
@@ -30,17 +31,12 @@ section
                             each molecule in molecules
                                 option(value=molecules.code)=`${molecule.name}`
                     input(type="text" id="search-box" placeholder="Rechercher un produit...")
-
-                // div#chart-controls
                 p.controls Echelle de temps
                 div.button-row
-                    // button#show-6-months.chart-button Derniers 6 mois
                     button#show-12-months.chart-button Derniers 12 mois
                     button#show-24-months.chart-button Derniers 24 mois
                 div.button-row
                     button#show-all-data.chart-button Toutes les données
-
-
             div#summary
             div#tooltip(style="position: absolute; opacity: 0; pointer-events: none;")
         div#dash
