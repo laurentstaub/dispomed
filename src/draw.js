@@ -47,20 +47,23 @@ const debouncedSearch = createDebouncedSearch(handleSearch);
 d3.select("#search-box").on("input", function() {
   const searchTerm = this.value;
   configManager.setSearchTerm(this.value);
-  console.log('Search term from search box listener:', searchTerm); // For debugging
   debouncedSearch(searchTerm);
 });
 
-d3.select("#atc").on("input", function () {
+d3.select("#reinitialiser").on('click', function() {
+  console.log("reload");
+  location.reload();
+})
+
+d3.select("#atc").on("input", function() {
   const atcClass = this.value;
   configManager.setATCClass(atcClass);
   handleSearch(configManager.getSearchTerm());
 });
 
-d3.select("#molecule").on("input", function () {
+d3.select("#molecule").on("input", function() {
   const molecule = this.value;
   configManager.setMolecule(molecule);
-  console.log('Molecule from molecule listener:', molecule);
   handleSearch(configManager.getSearchTerm());
 });
 
