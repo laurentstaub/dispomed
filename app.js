@@ -75,7 +75,7 @@ app.get('/api/incidents', async (req, res) => {
 
         if (molecule) {
           paramsCounter += 1;
-          query += ` AND m.name = $${paramsCounter}`;
+          query += ` AND m.id = $${paramsCounter}`;
           params.push(molecule);
         }
 
