@@ -1,47 +1,47 @@
 doctype html
 html(lang="en")
-  head
-    meta(charset="UTF-8")
-    meta(name="viewport", content="width=device-width, initial-scale=1.0")
-    title Your Project Title
-    link(rel="stylesheet", href="./public/stylesheets/styles.css")
-    script(src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js")
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        title Your Project Title
+        link(rel="stylesheet", href="./public/stylesheets/styles.css")
+        script(src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js")
 
-  body
-    header
-      h1 Dispomed
+    body
+        header
+        h1 Dispomed
 
-section
-    h2 Incidents de disponibilité par produit
-    p Ce graphique montre les incidents de disponibilité pour chaque produit
-    div#chart-container
-        div#chart-header
-        div#last-report-date
-        div.flex-container
-            div#controls-and-search.chart-controls-container
-                button#reinitialiser Réinitialiser la recherche
-                p.controls Recherches
-                    .atc-wrapper
-                        select.atc-selector#atc(name="atc")
-                            option(value="" selected=selectedAtcClass === "") Choisir une classe ATC
-                            each atcClass in ATCClasses
-                                option(value=atcClass.code, selected=atcClass.code === selectedAtcClass)= `${atcClass.code} - ${atcClass.description}`
-                        select.atc-selector#molecule(name="molecule")
-                            option(value="") Choisir une molécule
-                            each molecule in molecules
-                                option(value=molecules.code)=`${molecule.name}`
-                    input(type="text" id="search-box" placeholder="Rechercher un produit...")
-                p.controls Echelle de temps
-                div.button-row
-                    button#show-12-months.chart-button Derniers 12 mois
-                    button#show-24-months.chart-button Derniers 24 mois
-                div.button-row
-                    button#show-all-data.chart-button Toutes les données
-            div#summary
-            div#tooltip(style="position: absolute; opacity: 0; pointer-events: none;")
-        div#dash
+        section
+            h2 Incidents de disponibilité par produit
+            p Ce graphique montre les incidents de disponibilité pour chaque produit
+            div#chart-container
+                div#chart-header
+                div#last-report-date
+                div.flex-container
+                    div#controls-and-search.chart-controls-container
+                        button#reinitialiser Réinitialiser la recherche
+                        p.controls Recherches
+                            .atc-wrapper
+                                select.atc-selector#atc(name="atc")
+                                    option(value="" selected=selectedAtcClass === "") Choisir une classe ATC
+                                    each atcClass in ATCClasses
+                                        option(value=atcClass.code, selected=atcClass.code === selectedAtcClass)= `${atcClass.code} - ${atcClass.description}`
+                                select.atc-selector#molecule(name="molecule")
+                                    option(value="") Choisir une molécule
+                                    each molecule in molecules
+                                        option(value=molecules.code)=`${molecule.name}`
+                            input(type="text" id="search-box" placeholder="Rechercher un produit...")
+                        p.controls Echelle de temps
+                        div.button-row
+                            button#show-12-months.chart-button Derniers 12 mois
+                            button#show-24-months.chart-button Derniers 24 mois
+                        div.button-row
+                            button#show-all-data.chart-button Toutes les données
+                    div#summary
+                    div#tooltip(style="position: absolute; opacity: 0; pointer-events: none;")
+                div#dash
 
     footer
-      p 2024 - Antheos
+        p 2024 - Antheos
 
     script(type="module",src="/src/draw.js")
