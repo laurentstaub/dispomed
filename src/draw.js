@@ -40,11 +40,13 @@ function updateMoleculeDropdown(atcClass) {
     .data([{ code: "", name: 'Choisir une molécule' }, ...molecules])
     .join('option')
     .attr('value', d => d.code)
-    .text(d => d.name);
+    .text(d => d.name)
+    .selectAll('option').attr('selected', null);
 
   if (selectedMoleculeId) {
     moleculeSelect.selectAll(`option[value='${selectedMoleculeId}']`)
-      .attr('selected', 'selected')
+      .attr('selected', 'selected');
+    console.log("selected")
   }
 }
 
@@ -65,6 +67,12 @@ d3.select("#search-box").on("input", function() {
 d3.select("#atc").on("input", function() {
   const atcClass = this.value;
   configManager.setATCClass(atcClass);
+  configManager.setMolecule('');
+  // Reset the molecule selector to default
+  d3.select("#molecule")
+    .property('value', '')
+    .dispatch('change');
+
   handleSearch(false, configManager.getSearchTerm());
 });
 
