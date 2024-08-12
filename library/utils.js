@@ -67,10 +67,10 @@ export function processDates(data) {
 
 export function createDebouncedSearch(callback, delay = 400) {
   let debounceTimer;
-  return function(searchTerm) {
+  return function(isInitialSetup, searchTerm) {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
-      callback(searchTerm);
+      callback(isInitialSetup, searchTerm);
     }, delay);
   };
 }

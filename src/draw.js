@@ -6,12 +6,12 @@ import {
 } from '../library/utils.js';
 import { fetchTableChartData } from './fetch_data.js';
 
-export async function handleSearch(searchTerm) {
+export async function handleSearch(isInitialSetup,searchTerm) {
   const monthsToShow = configManager.getMonthsToShow();
   const atcClass = configManager.getATCClass();
   const molecule = configManager.getMolecule();
 
-  data = await fetchTableChartData(monthsToShow, searchTerm, atcClass, molecule);
+  data = await fetchTableChartData(isInitialSetup, monthsToShow, searchTerm, atcClass, molecule);
   monthlyData = configManager.processDataMonthlyChart(data);
   drawTableChart(data, false);
   drawSummaryChart(monthlyData, false);
@@ -20,22 +20,24 @@ export async function handleSearch(searchTerm) {
 
 function updateMoleculeDropdown(atcClass) {
   const moleculeSelect = d3.select("#molecule");
-  const molecules = data.map(incident => `${incident.molecule_id} - ${incident.molecule}`);
   const selectedMoleculeId = configManager.getMolecule();
 
-  const uniqueMolecules = [...new Set(molecules)]
-    .map(molecule => {
-      const mol_id = molecule.split(" - ")[0];
-      const mol_name = molecule.split(" - ")[1];
-      return { code: mol_id, name: mol_name };
-    });
+  const molecules = configManager
+    .getMoleculeClassMap()
+    .filter(mol => mol.atcClass === atcClass)
+    .map(mol => {
+      return {
+        code: mol.moleculeId,
+        name: mol.moleculeName
+      }
+    })
 
   console.log('Updating molecule dropdown for ATC class:', atcClass);
-  console.log('Molecules:', uniqueMolecules);
+  console.log('Molecules:', molecules);
   console.log(selectedMoleculeId);
 
   moleculeSelect.selectAll("option")
-    .data([{ code: "", name: 'Choisir une molécule' }, ...uniqueMolecules])
+    .data([{ code: "", name: 'Choisir une molécule' }, ...molecules])
     .join('option')
     .attr('value', d => d.code)
     .text(d => d.name);
@@ -57,19 +59,19 @@ d3.select("#reinitialiser").on('click', function () {
 d3.select("#search-box").on("input", function() {
   const searchTerm = this.value;
   configManager.setSearchTerm(this.value);
-  debouncedSearch(searchTerm);
+  debouncedSearch(false, searchTerm);
 });
 
 d3.select("#atc").on("input", function() {
   const atcClass = this.value;
   configManager.setATCClass(atcClass);
-  handleSearch(configManager.getSearchTerm());
+  handleSearch(false, configManager.getSearchTerm());
 });
 
 d3.select("#molecule").on("input", function() {
   const molecule = this.value;
   configManager.setMolecule(molecule);
-  handleSearch(configManager.getSearchTerm());
+  handleSearch(false, configManager.getSearchTerm());
 });
 
 // Get all period buttons
@@ -84,13 +86,13 @@ function selectButton(button, months) {
 // Attach event listeners to period buttons
 d3.select('#show-12-months').on('click', function() {
   configManager.setMonthsToShow(12);
-  handleSearch(configManager.getSearchTerm());
+  handleSearch(true, configManager.getSearchTerm());
   selectButton(this, 12);
 });
 
 d3.select('#show-24-months').on('click', function() {
   configManager.setMonthsToShow(24);
-  handleSearch(configManager.getSearchTerm());
+  handleSearch(true, configManager.getSearchTerm());
   selectButton(this, 24);
 });
 
