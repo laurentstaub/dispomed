@@ -2,7 +2,7 @@ import express from "express";
 import cors from 'cors';
 import './library/config.js';
 import { dbQuery } from './database/connect_db.js';
-import ATCDataManager from "./src/atc_data_manager.js";
+import ATCDataManager from "./src/fetch_first_atcdata.js";
 
 const app = express();
 const PORT = process.env.PORT;

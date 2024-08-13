@@ -1,12 +1,49 @@
 import { configManager } from './draw_config.js';
-import {
-  getProductStatus,
-  getUniqueProductLength,
-  createDebouncedSearch,
-} from '../library/utils.js';
 import { fetchTableChartData } from './fetch_data.js';
 
-export async function handleSearch(isInitialSetup,searchTerm) {
+function getProductStatus(d) {
+  const dateLastReport = configManager.getDateLastReport();
+
+  if (d.status === "arret") {
+    return { text: "Arrêt de commercialisation", class: "tooltip-arret" };
+  } else if (d.start_date <= dateLastReport && d.calculated_end_date >= dateLastReport) {
+    if (d.status === "Rupture") {
+      return { text: "Rupture de stock", class: "tooltip-rupture" };
+    } else if (d.status === "Tension") {
+      return { text: "Tension d'approvisionnement", class: "tooltip-tension" };
+    } else if (d.status === "Arret") {
+      return { text: "Arrêt de commercialisation", class: "tooltip-arret" };
+    }
+  } else if (!d.calculated_end_date || d.calculated_end_date < dateLastReport) {
+      return { text: "Disponible", class: "tooltip-disponible" };
+  }
+  return { text: "Statut inconnu", class: "" };
+}
+
+// Used to get the unique product list from the SQL query
+function getUniqueProductLength(eventList) {
+  let result = [];
+
+  eventList.forEach(event => {
+    if (!result.includes(event.product)) result.push(event.product);
+  })
+
+  return result.length;
+}
+
+
+
+function createDebouncedSearch(callback, delay = 400) {
+  let debounceTimer;
+  return function(isInitialSetup, searchTerm) {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      callback(isInitialSetup, searchTerm);
+    }, delay);
+  };
+}
+
+async function handleSearch(isInitialSetup,searchTerm) {
   const monthsToShow = configManager.getMonthsToShow();
   const atcClass = configManager.getATCClass();
   const molecule = configManager.getMolecule();
@@ -338,7 +375,6 @@ function drawTableChart(data, isInitialSetup) {
     .attr("x2", xScale(dateLastReport))
     .attr("y1", 0)
     .attr("y2", innerHeight);
-
 
   // Add status bars on the left of the chart
   const groupedData = d3.group(data, d => getProductStatus(d).text);

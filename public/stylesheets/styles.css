@@ -173,7 +173,7 @@ button {
 }
 
 #controls-and-search {
-  height: 220px;
+  height: 230px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -282,5 +282,6 @@ button {
 
 p.controls {
     font-size: 12px;
-    margin: 0;
+    font-weight: 700;
+    margin: 10px 0 0 0;
 }
