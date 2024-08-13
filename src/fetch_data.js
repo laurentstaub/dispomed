@@ -1,5 +1,39 @@
 import { configManager } from './draw_config.js';
-import { processDates } from '../library/utils.js';
+
+// Parses dates from the sql query
+function processDates(data) {
+  const parseTime = createTimeParse("%Y-%m-%d");
+
+  return data.map(d => ({
+    ...d,
+    start_date: parseTime(d.start_date),
+    end_date: parseTime(d.end_date),
+    mise_a_jour_date: parseTime(d.mise_a_jour_date),
+    date_dernier_rapport: parseTime(d.date_dernier_rapport),
+    end_date: parseTime(d.end_date),
+    calculated_end_date: parseTime(d.calculated_end_date)
+  }));
+}
+
+// Used to process dates in the processDates function
+function createTimeParse(format) {
+  // This function only handles "%Y-%m-%d" format
+  if (format !== "%Y-%m-%d") {
+    throw new Error("Only %Y-%m-%d format is supported in this example");
+  }
+
+  return function parseTime(dateString) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return null;
+
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+
+    // Check if the date is valid
+    if (isNaN(date.getTime())) return null;
+
+    return date;
+  };
+}
 
 export async function fetchTableChartData(isInitialSetup, monthsToShow = 12, searchTerm = '', atcClass = '', molecule = '') {
   const baseUrl = 'http://localhost:3000';
