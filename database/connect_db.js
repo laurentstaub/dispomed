@@ -9,7 +9,6 @@ const CONNECTION = {
   port: 5432,
 }
 
-const client = new Client(CONNECTION);
 
 export async function dbQuery(statement, ...parameters) {
   const client = new Client(CONNECTION);

@@ -57,7 +57,7 @@ export async function fetchTableChartData(isInitialSetup, monthsToShow = 12, sea
       configManager.setEndDateChart(endDate);
       configManager.setProducts(processedData);
 
-      // We want to set a full map of atc/molecules from the initial base
+      // We want to set a full map of atc/molecules from the initial fetch
       // to populate the list of classes and molecules whatever the selections are
       // We trigger an initial setup every time we change the period
       if (isInitialSetup) {

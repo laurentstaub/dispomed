@@ -4,12 +4,9 @@
     --noir: rgb(0, 0, 0);
     --gris: rgb(150, 150, 150);
     --grisleger: rgb(240, 240, 240);
-    --beigeleger: rgb(245, 240, 235);
-    --beige: rgb(207, 185, 160);
     --rupture: rgb(230, 70, 100);
     --rupture-bg: rgba(230, 70, 100, 0.9);
     --rupture-area: rgba(230, 70, 100, 0.1);
-    // --tension: rgb(255, 235, 170);
     --tension: rgb(250, 177, 75);
     --tension-bg: rgba(150, 135, 100, 0.9);
     --tension-area: rgba(255, 235, 170, 0.1);
@@ -63,8 +60,7 @@ button {
 }
 
 .grid-line {
-    stroke: var(--beige);
-    stroke-dasharray: 1;
+    stroke: var(--gris);
     stroke-width: 0.5px;
 }
 
@@ -90,8 +86,7 @@ button {
 }
 
 .month-line {
-    stroke: var(--beige);
-    stroke-dasharray: 1;
+    stroke: var(--gris);
     stroke-width: 0.5px;
 }
 
@@ -212,12 +207,12 @@ button {
 #search-box {
   flex: 0 0 calc(10% - 5px);
   font-size: 10px;
-  padding: 5px;
+  padding: 1px;
 }
 
 #summary {
   flex: 1;
-  height: 250px;
+  height: 260px;
 }
 
 #chart-container {
