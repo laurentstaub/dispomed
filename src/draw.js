@@ -31,8 +31,6 @@ function getUniqueProductLength(eventList) {
   return result.length;
 }
 
-
-
 function createDebouncedSearch(callback, delay = 400) {
   let debounceTimer;
   return function(isInitialSetup, searchTerm) {
@@ -59,15 +57,18 @@ function updateMoleculeDropdown(atcClass) {
   const moleculeSelect = d3.select("#molecule");
   const selectedMoleculeId = configManager.getMolecule();
 
-  const molecules = configManager
-    .getMoleculeClassMap()
-    .filter(mol => mol.atcClass === atcClass)
-    .map(mol => {
+  const rawMolecules = configManager.getMoleculeClassMap();
+
+  if (atcClass !== "") {
+    rawMolecules = rawMolecules.filter(mol => mol.atcClass === atcClass);
+  }
+
+  const molecules = rawMolecules.map(mol => {
       return {
         code: mol.moleculeId,
         name: mol.moleculeName
       }
-    })
+    });
 
   console.log('Updating molecule dropdown for ATC class:', atcClass);
   console.log('Molecules:', molecules);
@@ -222,7 +223,7 @@ function drawTableChart(data, isInitialSetup) {
       .attr("class", statusClass)
       .style("opacity", 0.9)
       .style("left", (event.pageX + 10) + "px")
-      .style("top", (event.pageY - 28) + "px");
+      .style("top", (event.pageY - 150) + "px");
     })
     .on("mouseout", function() {
       tooltip.style("opacity", 0);
@@ -307,7 +308,7 @@ function drawTableChart(data, isInitialSetup) {
         `)
           .attr("class", status.class)
           .style("left", (event.pageX + 10) + "px")
-          .style("top", (event.pageY - 28) + "px");
+          .style("top", (event.pageY - 150) + "px");
         }
       })
       .on("mouseout", function() {
@@ -462,7 +463,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
   // Draw lines
   g.append("path")
     .datum(filteredData)
-    .attr("class", "tension-line")
+    .attr("class", "rupture-line")
     .attr("d", lineRupture);
 
   g.append("path")

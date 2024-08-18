@@ -9,7 +9,8 @@
     --rupture: rgb(230, 70, 100);
     --rupture-bg: rgba(230, 70, 100, 0.9);
     --rupture-area: rgba(230, 70, 100, 0.1);
-    --tension: rgb(255, 235, 170);
+    // --tension: rgb(255, 235, 170);
+    --tension: rgb(250, 177, 75);
     --tension-bg: rgba(150, 135, 100, 0.9);
     --tension-area: rgba(255, 235, 170, 0.1);
     --disponible-bg: rgba(144, 238, 144, 0.9);
@@ -28,13 +29,13 @@ button {
 .tension-line {
     fill: none;
     stroke: var(--tension);
-    stroke-width: 1;
+    stroke-width: 1px;
 }
 
 .rupture-line {
     fill: none;
     stroke: var(--rupture);
-    stroke-width: 1;
+    stroke-width: 1px;
 }
 
 .rupture-label {
@@ -200,7 +201,7 @@ button {
 .button-selected {
   background-color: var(--gris);
   color: white;
-  font-weight: bold; /* Bold text */
+  font-weight: bold;
   box-shadow: 0 0 5px rgba(0,0,0,0.3);
 }
 
@@ -240,6 +241,11 @@ button {
   margin-bottom: 5px;
 }
 
+#reinitialiser {
+  height: 30px;
+  width: 250px;
+}
+
 .chart-button {
   flex: 1;
   padding: 5px;
@@ -251,6 +257,12 @@ button {
 
 .chart-button:hover {
   background-color: #e0e0e0;
+}
+
+p.controls {
+    font-size: 12px;
+    font-weight: 700;
+    margin: 10px 0 0 0;
 }
 
 #tooltip {
@@ -278,10 +290,4 @@ button {
 .tooltip-arret {
     background-color: var(--arret-bg);
     color: var(--blanc);
-}
-
-p.controls {
-    font-size: 12px;
-    font-weight: 700;
-    margin: 10px 0 0 0;
 }
