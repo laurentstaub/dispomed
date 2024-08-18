@@ -57,7 +57,7 @@ function updateMoleculeDropdown(atcClass) {
   const moleculeSelect = d3.select("#molecule");
   const selectedMoleculeId = configManager.getMolecule();
 
-  const rawMolecules = configManager.getMoleculeClassMap();
+  let rawMolecules = configManager.getMoleculeClassMap();
 
   if (atcClass !== "") {
     rawMolecules = rawMolecules.filter(mol => mol.atcClass === atcClass);
@@ -161,8 +161,10 @@ window.addEventListener('load', function() {
 });
 
 let data = await fetchTableChartData(true);
+let lastDateReport = d3.timeFormat("%d/%m/%Y")(configManager.getDateLastReport());
 let monthlyData = configManager.processDataMonthlyChart(data);
 
+d3.select("#last-report-date").text(`Date de dernier rapport: ${lastDateReport}`);
 drawTableChart(data, true);
 drawSummaryChart(monthlyData, true);
 
