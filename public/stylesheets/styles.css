@@ -6,10 +6,10 @@
     --grisleger: rgb(240, 240, 240);
     --rupture: rgb(230, 70, 100);
     --rupture-bg: rgba(230, 70, 100, 0.9);
-    --rupture-area: rgba(230, 70, 100, 0.1);
+    --rupture-area: rgba(230, 70, 100, 0.15);
     --tension: rgb(250, 177, 75);
     --tension-bg: rgba(150, 135, 100, 0.9);
-    --tension-area: rgba(255, 235, 170, 0.1);
+    --tension-area: rgba(255, 235, 170, 0.2);
     --disponible-bg: rgba(144, 238, 144, 0.9);
     --arret-bg: rgba(150, 150, 150, 0.9);
 }
@@ -60,7 +60,7 @@ button {
 }
 
 .grid-line {
-    stroke: var(--gris);
+    stroke: var(--blanc);
     stroke-width: 0.5px;
 }
 
@@ -80,15 +80,15 @@ button {
     fill: var(--gris);
 }
 
-.y-axis line {
+/* .y-axis line {
     stroke: var(--gris);
     stroke-width: 1px;
-}
+} */
 
-.month-line {
-    stroke: var(--gris);
+/* .month-line {
+    stroke: var(--blanc);
     stroke-width: 0.5px;
-}
+} */
 
 .year-line {
     stroke: var(--gris);
@@ -111,17 +111,12 @@ button {
 }
 
 .year-tick text {
-    transform: translateY(15px); /* Adjust the position of the year labels */
+    transform: translateY(17px);
 }
 
 .current-date-line {
     stroke:var(--gris);
     stroke-width: 1px;
-}
-
-.current-date-label {
-    fill: brown;
-    font-size: 10px;
 }
 
 .chart-title {
@@ -153,21 +148,6 @@ button {
   margin-left: 5px;
 }
 
-/* Remove default arrow */
-.atc-button::-webkit-details-marker {
-  display: none;
-}
-
-.atc-button::after {
-  content: '▼';
-  margin-left: 5px;
-  transition: transform 0.3s;
-}
-
-.atc-selector[open] .atc-button::after {
-  transform: rotate(180deg);
-}
-
 #controls-and-search {
   height: 230px;
   display: flex;
@@ -195,7 +175,7 @@ button {
 
 .button-selected {
   background-color: var(--gris);
-  color: white;
+  color: var(--blanc);
   font-weight: bold;
   box-shadow: 0 0 5px rgba(0,0,0,0.3);
 }
