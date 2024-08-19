@@ -232,53 +232,15 @@ function drawTableChart(data, isInitialSetup) {
     });
 
   // X-AXIS
-  // Top X Axis for years
-  const yearAxis = innerChart
-    .append("g")
-      .attr("transform", `translate(0,-20)`) // Position for the year axis
-      .call(d3.axisTop(xScale)
-        .ticks(d3.timeYear.every(1))
-        .tickFormat(d3.timeFormat("%Y"))
-        .tickSize(20)
-      );
-
-  // Add a class of year-tick
-  yearAxis.selectAll(".tick")
-    .attr("class", "year-tick");
-
-  // Center the year labels between the ticks
-  yearAxis.selectAll("text")
-    .attr("x", function(d, i, nodes) {
-        const nextTick = i < nodes.length - 1 ? xScale(d3.timeYear.offset(d, 1)) : xScale.range()[1];
-        return (nextTick - xScale(d)) / 2;
-      })
-    .style("text-anchor", "middle");
-
   // Top X Axis for months
   const monthAxis = innerChart
     .append("g")
-      .attr("transform", `translate(0, -20)`) // Adjust position to place it below the year axis
+      .attr("transform", `translate(0, 0)`) // Adjust position to place it below the year axis
       .call(d3.axisTop(xScale)
         .ticks(d3.timeMonth.every(1))
-        .tickFormat(d3.timeFormat("%-m"))
-        .tickSize(20)
+        .tickFormat(d => (d.getMonth() === 0) ? d3.timeFormat("%Y")(d) : d3.timeFormat("%b")(d).charAt(0))
+        .tickSize(3)
       );
-
-  // Center the month labels between the ticks
-  monthAxis.selectAll("text")
-    .attr("transform", function(d, i, nodes) {
-        const nextTick = i < nodes.length - 1 ? xScale(d3.timeMonth.offset(d, 1)) : xScale.range()[1];
-        return `translate(${(nextTick - xScale(d)) / 2}, 17)`;
-      })
-    .style("text-anchor", "middle");
-
-  // Add a class of year-tick
-  monthAxis.selectAll(".tick")
-    .attr("class", "month-tick");
-
-  // Adjust x-axis position
-  yearAxis.attr("transform", `translate(0,-20)`);
-  monthAxis.attr("transform", `translate(0,0)`);
 
   // Create tooltip div if it doesn't exist
   let tooltip = d3.select("body").select("#tooltip");
@@ -318,7 +280,7 @@ function drawTableChart(data, isInitialSetup) {
       });
 
   // GRID
-  // Add horizontal grid lines manually after bars to ensure they are on top
+  // Add horizontal grid lines
   innerChart.selectAll(".grid-line")
     .data(configManager.getProducts())
     .enter()
@@ -334,23 +296,23 @@ function drawTableChart(data, isInitialSetup) {
   const yearTicks = xScale.ticks(d3.timeYear.every(1));
 
   // Add horizontal line on top of products
-  innerChart.append("line")
-    .attr("class", "year-line")
-    .attr("x1", -configManager.config.table.margin.left)
-    .attr("x2", 0)
-    .attr("y1", 0)
-    .attr("y2", 0)
+  // innerChart.append("line")
+  //   .attr("class", "year-line")
+  //   .attr("x1", -configManager.config.table.margin.left)
+  //   .attr("x2", 0)
+  //   .attr("y1", 0)
+  //   .attr("y2", 0)
 
   // Add vertical lines for each month beginning
-  innerChart.selectAll(".month-line")
-    .data(monthTicks)
-    .enter()
-    .append("line")
-      .attr("class", "month-line")
-      .attr("x1", d => xScale(d))
-      .attr("x2", d => xScale(d))
-      .attr("y1", 0)
-      .attr("y2", innerHeight)
+  // innerChart.selectAll(".month-line")
+  //   .data(monthTicks)
+  //   .enter()
+  //   .append("line")
+  //     .attr("class", "month-line")
+  //     .attr("x1", d => xScale(d))
+  //     .attr("x2", d => xScale(d))
+  //     .attr("y1", 0)
+  //     .attr("y2", innerHeight)
 
   // Add vertical lines for each year beginning
   innerChart.selectAll(".year-line")
