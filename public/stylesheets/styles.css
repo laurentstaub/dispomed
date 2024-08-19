@@ -2,7 +2,7 @@
     font-family: Roboto, Times, serif;
     --blanc: rgb(255, 255, 255);
     --noir: rgb(0, 0, 0);
-    --gris: rgb(150, 150, 150);
+    --gris: rgb(190, 190, 190);
     --grisleger: rgb(240, 240, 240);
     --rupture: rgb(230, 70, 100);
     --rupture-bg: rgba(230, 70, 100, 0.9);
@@ -80,24 +80,19 @@ button {
     fill: var(--gris);
 }
 
-/* .y-axis line {
+.month-axis {
     stroke: var(--gris);
-    stroke-width: 1px;
-} */
-
-/* .month-line {
-    stroke: var(--blanc);
     stroke-width: 0.5px;
-} */
+}
 
 .year-line {
     stroke: var(--gris);
-    stroke-width: 1px;
+    stroke-width: 0.5px;
 }
 
 .end-line {
-    stroke: var(--gris);
-    stroke-width: 1px;
+    stroke: var(--grisleger);
+    stroke-width: 0.5px;
 }
 
 .year-tick line {
@@ -117,10 +112,6 @@ button {
 .current-date-line {
     stroke:var(--gris);
     stroke-width: 1px;
-}
-
-.chart-title {
-  fill: #333;
 }
 
 .flex-container {
@@ -156,7 +147,7 @@ button {
 }
 
 .chart-controls-container {
-  border: 1px solid #ccc;
+  border: 1px solid var(--grisleger);
   padding: 15px;
   width: 248px;
 }
@@ -174,10 +165,7 @@ button {
 }
 
 .button-selected {
-  background-color: var(--gris);
-  color: var(--blanc);
-  font-weight: bold;
-  box-shadow: 0 0 5px rgba(0,0,0,0.3);
+  background-color: var(--tension);
 }
 
 #chart-controls button {
@@ -219,19 +207,22 @@ button {
 #reinitialiser {
   height: 30px;
   width: 250px;
+  border: 1px solid var(--grisleger);
+  border-radius: 0px;
+  cursor: pointer;
 }
 
 .chart-button {
   flex: 1;
   padding: 5px;
   text-align: center;
-  border: 1px solid #ccc;
+  border: 1px solid var(--grisleger);
   border-radius: 0px;
   cursor: pointer;
 }
 
 .chart-button:hover {
-  background-color: #e0e0e0;
+  background-color: var(--tension-area);
 }
 
 p.controls {

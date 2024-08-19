@@ -22,7 +22,7 @@ const ATCDataManager = (function() {
       atcClassesMap.set(row.atc_code, row.atc_description);
 
       if (row.molecule_id && row.molecule_name) {
-        const molecule = { id: row.molecule_id, name: row.molecule_name };
+        const molecule = { code: row.molecule_id, name: row.molecule_name };
         moleculesSet.add(JSON.stringify(molecule));
 
         if (!tempAtcMoleculeMap.has(row.atc_code)) {
@@ -51,14 +51,7 @@ const ATCDataManager = (function() {
     return atcClasses;
   }
 
-  function getAllMolecules() {
-    return allMolecules;
-  }
-
-  function getMolecules(atcCode = null) {
-    if (atcCode) {
-    return atcMoleculeMap;
-    }
+  function getMolecules() {
     return allMolecules;
   }
 
@@ -69,7 +62,6 @@ const ATCDataManager = (function() {
   return {
     fetchAndInitialize,
     getATCClasses,
-    getAllMolecules,
     getMolecules,
     getMoleculeMap,
   };

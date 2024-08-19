@@ -28,7 +28,6 @@ function createTimeParse(format) {
     const [year, month, day] = dateString.split('-').map(Number);
     const date = new Date(year, month - 1, day);
 
-    // Check if the date is valid
     if (isNaN(date.getTime())) return null;
 
     return date;
