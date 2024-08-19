@@ -17,7 +17,7 @@ app.get("/", async (req, res) => {
   await ATCDataManager.fetchAndInitialize(12); // 12 for 12 months as default report time length
   const atcClasses = ATCDataManager.getATCClasses();
   const selectedAtcClass = req.query.atcClass || "";
-  const molecules = ATCDataManager.getMolecules(selectedAtcClass || "");
+  const molecules = ATCDataManager.getMolecules();
   res.render("chart", { ATCClasses: atcClasses, molecules: molecules, selectedAtcClass: selectedAtcClass });
 });
 

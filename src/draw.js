@@ -103,8 +103,7 @@ d3.select("#search-box").on("input", function() {
 });
 
 d3.select("#atc").on("input", function() {
-  const atcClass = this.value;
-  configManager.setATCClass(atcClass);
+  configManager.setATCClass(this.value);
   configManager.setMolecule('');
   // Reset the molecule selector to default
   d3.select("#molecule")
@@ -204,38 +203,38 @@ function drawTableChart(data, isInitialSetup) {
     .data(data)
     .enter()
     .append("rect")
-    .attr("class", d => `bar ${d.status}`)
-    .attr("x", d => xScale(d.start_date > configManager.getStartDateChart() ? d.start_date : configManager.getStartDateChart()))
-    .attr("y", d => yScale(d.product) + yScale.bandwidth() / 2 - configManager.config.table.barHeight / 2 - 1)
-    .attr("width", d => {
-      const startDate = d.start_date;
-      const endDate = d.calculated_end_date;
-      const effectiveStartDate = startDate > configManager.getStartDateChart() ? startDate : configManager.getStartDateChart();
-      return Math.max(0, xScale(endDate) - xScale(effectiveStartDate));
-    })
-    .attr("height", configManager.config.table.barHeight)
-    .on("mouseover", function(event, d) {
-      let statusClass = `tooltip-${d.status.toLowerCase()}`;
-      tooltip.html(`
-        <strong>Produit:</strong> ${d.product}<br>
-        <strong>Incident:</strong> ${d.status}<br>
-        <strong>Début:</strong> ${d3.timeFormat("%d/%m/%Y")(d.start_date)}<br>
-        <strong>Fin:</strong> ${d3.timeFormat("%d/%m/%Y")(d.calculated_end_date)}
-      `)
-      .attr("class", statusClass)
-      .style("opacity", 0.9)
-      .style("left", (event.pageX + 10) + "px")
-      .style("top", (event.pageY - 150) + "px");
-    })
-    .on("mouseout", function() {
-      tooltip.style("opacity", 0);
-    });
+      .attr("class", d => `bar ${d.status}`)
+      .attr("x", d => xScale(d.start_date > configManager.getStartDateChart() ? d.start_date : configManager.getStartDateChart()))
+      .attr("y", d => yScale(d.product) + yScale.bandwidth() / 2 - configManager.config.table.barHeight / 2 - 1)
+      .attr("width", d => {
+        const startDate = d.start_date;
+        const endDate = d.calculated_end_date;
+        const effectiveStartDate = startDate > configManager.getStartDateChart() ? startDate : configManager.getStartDateChart();
+        return Math.max(0, xScale(endDate) - xScale(effectiveStartDate));
+      })
+      .attr("height", configManager.config.table.barHeight)
+      .on("mouseover", function(event, d) {
+        let statusClass = `tooltip-${d.status.toLowerCase()}`;
+        tooltip.html(`
+          <strong>Produit:</strong> ${d.product}<br>
+          <strong>Incident:</strong> ${d.status}<br>
+          <strong>Début:</strong> ${d3.timeFormat("%d/%m/%Y")(d.start_date)}<br>
+          <strong>Fin:</strong> ${d3.timeFormat("%d/%m/%Y")(d.calculated_end_date)}
+        `)
+        .attr("class", statusClass)
+        .style("opacity", 0.9)
+        .style("left", (event.pageX + 10) + "px")
+        .style("top", (event.pageY - 150) + "px");
+      })
+      .on("mouseout", function() {
+        tooltip.style("opacity", 0);
+      });
 
   // X-AXIS
   // Top X Axis for months
-  const monthAxis = innerChart
+  innerChart
     .append("g")
-      .attr("transform", `translate(0, 0)`) // Adjust position to place it below the year axis
+      .attr("class", "month-axis")
       .call(d3.axisTop(xScale)
         .ticks(d3.timeMonth.every(1))
         .tickFormat(d => (d.getMonth() === 0) ? d3.timeFormat("%Y")(d) : d3.timeFormat("%b")(d).charAt(0))
@@ -248,36 +247,35 @@ function drawTableChart(data, isInitialSetup) {
     tooltip = d3.select("body").append("div")
       .attr("id", "tooltip");
   }
-
   // Y-AXIS
   // Produits
   innerChart
     .append("g")
-    .call(d3.axisLeft(yScale).tickSize(0))
-    .selectAll(".tick text")
-    .attr("x", - configManager.config.table.margin.left + configManager.config.table.statusBarWidth + configManager.config.table.statusBarSpacing)
-    .style("text-anchor", "start")
-    .text(function(d) {
-      return d.length > configManager.config.table.labelMaxLength ? d.substring(0, configManager.config.table.labelMaxLength) + "..." : d;
-    })
-    .on("mouseover", function(event, d) {
-      const product = data.find(item => item.product === d);
-      if (d.length > configManager.config.table.labelMaxLength || product) {
-        const status = getProductStatus(product);
-        const tooltip = d3.select("#tooltip");
-        tooltip.transition().duration(200).style("opacity", 0.9);
-        tooltip.html(`
-          <strong>Produit:</strong> ${d}<br>
-          <strong>Statut:</strong> ${status.text}
-        `)
-          .attr("class", status.class)
-          .style("left", (event.pageX + 10) + "px")
-          .style("top", (event.pageY - 150) + "px");
-        }
+      .call(d3.axisLeft(yScale).tickSize(0))
+      .selectAll(".tick text")
+      .attr("x", - configManager.config.table.margin.left + configManager.config.table.statusBarWidth + configManager.config.table.statusBarSpacing)
+      .style("text-anchor", "start")
+      .text(function(d) {
+        return d.length > configManager.config.table.labelMaxLength ? d.substring(0, configManager.config.table.labelMaxLength) + "..." : d;
       })
-      .on("mouseout", function() {
-          d3.select("#tooltip").transition().duration(500).style("opacity", 0);
-      });
+      .on("mouseover", function(event, d) {
+        const product = data.find(item => item.product === d);
+        if (d.length > configManager.config.table.labelMaxLength || product) {
+          const status = getProductStatus(product);
+          const tooltip = d3.select("#tooltip");
+          tooltip.transition().duration(200).style("opacity", 0.9);
+          tooltip.html(`
+            <strong>Produit:</strong> ${d}<br>
+            <strong>Statut:</strong> ${status.text}
+          `)
+            .attr("class", status.class)
+            .style("left", (event.pageX + 10) + "px")
+            .style("top", (event.pageY - 150) + "px");
+          }
+        })
+        .on("mouseout", function() {
+            d3.select("#tooltip").transition().duration(500).style("opacity", 0);
+        });
 
   // GRID
   // Add horizontal grid lines
@@ -292,54 +290,36 @@ function drawTableChart(data, isInitialSetup) {
       .attr("y2", d => yScale(d) + yScale.bandwidth())
 
   // Add vertical grid lines for months and years
-  const monthTicks = xScale.ticks(d3.timeMonth.every(1));
   const yearTicks = xScale.ticks(d3.timeYear.every(1));
-
-  // Add horizontal line on top of products
-  // innerChart.append("line")
-  //   .attr("class", "year-line")
-  //   .attr("x1", -configManager.config.table.margin.left)
-  //   .attr("x2", 0)
-  //   .attr("y1", 0)
-  //   .attr("y2", 0)
-
-  // Add vertical lines for each month beginning
-  // innerChart.selectAll(".month-line")
-  //   .data(monthTicks)
-  //   .enter()
-  //   .append("line")
-  //     .attr("class", "month-line")
-  //     .attr("x1", d => xScale(d))
-  //     .attr("x2", d => xScale(d))
-  //     .attr("y1", 0)
-  //     .attr("y2", innerHeight)
 
   // Add vertical lines for each year beginning
   innerChart.selectAll(".year-line")
     .data(yearTicks)
     .enter()
     .append("line")
-    .attr("class", "year-line")
-    .attr("x1", d => xScale(d))
-    .attr("x2", d => xScale(d))
-    .attr("y1", 0)
-    .attr("y2", innerHeight);
+      .attr("class", "year-line")
+      .attr("x1", d => xScale(d))
+      .attr("x2", d => xScale(d))
+      .attr("y1", 0)
+      .attr("y2", innerHeight);
 
   // Add an additional vertical line at the end of the x-axis
-  innerChart.append("line")
-    .attr("class", "end-line")
-    .attr("x1", innerWidth)
-    .attr("x2", innerWidth)
-    .attr("y1", 0)
-    .attr("y2", innerHeight);
+  innerChart
+    .append("line")
+      .attr("class", "end-line")
+      .attr("x1", innerWidth)
+      .attr("x2", innerWidth)
+      .attr("y1", 0)
+      .attr("y2", innerHeight);
 
   // Add the last line of the reports
-  innerChart.append("line")
-    .attr("class", "current-date-line")
-    .attr("x1", xScale(dateLastReport))
-    .attr("x2", xScale(dateLastReport))
-    .attr("y1", 0)
-    .attr("y2", innerHeight);
+  innerChart
+    .append("line")
+      .attr("class", "current-date-line")
+      .attr("x1", xScale(dateLastReport))
+      .attr("x2", xScale(dateLastReport))
+      .attr("y1", 0)
+      .attr("y2", innerHeight);
 
   // Add status bars on the left of the chart
   const groupedData = d3.group(data, d => getProductStatus(d).text);
@@ -421,14 +401,16 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     svg.selectAll("*").remove();
   }
 
-  const g = svg.append("g")
-    .attr("transform", `translate(${margin.left},${margin.top})`);
+  const g = svg
+    .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
 
   // Draw lines
-  g.append("path")
-    .datum(filteredData)
-    .attr("class", "rupture-line")
-    .attr("d", lineRupture);
+  g
+    .append("path")
+      .datum(filteredData)
+      .attr("class", "rupture-line")
+      .attr("d", lineRupture);
 
   g.append("path")
     .datum(filteredData)

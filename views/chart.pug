@@ -27,7 +27,7 @@ html(lang="en")
                             select.atc-selector#molecule(name="molecule")
                                 option(value="") Choisir une molécule
                                 each molecule in molecules
-                                    option(value=molecules.code)=`${molecule.name}`
+                                    option(value=molecule.code)=`${molecule.name}`
                         input(type="text" id="search-box" placeholder="Rechercher un produit...")
                         p.controls Echelle de temps
                         div.button-row
