@@ -3,7 +3,7 @@
     --blanc: rgb(255, 255, 255);
     --noir: rgb(0, 0, 0);
     --gris: rgb(190, 190, 190);
-    --grisleger: rgb(240, 240, 240);
+    --grisleger: rgb(230, 230, 230);
     --rupture: rgb(230, 70, 100);
     --rupture-bg: rgba(230, 70, 100, 0.9);
     --rupture-area: rgba(230, 70, 100, 0.15);
@@ -120,14 +120,16 @@ button {
   gap: 0px;
 }
 
-.atc-selector {
-  display: inline-block;
-  font-size: 10px;
-  width: 250px;
+.selector {
+    border-color: var(--grisleger);
+    border-radius: 0px;
+    display: inline-block;
+    font-size: 10px;
+    width: 250px;
 }
 
-.atc-selector[open] .atc-button {
-  background-color: #d0d0d0;
+.selector[open] {
+  background-color: var(--gris);
 }
 
 .atc-option {
@@ -165,7 +167,7 @@ button {
 }
 
 .button-selected {
-  background-color: var(--tension);
+  background-color: var(--gris);
 }
 
 #chart-controls button {
@@ -173,6 +175,9 @@ button {
 }
 
 #search-box {
+    border-color: var(--gris);
+    border-radius: 0px;
+    border-width: 1px;
   flex: 0 0 calc(10% - 5px);
   font-size: 10px;
   padding: 1px;
@@ -191,16 +196,8 @@ button {
     width: 300px;
 }
 
-#chart-header {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 10;
-}
-
 #last-report-date {
-  font-size: 14px;
-  font-weight: bold;
+  font-size: 12px;
   margin-bottom: 5px;
 }
 

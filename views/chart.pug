@@ -10,21 +10,19 @@ html(lang="en")
         header
         h1 Dispomed
         section
-            h2 Incidents de disponibilité par produit
-            p Ce graphique montre les incidents de disponibilité pour chaque produit
+            p Incidents de disponibilité par produit
             div#chart-container
-                div#chart-header
                 div#last-report-date
                 div.flex-container
                     div#controls-and-search.chart-controls-container
                         button#reinitialiser Réinitialiser la recherche
                         p.controls Recherches
                         div.atc-wrapper
-                            select.atc-selector#atc(name="atc")
+                            select.selector#atc(name="atc")
                                 option(value="" selected=selectedAtcClass === "") Choisir une classe ATC
                                 each atcClass in ATCClasses
                                     option(value=atcClass.code, selected=atcClass.code === selectedAtcClass)= `${atcClass.code} - ${atcClass.description}`
-                            select.atc-selector#molecule(name="molecule")
+                            select.selector#molecule(name="molecule")
                                 option(value="") Choisir une molécule
                                 each molecule in molecules
                                     option(value=molecule.code)=`${molecule.name}`
