@@ -2,7 +2,7 @@
     font-family: Roboto, Times, serif;
     --blanc: rgb(255, 255, 255);
     --noir: rgb(0, 0, 0);
-    --gris: rgb(190, 190, 190);
+    --gris: rgb(150, 150, 150);
     --grisleger: rgb(230, 230, 230);
     --rupture: rgb(230, 70, 100);
     --rupture-bg: rgba(230, 70, 100, 0.9);
@@ -61,11 +61,7 @@ button {
 
 .grid-line {
     stroke: var(--blanc);
-    stroke-width: 0.5px;
-}
-
-.x-top-background {
-    fill: var(--grisleger);
+    stroke-width: 1px;
 }
 
 .Rupture {
@@ -80,14 +76,25 @@ button {
     fill: var(--gris);
 }
 
-.month-axis {
+.month-axis text {
+    fill: var(--gris);
+    font-weight: 200;
+    font-size: 9px;
+}
+
+.month-axis .domain {
     stroke: var(--gris);
     stroke-width: 0.5px;
 }
 
-.year-line {
-    stroke: var(--gris);
+.month-axis .tick {
+    fill: var(--gris);
     stroke-width: 0.5px;
+}
+
+.year-line {
+    stroke: var(--blanc);
+    stroke-width: 1px;
 }
 
 .end-line {
@@ -100,18 +107,14 @@ button {
     stroke-width: 1px;
 }
 
-.month-tick line {
-    stroke: var(--gris);
-    stroke-width: 1px;
-}
-
-.year-tick text {
-    transform: translateY(17px);
-}
-
 .current-date-line {
     stroke:var(--gris);
     stroke-width: 1px;
+}
+
+.summary-chart-xline {
+    stroke-width: 1;
+    stroke: var(--gris);
 }
 
 .flex-container {
@@ -178,9 +181,9 @@ button {
     border-color: var(--gris);
     border-radius: 0px;
     border-width: 1px;
-  flex: 0 0 calc(10% - 5px);
-  font-size: 10px;
-  padding: 1px;
+    flex: 0 0 calc(10% - 5px);
+    font-size: 10px;
+    padding: 1px;
 }
 
 #summary {

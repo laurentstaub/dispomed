@@ -18,7 +18,7 @@ class ConfigManager {
         height: 263,
       },
       table: {
-        margin: { top: 40, right: 20, bottom: 30, left: 300 },
+        margin: { top: 20, right: 20, bottom: 30, left: 300 },
         width: 1000,
         barHeight: 14,
         labelMaxLength: 50,
