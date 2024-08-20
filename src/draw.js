@@ -234,7 +234,7 @@ function drawTableChart(data, isInitialSetup) {
   // Top X Axis for months
   innerChart
     .append("g")
-      .attr("class", "month-axis")
+      .attr("class", "x-axis")
       .call(d3.axisTop(xScale)
         .ticks(d3.timeMonth.every(1))
         .tickFormat(d => (d.getMonth() === 0) ? d3.timeFormat("%Y")(d) : d3.timeFormat("%b")(d).charAt(0))
@@ -251,6 +251,7 @@ function drawTableChart(data, isInitialSetup) {
   // Produits
   innerChart
     .append("g")
+      .attr("class", "y-axis")
       .call(d3.axisLeft(yScale).tickSize(0))
       .selectAll(".tick text")
       .attr("x", - configManager.config.table.margin.left + configManager.config.table.statusBarWidth + configManager.config.table.statusBarSpacing)
@@ -289,7 +290,7 @@ function drawTableChart(data, isInitialSetup) {
       .attr("y1", d => yScale(d) + yScale.bandwidth())
       .attr("y2", d => yScale(d) + yScale.bandwidth())
 
-  // Add vertical grid lines for months and years
+  // Add vertical grid lines for years
   const yearTicks = xScale.ticks(d3.timeYear.every(1));
 
   // Add vertical lines for each year beginning
