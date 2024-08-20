@@ -481,10 +481,9 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .text(d => d.tension);
 
   g.append("line")
+     .attr("class", "summary-chart-xline")
      .attr("x1", 0)
      .attr("y1", innerHeight)
      .attr("x2", innerWidth)
      .attr("y2", innerHeight)
-     .attr("stroke", "black")
-     .attr("stroke-width", 1);
 }
