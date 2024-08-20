@@ -1,5 +1,6 @@
 * {
     font-family: Roboto, Times, serif;
+    font-weight: 400;
     --blanc: rgb(255, 255, 255);
     --noir: rgb(0, 0, 0);
     --gris: rgb(150, 150, 150);
@@ -76,25 +77,30 @@ button {
     fill: var(--gris);
 }
 
-.month-axis text {
+.x-axis text {
     fill: var(--gris);
-    font-weight: 200;
+    font-weight: 300;
     font-size: 9px;
 }
 
-.month-axis .domain {
+.x-axis .domain {
     stroke: var(--gris);
+    stroke-width: 1px;
+}
+
+.x-axis .tick {
+    fill: var(--gris);
     stroke-width: 0.5px;
 }
 
-.month-axis .tick {
-    fill: var(--gris);
+.y-axis .domain {
+    stroke: var(--grisleger);
     stroke-width: 0.5px;
 }
 
 .year-line {
-    stroke: var(--blanc);
-    stroke-width: 1px;
+    stroke: var(--gris);
+    stroke-width: 0.5px;
 }
 
 .end-line {
@@ -102,10 +108,6 @@ button {
     stroke-width: 0.5px;
 }
 
-.year-tick line {
-    stroke: var(--gris);
-    stroke-width: 1px;
-}
 
 .current-date-line {
     stroke:var(--gris);
