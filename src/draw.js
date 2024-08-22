@@ -379,6 +379,10 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .nice()
     .range([innerHeight, 0]);
 
+  const xAxis = d3.axisTop(xScale)
+    .tickFormat(d3.timeFormat("%b %Y"))
+    .ticks(d3.timeMonth.every(1));
+
   // Create line generators
   const lineRupture = d3.line()
     .x(d => xScale(d.date))
@@ -406,12 +410,15 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
+  g.append("g")
+    .attr("class", "x-axis top-axis")
+    .call(xAxis);
+
   // Draw lines
-  g
-    .append("path")
-      .datum(filteredData)
-      .attr("class", "rupture-line")
-      .attr("d", lineRupture);
+  g.append("path")
+    .datum(filteredData)
+    .attr("class", "rupture-line")
+    .attr("d", lineRupture);
 
   g.append("path")
     .datum(filteredData)
@@ -447,39 +454,39 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .data(filteredData.filter(d => d.rupture > 0))
     .enter()
     .append("circle")
-    .attr("class", "rupture-point")
-    .attr("cx", d => xScale(d.date))
-    .attr("cy", d => y(d.rupture))
-    .attr("r", 2);
+      .attr("class", "rupture-point")
+      .attr("cx", d => xScale(d.date))
+      .attr("cy", d => y(d.rupture))
+      .attr("r", 2);
 
   g.selectAll(".rupture-label")
     .data(filteredData.filter(d => d.rupture > 0))
     .enter()
     .append("text")
-    .attr("class", "rupture-label")
-    .attr("x", d => xScale(d.date))
-    .attr("y", d => y(d.rupture) - 10)
-    .attr("text-anchor", "middle")
-    .text(d => d.rupture);
+      .attr("class", "rupture-label")
+      .attr("x", d => xScale(d.date))
+      .attr("y", d => y(d.rupture) - 10)
+      .attr("text-anchor", "middle")
+      .text(d => d.rupture);
 
   g.selectAll(".tension-point")
     .data(filteredData.filter(d => d.tension > 0))
     .enter()
     .append("circle")
-    .attr("class", "tension-point")
-    .attr("cx", d => xScale(d.date))
-    .attr("cy", d => y(d.tension))
-    .attr("r", 2);
+      .attr("class", "tension-point")
+      .attr("cx", d => xScale(d.date))
+      .attr("cy", d => y(d.tension))
+      .attr("r", 2);
 
   g.selectAll(".tension-label")
     .data(filteredData.filter(d => d.tension > 0))
     .enter()
     .append("text")
-    .attr("class", "tension-label")
-    .attr("x", d => xScale(d.date))
-    .attr("y", d => y(d.tension) - 10)
-    .attr("text-anchor", "middle")
-    .text(d => d.tension);
+      .attr("class", "tension-label")
+      .attr("x", d => xScale(d.date))
+      .attr("y", d => y(d.tension) - 10)
+      .attr("text-anchor", "middle")
+      .text(d => d.tension);
 
   g.append("line")
      .attr("class", "summary-chart-xline")
