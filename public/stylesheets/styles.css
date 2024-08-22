@@ -1,60 +1,61 @@
 * {
-    font-family: Roboto, Times, serif;
-    font-weight: 400;
-    --blanc: rgb(255, 255, 255);
-    --grisfonce: rgb(110, 110, 110);
-    --gris: rgb(180, 180, 180);
-    --grisleger: rgb(220, 220, 220);
-    --rupture: rgb(230, 70, 100);
-    --rupture-bg: rgba(230, 70, 100, 0.9);
-    --rupture-area: rgba(230, 70, 100, 0.15);
-    --tension: rgb(250, 177, 75);
-    --tensionleger: rgb(255, 202, 100);
-    --tension-bg: rgba(150, 135, 100, 0.9);
-    --tension-area: rgba(255, 235, 170, 0.2);
-    --disponible-bg: rgba(144, 238, 144, 0.9);
-    --arret-bg: rgba(150, 150, 150, 0.9);
+  font-family: Roboto, Times, serif;
+  font-weight: 400;
+  --blanc: rgb(255, 255, 255);
+  --grisfonce: rgb(110, 110, 110);
+  --gris: rgb(180, 180, 180);
+  --grismedium: rgb(210, 210, 210);
+  --grisleger: rgb(220, 220, 220);
+  --rupture: rgb(230, 70, 100);
+  --rupture-bg: rgba(230, 70, 100, 0.9);
+  --rupture-area: rgba(230, 70, 100, 0.15);
+  --tension: rgb(250, 177, 75);
+  --tensionleger: rgb(255, 202, 100);
+  --tension-bg: rgba(150, 135, 100, 0.9);
+  --tension-area: rgba(255, 235, 170, 0.2);
+  --disponible-bg: rgba(144, 238, 144, 0.9);
+  --arret-bg: rgba(150, 150, 150, 0.9);
 }
 
 #chart-container {
-    margin: auto;
-    position: absolute;
-    width: 1000px;
+  margin: auto;
+  position: absolute;
+  width: 1000px;
 }
 
 button {
-    font-size: 10px;
-    width: 120px;
+  font-size: 12px;
+  width: 120px;
 }
 
 .tension-line {
-    fill: none;
-    stroke: var(--tension);
-    stroke-width: 1px;
+  fill: none;
+  stroke: var(--tension);
+  stroke-width: 1px;
 }
 
 .rupture-line {
-    fill: none;
-    stroke: var(--rupture);
-    stroke-width: 1px;
+  fill: none;
+  stroke: var(--rupture);
+  stroke-width: 1px;
 }
 
 .rupture-label {
-    fill: var(--grisfonce);
-    font-size: 10px;
+  fill: var(--grisfonce);
+  font-size: 12px;
 }
 
 .tension-label {
-    fill: var(--grisfonce);
-    font-size: 10px;
+  fill: var(--grisfonce);
+  font-size: 12px;
 }
 
 .rupture-point {
-    fill: var(--rupture);
+  fill: var(--rupture);
 }
 
 .tension-point {
-    fill: var(--tension);
+  fill: var(--tension);
 }
 
 .rupture-area {
@@ -66,61 +67,65 @@ button {
 }
 
 .grid-line {
-    stroke: var(--blanc);
-    stroke-width: 11px;
+  stroke: var(--blanc);
+  stroke-width: 15px;
 }
 
 .Rupture {
-    fill: var(--rupture);
+  fill: var(--rupture);
 }
 
 .Tension {
-    fill: var(--tensionleger);
+  fill: var(--tensionleger);
 }
 
 .Arret {
-    fill: var(--gris);
+  fill: var(--gris);
 }
 
 .top-axis text {
-    fill: var(--grisfonce);
-    font-weight: 400;
-    font-size: 10px;
+  fill: var(--grisfonce);
+  font-weight: 400;
+  font-size: 12px;
 }
 
 .x-axis .domain {
-    stroke: var(--grisfonce);
-    stroke-width: 1px;
+  stroke: var(--grisfonce);
+  stroke-width: 1px;
 }
 
 .x-axis .tick {
-    fill: var(--grisfonce);
-    stroke-width: 0.5px;
+  fill: var(--grisfonce);
+  stroke-width: 0.5px;
 }
 
 .y-axis .domain {
-    stroke: var(--grisleger);
-    stroke-width: 0.5px;
+  stroke: var(--grisleger);
+  stroke-width: 0.5px;
+}
+
+.y-axis text{
+  font-size: 12px;
 }
 
 .year-line {
-    stroke: var(--gris);
-    stroke-width: 0.5px;
+  stroke: var(--gris);
+  stroke-width: 0.5px;
 }
 
 .end-line {
-    stroke: var(--grisleger);
-    stroke-width: 0.5px;
+  stroke: var(--grisleger);
+  stroke-width: 0.5px;
 }
 
 .current-date-line {
-    stroke:var(--gris);
-    stroke-width: 1px;
+  stroke:var(--gris);
+  stroke-width: 1px;
 }
 
 .summary-chart-xline {
-    stroke-width: 1;
-    stroke: var(--gris);
+  stroke-width: 1;
+  stroke: var(--gris);
 }
 
 .flex-container {
@@ -133,7 +138,7 @@ button {
   border-color: var(--grisleger);
   border-radius: 0px;
   display: inline-block;
-  font-size: 10px;
+  font-size: 12px;
   width: 250px;
 }
 
@@ -142,7 +147,7 @@ button {
 }
 
 .atc-option {
-  font-size: 10px;
+  font-size: 12px;
   margin-bottom: 5px;
 }
 
@@ -176,8 +181,7 @@ button {
 }
 
 .button-selected {
-  background-color: var(--gris);
-  color: var(--blanc);
+  background-color: var(--grismedium);
 }
 
 #chart-controls button {
@@ -189,7 +193,7 @@ button {
   border-radius: 0px;
   border-width: 1px;
   flex: 0 0 calc(10% - 5px);
-  font-size: 10px;
+  font-size: 12px;
   padding: 1px;
 }
 
@@ -203,7 +207,7 @@ button {
 }
 
 #chart-controls {
-    width: 300px;
+  width: 300px;
 }
 
 #last-report-date {
@@ -231,38 +235,38 @@ button {
 }
 
 .chart-button:hover {
-  background-color: var(--tension-area);
+  background-color: var(--gris);
 }
 
 p.controls {
-    font-size: 11px;
-    font-weight: 500;
-    margin: 10px 0 0 0;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 10px 0 0 0;
 }
 
 #tooltip {
-    padding: 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    max-width: 300px;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  max-width: 300px;
 }
 
 .tooltip-rupture {
-    background-color: var(--rupture-bg);
-    color: var(--blanc);
+  background-color: var(--rupture-bg);
+  color: var(--blanc);
 }
 
 .tooltip-tension {
-    background-color: var(--tension-bg);
-    color: var(--blanc);
+  background-color: var(--tension-bg);
+  color: var(--blanc);
 }
 
 .tooltip-disponible {
-    background-color: var(--disponible-bg);
-    color: var(--blanc);
+  background-color: var(--disponible-bg);
+  color: var(--blanc);
 }
 
 .tooltip-arret {
-    background-color: var(--arret-bg);
-    color: var(--blanc);
+  background-color: var(--arret-bg);
+  color: var(--blanc);
 }

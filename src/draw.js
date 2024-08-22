@@ -223,7 +223,7 @@ function drawTableChart(data, isInitialSetup) {
         `)
         .attr("class", statusClass)
         .style("opacity", 0.9)
-        .style("left", (event.pageX + 10) + "px")
+        .style("left", (event.pageX - 250) + "px")
         .style("top", (event.pageY - 150) + "px");
       })
       .on("mouseout", function() {
@@ -270,8 +270,8 @@ function drawTableChart(data, isInitialSetup) {
             <strong>Statut:</strong> ${status.text}
           `)
             .attr("class", status.class)
-            .style("left", (event.pageX + 10) + "px")
-            .style("top", (event.pageY - 150) + "px");
+            .style("left", (event.pageX - 280) + "px")
+            .style("top", (event.pageY - 110) + "px");
           }
         })
         .on("mouseout", function() {
@@ -353,6 +353,7 @@ function drawTableChart(data, isInitialSetup) {
       .attr("width", configManager.config.table.statusBarWidth)
       .attr("height", groupHeight)
       .attr("fill", statusColors[status]);
+
     accumulatedHeight += groupHeight;
     productLeft -= productLength;
   });
