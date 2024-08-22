@@ -232,14 +232,14 @@ function drawTableChart(data, isInitialSetup) {
 
   // X-AXIS
   // Top X Axis for months
-  innerChart
-    .append("g")
-      .attr("class", "x-axis")
-      .call(d3.axisTop(xScale)
-        .ticks(d3.timeMonth.every(1))
-        .tickFormat(d => (d.getMonth() === 0) ? d3.timeFormat("%Y")(d) : d3.timeFormat("%b")(d).charAt(0))
-        .tickSize(3)
-      );
+  // innerChart
+  //   .append("g")
+  //     .attr("class", "x-axis")
+  //     .call(d3.axisTop(xScale)
+  //       .ticks(d3.timeMonth.every(1))
+  //       .tickFormat(d => (d.getMonth() === 0) ? d3.timeFormat("%Y")(d) : d3.timeFormat("%b")(d).charAt(0))
+  //       .tickSize(3)
+  //     );
 
   // Create tooltip div if it doesn't exist
   let tooltip = d3.select("body").select("#tooltip");
@@ -285,7 +285,7 @@ function drawTableChart(data, isInitialSetup) {
     .enter()
     .append("line")
       .attr("class", "grid-line")
-      .attr("x1", -configManager.config.table.margin.left)
+      .attr("x1", 0)
       .attr("x2", innerWidth)
       .attr("y1", d => yScale(d) + yScale.bandwidth())
       .attr("y2", d => yScale(d) + yScale.bandwidth())
@@ -380,8 +380,9 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .range([innerHeight, 0]);
 
   const xAxis = d3.axisTop(xScale)
-    .tickFormat(d3.timeFormat("%b %Y"))
-    .ticks(d3.timeMonth.every(1));
+    .ticks(d3.timeMonth.every(1))
+    .tickFormat(d => (d.getMonth() === 0) ? d3.timeFormat("%Y")(d) : d3.timeFormat("%b")(d).charAt(0))
+    .tickSize(3)
 
   // Create line generators
   const lineRupture = d3.line()
@@ -399,8 +400,8 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
   if (isInitialSetup) {
     svg = d3.select("#summary")
       .append("svg")
-      .attr("width", configManager.config.summaryChart.width)
-      .attr("height", configManager.config.summaryChart.height);
+        .attr("width", configManager.config.summaryChart.width)
+        .attr("height", configManager.config.summaryChart.height);
   } else {
     svg = d3.select("#summary svg");
     svg.selectAll("*").remove();
@@ -408,10 +409,11 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 
   const g = svg
     .append("g")
-      .attr("transform", `translate(${margin.left},${margin.top})`);
+      .attr("transform", `translate(${margin.left},${margin.top + 30})`);
 
   g.append("g")
     .attr("class", "x-axis top-axis")
+    .attr("transform", `translate(0, -35)`)
     .call(xAxis);
 
   // Draw lines
@@ -494,4 +496,12 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
      .attr("y1", innerHeight)
      .attr("x2", innerWidth)
      .attr("y2", innerHeight)
+
+  // Add an additional vertical line at the end of the x-axis
+  g.append("line")
+    .attr("class", "end-line")
+    .attr("x1", innerWidth)
+    .attr("x2", innerWidth)
+    .attr("y1", -20)
+    .attr("y2", innerHeight);
 }

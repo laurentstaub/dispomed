@@ -2,21 +2,24 @@
     font-family: Roboto, Times, serif;
     font-weight: 400;
     --blanc: rgb(255, 255, 255);
-    --grisfonce: rgb(90, 90, 90);
-    --gris: rgb(190, 190, 190);
-    --grisleger: rgb(230, 230, 230);
+    --grisfonce: rgb(110, 110, 110);
+    --gris: rgb(180, 180, 180);
+    --grisleger: rgb(220, 220, 220);
     --rupture: rgb(230, 70, 100);
     --rupture-bg: rgba(230, 70, 100, 0.9);
     --rupture-area: rgba(230, 70, 100, 0.15);
     --tension: rgb(250, 177, 75);
+    --tensionleger: rgb(255, 202, 100);
     --tension-bg: rgba(150, 135, 100, 0.9);
     --tension-area: rgba(255, 235, 170, 0.2);
     --disponible-bg: rgba(144, 238, 144, 0.9);
     --arret-bg: rgba(150, 150, 150, 0.9);
 }
 
-h1 {
-  color: rgb(10, 59, 16);
+#chart-container {
+    margin: auto;
+    position: absolute;
+    width: 1000px;
 }
 
 button {
@@ -37,12 +40,12 @@ button {
 }
 
 .rupture-label {
-    fill: var(--gris);
+    fill: var(--grisfonce);
     font-size: 10px;
 }
 
 .tension-label {
-    fill: var(--gris);
+    fill: var(--grisfonce);
     font-size: 10px;
 }
 
@@ -64,7 +67,7 @@ button {
 
 .grid-line {
     stroke: var(--blanc);
-    stroke-width: 1px;
+    stroke-width: 11px;
 }
 
 .Rupture {
@@ -72,26 +75,26 @@ button {
 }
 
 .Tension {
-    fill: var(--tension);
+    fill: var(--tensionleger);
 }
 
 .Arret {
     fill: var(--gris);
 }
 
-.x-axis text {
-    fill: var(--gris);
-    font-weight: 300;
-    font-size: 9px;
+.top-axis text {
+    fill: var(--grisfonce);
+    font-weight: 400;
+    font-size: 10px;
 }
 
 .x-axis .domain {
-    stroke: var(--gris);
+    stroke: var(--grisfonce);
     stroke-width: 1px;
 }
 
 .x-axis .tick {
-    fill: var(--gris);
+    fill: var(--grisfonce);
     stroke-width: 0.5px;
 }
 
@@ -110,7 +113,6 @@ button {
     stroke-width: 0.5px;
 }
 
-
 .current-date-line {
     stroke:var(--gris);
     stroke-width: 1px;
@@ -128,11 +130,11 @@ button {
 }
 
 .selector {
-    border-color: var(--grisleger);
-    border-radius: 0px;
-    display: inline-block;
-    font-size: 10px;
-    width: 250px;
+  border-color: var(--grisleger);
+  border-radius: 0px;
+  display: inline-block;
+  font-size: 10px;
+  width: 250px;
 }
 
 .selector[open] {
@@ -156,7 +158,7 @@ button {
 }
 
 .chart-controls-container {
-  border: 1px solid var(--grisleger);
+  border: none;
   padding: 15px;
   width: 248px;
 }
@@ -183,12 +185,12 @@ button {
 }
 
 #search-box {
-    border-color: var(--gris);
-    border-radius: 0px;
-    border-width: 1px;
-    flex: 0 0 calc(10% - 5px);
-    font-size: 10px;
-    padding: 1px;
+  border-color: var(--gris);
+  border-radius: 0px;
+  border-width: 1px;
+  flex: 0 0 calc(10% - 5px);
+  font-size: 10px;
+  padding: 1px;
 }
 
 #summary {
@@ -205,8 +207,10 @@ button {
 }
 
 #last-report-date {
-  font-size: 12px;
-  margin-bottom: 5px;
+  background-color: var(--grisleger);
+  font-size: 15px;
+  padding: 10px;
+  margin-bottom: 20px;
 }
 
 #reinitialiser {
@@ -232,6 +236,7 @@ button {
 
 p.controls {
     font-size: 11px;
+    font-weight: 500;
     margin: 10px 0 0 0;
 }
 

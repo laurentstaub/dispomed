@@ -3,39 +3,36 @@ html(lang="en")
     head
         meta(charset="UTF-8")
         meta(name="viewport", content="width=device-width, initial-scale=1.0")
-        title Your Project Title
+        title Disponibilité des produits de santé
         link(rel="stylesheet", href="./public/stylesheets/styles.css")
         script(src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js")
     body
-        header
-        h1 Dispomed
-        section
-            p Incidents de disponibilité par produit
-            div#chart-container
-                div#last-report-date
-                div.flex-container
-                    div#controls-and-search.chart-controls-container
-                        button#reinitialiser Réinitialiser la recherche
-                        p.controls Recherches
-                        div.atc-wrapper
-                            select.selector#atc(name="atc")
-                                option(value="" selected=selectedAtcClass === "") Choisir une classe ATC
-                                each atcClass in ATCClasses
-                                    option(value=atcClass.code, selected=atcClass.code === selectedAtcClass)= `${atcClass.code} - ${atcClass.description}`
-                            select.selector#molecule(name="molecule")
-                                option(value="") Choisir une molécule
-                                each molecule in molecules
-                                    option(value=molecule.code)=`${molecule.name}`
-                        input(type="text" id="search-box" placeholder="Rechercher un produit...")
-                        p.controls Echelle de temps
-                        div.button-row
-                            button#show-12-months.chart-button Derniers 12 mois
-                            button#show-24-months.chart-button Derniers 24 mois
-                        div.button-row
-                            button#show-all-data.chart-button Toutes les données
-                    div#summary
-                    div#tooltip(style="position: absolute; opacity: 0; pointer-events: none;")
-                div#dash
+        p Incidents de disponibilité par produit
+        div#chart-container
+            h1#last-report-date
+            div.flex-container
+                div#controls-and-search.chart-controls-container
+                    p.controls Recherches
+                    div.atc-wrapper
+                        select.selector#atc(name="atc")
+                            option(value="" selected=selectedAtcClass === "") Choisir une classe ATC
+                            each atcClass in ATCClasses
+                                option(value=atcClass.code, selected=atcClass.code === selectedAtcClass)= `${atcClass.code} - ${atcClass.description}`
+                        select.selector#molecule(name="molecule")
+                            option(value="") Choisir une molécule
+                            each molecule in molecules
+                                option(value=molecule.code)=`${molecule.name}`
+                    input(type="text" id="search-box" placeholder="Rechercher un produit...")
+                    button#reinitialiser Réinitialiser la recherche
+                    p.controls Echelle de temps
+                    div.button-row
+                        button#show-12-months.chart-button Derniers 12 mois
+                        button#show-24-months.chart-button Derniers 24 mois
+                    div.button-row
+                        button#show-all-data.chart-button Toutes les données
+                div#summary
+                div#tooltip(style="position: absolute; opacity: 0; pointer-events: none;")
+            div#dash
     footer
         p 2024 - Antheos
 
