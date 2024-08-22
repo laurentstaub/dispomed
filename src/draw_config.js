@@ -13,12 +13,12 @@ class ConfigManager {
         endDateChart: null,
       },
       summaryChart: {
-        margin: { top: 50, right: 0, bottom: 0, left: 20 },
-        width: 700,
-        height: 263,
+        margin: { top: 20, right: 0, bottom: 0, left: 22 },
+        width: 710,
+        height: 300,
       },
       table: {
-        margin: { top: 20, right: 20, bottom: 30, left: 300 },
+        margin: { top: 42, right: 20, bottom: 30, left: 300 },
         width: 1000,
         barHeight: 14,
         labelMaxLength: 50,
@@ -85,7 +85,7 @@ class ConfigManager {
   getSummaryChartDimensions() {
     const { summaryChart } = this.config;
     const innerWidth = summaryChart.width - summaryChart.margin.left - summaryChart.margin.right;
-    const innerHeight = summaryChart.height - summaryChart.margin.top - summaryChart.margin.bottom;
+    const innerHeight = summaryChart.height - summaryChart.margin.top - summaryChart.margin.bottom - 20;
     return { innerWidth, innerHeight };
   }
 
