@@ -81,9 +81,13 @@ export async function fetchTableChartData(isInitialSetup, monthsToShow = 12, sea
             moleculeId: line[0].split(" - ")[0],
           }
         });
-        console.log(arrayAtcMolecules);
 
-        configManager.setMoleculeClassMap(arrayAtcMolecules);
+        let sortedAtcMolecules = arrayAtcMolecules.sort((a, b) => {
+          return a.moleculeName.localeCompare(b.moleculeName);
+        });
+
+        console.log(sortedAtcMolecules);
+        configManager.setMoleculeClassMap(sortedAtcMolecules);
       }
 
       return processedData;

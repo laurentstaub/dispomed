@@ -20,8 +20,8 @@ class ConfigManager {
       table: {
         margin: { top: 42, right: 20, bottom: 30, left: 300 },
         width: 1000,
-        barHeight: 14,
-        labelMaxLength: 50,
+        barHeight: 18,
+        labelMaxLength: 40,
         statusBarWidth: 20,
         statusBarSpacing: 5
       }
