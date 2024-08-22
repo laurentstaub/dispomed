@@ -2,8 +2,8 @@
     font-family: Roboto, Times, serif;
     font-weight: 400;
     --blanc: rgb(255, 255, 255);
-    --noir: rgb(0, 0, 0);
-    --gris: rgb(150, 150, 150);
+    --grisfonce: rgb(90, 90, 90);
+    --gris: rgb(190, 190, 190);
     --grisleger: rgb(230, 230, 230);
     --rupture: rgb(230, 70, 100);
     --rupture-bg: rgba(230, 70, 100, 0.9);
@@ -37,10 +37,12 @@ button {
 }
 
 .rupture-label {
+    fill: var(--gris);
     font-size: 10px;
 }
 
 .tension-label {
+    fill: var(--gris);
     font-size: 10px;
 }
 
@@ -173,6 +175,7 @@ button {
 
 .button-selected {
   background-color: var(--gris);
+  color: var(--blanc);
 }
 
 #chart-controls button {
@@ -228,8 +231,7 @@ button {
 }
 
 p.controls {
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 11px;
     margin: 10px 0 0 0;
 }
 
