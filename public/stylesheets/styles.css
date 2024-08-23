@@ -2,9 +2,9 @@
   font-family: Roboto, Times, serif;
   font-weight: 400;
   --blanc: rgb(255, 255, 255);
-  --grisfonce: rgb(110, 110, 110);
+  --grisfonce: rgb(80, 80, 80);
   --gris: rgb(150, 150, 150);
-  --grismedium: rgb(210, 210, 210);
+  --grismedium: rgb(180, 180, 180);
   --grisleger: rgb(220, 220, 220);
   --rupture: rgb(230, 70, 100);
   --rupture-bg: rgba(230, 70, 100, 0.9);
@@ -85,14 +85,14 @@
   font-size: 12px;
 }
 
-.x-axis .domain {
-  stroke: var(--grisfonce);
+.top-axis line {
+  stroke: var(--gris);
   stroke-width: 1px;
 }
 
-.x-axis .tick {
-  stroke: var(--grisfonce);
-  stroke-width: 0.5px;
+.top-axis .domain {
+  stroke: var(--gris);
+  stroke-width: 1px;
 }
 
 .y-axis .domain {
@@ -102,7 +102,7 @@
 
 .y-axis text{
   font-size: 12px;
-  fill: var(--gris);
+  fill: var(--grisfonce);
 }
 
 .y-axis line {
@@ -110,8 +110,12 @@
   stroke-width: 1px;
 }
 
+g.tick text:hover {
+  background-color: var(--grismedium);
+}
+
 .year-line {
-  stroke: var(--gris);
+  stroke: var(--grisleger);
   stroke-width: 0.5px;
 }
 
@@ -139,6 +143,7 @@
 .selector {
   border-color: var(--grisleger);
   border-radius: 0px;
+  color: var(--grisfonce);
   display: inline-block;
   font-size: 12px;
   width: 280px;
@@ -221,6 +226,7 @@
 
 
 #reinitialiser {
+  color: var(--grisfonce);
   height: 30px;
   width: 280px;
   border: 1px solid var(--grisleger);
@@ -229,6 +235,7 @@
 }
 
 .chart-button {
+  color: var(--grisfonce);
   flex: 1;
   padding: 5px;
   text-align: center;
@@ -242,6 +249,7 @@
 }
 
 p.controls {
+  color: var(--grisfonce);
   font-size: 14px;
   font-weight: 500;
   margin: 0px;

@@ -220,8 +220,8 @@ function drawTableChart(data, isInitialSetup) {
             <strong>Statut:</strong> ${status.text}
           `)
             .attr("class", status.class)
-            .style("left", (event.pageX - 280) + "px")
-            .style("top", (event.pageY - 110) + "px");
+            // .style("left", (event.pageX - 280) + "px")
+            // .style("top", (event.pageY - 110) + "px");
           }
         })
         .on("mouseout", function() {
@@ -268,7 +268,6 @@ function drawTableChart(data, isInitialSetup) {
       .attr("id", "tooltip");
   }
 
-
   // GRID
   // Add horizontal grid lines
   innerChart.selectAll(".grid-line")
@@ -278,8 +277,16 @@ function drawTableChart(data, isInitialSetup) {
       .attr("class", "grid-line")
       .attr("x1", 0)
       .attr("x2", innerWidth)
-      .attr("y1", d => yScale(d) + yScale.bandwidth())
-      .attr("y2", d => yScale(d) + yScale.bandwidth())
+      .attr("y1", d => yScale(d) + yScale.bandwidth() + 1)
+      .attr("y2", d => yScale(d) + yScale.bandwidth() + 1);
+
+  innerChart
+    .append("line")
+      .attr("class", "grid-line")
+      .attr("x1", 0)
+      .attr("x2", innerWidth)
+      .attr("y1", 0)
+      .attr("y2", 0);
 
   // Add vertical grid lines for years
   const yearTicks = xScale.ticks(d3.timeYear.every(1));
@@ -292,26 +299,8 @@ function drawTableChart(data, isInitialSetup) {
       .attr("class", "year-line")
       .attr("x1", d => xScale(d))
       .attr("x2", d => xScale(d))
-      .attr("y1", 0)
+      .attr("y1", -configManager.config.summaryChart.height)
       .attr("y2", innerHeight);
-
-  // // Add an additional vertical line at the end of the x-axis
-  // innerChart
-  //   .append("line")
-  //     .attr("class", "end-line")
-  //     .attr("x1", innerWidth)
-  //     .attr("x2", innerWidth)
-  //     .attr("y1", 0)
-  //     .attr("y2", innerHeight);
-
-  // // Add the last line of the reports
-  // innerChart
-  //   .append("line")
-  //     .attr("class", "current-date-line")
-  //     .attr("x1", xScale(dateLastReport))
-  //     .attr("x2", xScale(dateLastReport))
-  //     .attr("y1", 0)
-  //     .attr("y2", innerHeight);
 
   // Add status bars on the left of the chart
   const groupedData = d3.group(data, d => getProductStatus(d).text);
@@ -387,7 +376,6 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .y(d => y(d.rupture))
     .defined(d => d.rupture > 0);
 
-
   // Create SVG
   let svg;
   if (isInitialSetup) {
@@ -419,6 +407,20 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .datum(filteredData)
     .attr("class", "rupture-line")
     .attr("d", lineRupture);
+
+  // Add vertical grid lines for years
+  const yearTicks = xScale.ticks(d3.timeYear.every(1));
+
+  // Add vertical lines for each year beginning
+  g.selectAll(".year-line")
+    .data(yearTicks)
+    .enter()
+    .append("line")
+      .attr("class", "year-line")
+      .attr("x1", d => xScale(d))
+      .attr("x2", d => xScale(d))
+      .attr("y1", -configManager.config.summaryChart.margin.top - 12)
+      .attr("y2", innerHeight);
 
   // Add data points and labels
   g.selectAll(".rupture-point")
@@ -458,11 +460,4 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
       .attr("y", d => y(d.tension) - 10)
       .attr("text-anchor", "middle")
       .text(d => d.tension);
-
-  // g.append("line")
-  //    .attr("class", "summary-chart-xline")
-  //    .attr("x1", 0)
-  //    .attr("y1", innerHeight)
-  //    .attr("x2", innerWidth)
-  //    .attr("y2", innerHeight)
 }
