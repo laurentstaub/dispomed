@@ -3,7 +3,7 @@
   font-weight: 400;
   --blanc: rgb(255, 255, 255);
   --grisfonce: rgb(110, 110, 110);
-  --gris: rgb(180, 180, 180);
+  --gris: rgb(150, 150, 150);
   --grismedium: rgb(210, 210, 210);
   --grisleger: rgb(220, 220, 220);
   --rupture: rgb(230, 70, 100);
@@ -22,11 +22,6 @@
   margin: auto;
   position: absolute;
   width: 910px;
-}
-
-button {
-  font-size: 12px;
-  width: 120px;
 }
 
 .tension-line {
@@ -69,7 +64,7 @@ button {
 
 .grid-line {
   stroke: var(--blanc);
-  stroke-width: 15px;
+  stroke-width: 12px;
 }
 
 .Rupture {
@@ -96,17 +91,23 @@ button {
 }
 
 .x-axis .tick {
-  fill: var(--grisfonce);
+  stroke: var(--grisfonce);
   stroke-width: 0.5px;
 }
 
 .y-axis .domain {
-  stroke: var(--grisleger);
+  stroke: none;
   stroke-width: 0.5px;
 }
 
 .y-axis text{
   font-size: 12px;
+  fill: var(--gris);
+}
+
+.y-axis line {
+  stroke: var(--grisleger);
+  stroke-width: 1px;
 }
 
 .year-line {
@@ -140,7 +141,7 @@ button {
   border-radius: 0px;
   display: inline-block;
   font-size: 12px;
-  width: 300px;
+  width: 280px;
 }
 
 .selector[open] {
@@ -158,11 +159,12 @@ button {
 
 #last-report-date {
   border-bottom: var(--gris) solid 1px;
+  border-top: var(--gris) solid 1px;
   color: var(--grisfonce);
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 500;
   padding: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   text-align: center;
 }
 
@@ -175,8 +177,8 @@ button {
 
 .chart-controls-container {
   border: none;
-  padding: 15px;
-  width: 300px;
+  padding: 5px 15px 5px 5px;
+  width: 280px;
 }
 
 #chart-controls {
@@ -210,20 +212,17 @@ button {
 
 #summary {
   flex: 1;
-  height: 260px;
+  height: 280px;
 }
 
 #chart-container {
   position: relative;
 }
 
-#chart-controls {
-  width: 300px;
-}
 
 #reinitialiser {
   height: 30px;
-  width: 250px;
+  width: 280px;
   border: 1px solid var(--grisleger);
   border-radius: 0px;
   cursor: pointer;
@@ -243,9 +242,9 @@ button {
 }
 
 p.controls {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
-  margin: 10px 0 0 0;
+  margin: 0px;
 }
 
 #tooltip {

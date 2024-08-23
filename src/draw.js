@@ -197,6 +197,37 @@ function drawTableChart(data, isInitialSetup) {
     innerChart.selectAll("*").remove();
   }
 
+  // Y-AXIS
+  // Add Produits to the left of the chart
+  innerChart
+    .append("g")
+      .attr("class", "y-axis")
+      .call(d3.axisLeft(yScale).tickSize(-548))
+      .selectAll(".tick text")
+      .attr("x", - configManager.config.table.margin.left + configManager.config.table.statusBarWidth + configManager.config.table.statusBarSpacing)
+      .style("text-anchor", "start")
+      .text(function(d) {
+        return d.length > configManager.config.table.labelMaxLength ? d.substring(0, configManager.config.table.labelMaxLength) + "..." : d;
+      })
+      .on("mouseover", function(event, d) {
+        const product = data.find(item => item.product === d);
+        if (d.length > configManager.config.table.labelMaxLength || product) {
+          const status = getProductStatus(product);
+          const tooltip = d3.select("#tooltip");
+          tooltip.transition().duration(200).style("opacity", 0.9);
+          tooltip.html(`
+            <strong>Produit:</strong> ${d}<br>
+            <strong>Statut:</strong> ${status.text}
+          `)
+            .attr("class", status.class)
+            .style("left", (event.pageX - 280) + "px")
+            .style("top", (event.pageY - 110) + "px");
+          }
+        })
+        .on("mouseout", function() {
+            d3.select("#tooltip").transition().duration(500).style("opacity", 0);
+        });
+
   // EVENTS
   // Ajout des barres de chaque événement
   innerChart.selectAll("rect.bar")
@@ -230,53 +261,13 @@ function drawTableChart(data, isInitialSetup) {
         tooltip.style("opacity", 0);
       });
 
-  // X-AXIS
-  // Top X Axis for months
-  // innerChart
-  //   .append("g")
-  //     .attr("class", "x-axis")
-  //     .call(d3.axisTop(xScale)
-  //       .ticks(d3.timeMonth.every(1))
-  //       .tickFormat(d => (d.getMonth() === 0) ? d3.timeFormat("%Y")(d) : d3.timeFormat("%b")(d).charAt(0))
-  //       .tickSize(3)
-  //     );
-
   // Create tooltip div if it doesn't exist
   let tooltip = d3.select("body").select("#tooltip");
   if (tooltip.empty()) {
     tooltip = d3.select("body").append("div")
       .attr("id", "tooltip");
   }
-  // Y-AXIS
-  // Produits
-  innerChart
-    .append("g")
-      .attr("class", "y-axis")
-      .call(d3.axisLeft(yScale).tickSize(0))
-      .selectAll(".tick text")
-      .attr("x", - configManager.config.table.margin.left + configManager.config.table.statusBarWidth + configManager.config.table.statusBarSpacing)
-      .style("text-anchor", "start")
-      .text(function(d) {
-        return d.length > configManager.config.table.labelMaxLength ? d.substring(0, configManager.config.table.labelMaxLength) + "..." : d;
-      })
-      .on("mouseover", function(event, d) {
-        const product = data.find(item => item.product === d);
-        if (d.length > configManager.config.table.labelMaxLength || product) {
-          const status = getProductStatus(product);
-          const tooltip = d3.select("#tooltip");
-          tooltip.transition().duration(200).style("opacity", 0.9);
-          tooltip.html(`
-            <strong>Produit:</strong> ${d}<br>
-            <strong>Statut:</strong> ${status.text}
-          `)
-            .attr("class", status.class)
-            .style("left", (event.pageX - 280) + "px")
-            .style("top", (event.pageY - 110) + "px");
-          }
-        })
-        .on("mouseout", function() {
-            d3.select("#tooltip").transition().duration(500).style("opacity", 0);
-        });
+
 
   // GRID
   // Add horizontal grid lines
@@ -304,23 +295,23 @@ function drawTableChart(data, isInitialSetup) {
       .attr("y1", 0)
       .attr("y2", innerHeight);
 
-  // Add an additional vertical line at the end of the x-axis
-  innerChart
-    .append("line")
-      .attr("class", "end-line")
-      .attr("x1", innerWidth)
-      .attr("x2", innerWidth)
-      .attr("y1", 0)
-      .attr("y2", innerHeight);
+  // // Add an additional vertical line at the end of the x-axis
+  // innerChart
+  //   .append("line")
+  //     .attr("class", "end-line")
+  //     .attr("x1", innerWidth)
+  //     .attr("x2", innerWidth)
+  //     .attr("y1", 0)
+  //     .attr("y2", innerHeight);
 
-  // Add the last line of the reports
-  innerChart
-    .append("line")
-      .attr("class", "current-date-line")
-      .attr("x1", xScale(dateLastReport))
-      .attr("x2", xScale(dateLastReport))
-      .attr("y1", 0)
-      .attr("y2", innerHeight);
+  // // Add the last line of the reports
+  // innerChart
+  //   .append("line")
+  //     .attr("class", "current-date-line")
+  //     .attr("x1", xScale(dateLastReport))
+  //     .attr("x2", xScale(dateLastReport))
+  //     .attr("y1", 0)
+  //     .attr("y2", innerHeight);
 
   // Add status bars on the left of the chart
   const groupedData = d3.group(data, d => getProductStatus(d).text);
@@ -329,13 +320,6 @@ function drawTableChart(data, isInitialSetup) {
     "Tension d'approvisionnement": "var(--tension)",
     "Arrêt de commercialisation": "var(--gris)",
     "Disponible": "var(--disponible-bg)"
-  };
-
-  const statusBackColors = {
-    "Rupture de stock": "var(--rupture-area)",
-    "Tension d'approvisionnement": "var(--tension-area)",
-    "Arrêt de commercialisation": "var(--arret-area)",
-    "Disponible": "none"
   };
 
   // Used to get the height of the chart (variable to products)
@@ -360,14 +344,6 @@ function drawTableChart(data, isInitialSetup) {
       .attr("width", configManager.config.table.statusBarWidth)
       .attr("height", groupHeight)
       .attr("fill", statusColors[status]);
-
-    innerChart.append("rect")
-      .attr("class", "status-back")
-      .attr("x", -configManager.config.table.margin.left)
-      .attr("y", accumulatedHeight)
-      .attr("width", configManager.config.table.margin.left)
-      .attr("height", groupHeight)
-      .attr("fill", statusBackColors[status]);
 
     accumulatedHeight += groupHeight;
     productLeft -= productLength;
@@ -444,30 +420,6 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("class", "rupture-line")
     .attr("d", lineRupture);
 
-  // // Create area generators
-  // const areaTension = d3.area()
-  //     .x(d => xScale(d.date))
-  //     .y0(innerHeight)
-  //     .y1(d => y(d.tension))
-  //     .defined(d => d.tension > 0);
-
-  // const areaRupture = d3.area()
-  //   .x(d => xScale(d.date))
-  //   .y0(innerHeight)
-  //   .y1(d => y(d.rupture))
-  //   .defined(d => d.rupture > 0);
-
-  // // Draw areas
-  // g.append("path")
-  //   .datum(filteredData)
-  //   .attr("class", "area tension-area")
-  //   .attr("d", areaTension);
-
-  // g.append("path")
-  //   .datum(filteredData)
-  //   .attr("class", "area rupture-area")
-  //   .attr("d", areaRupture);
-
   // Add data points and labels
   g.selectAll(".rupture-point")
     .data(filteredData.filter(d => d.rupture > 0))
@@ -507,10 +459,10 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
       .attr("text-anchor", "middle")
       .text(d => d.tension);
 
-  g.append("line")
-     .attr("class", "summary-chart-xline")
-     .attr("x1", 0)
-     .attr("y1", innerHeight)
-     .attr("x2", innerWidth)
-     .attr("y2", innerHeight)
+  // g.append("line")
+  //    .attr("class", "summary-chart-xline")
+  //    .attr("x1", 0)
+  //    .attr("y1", innerHeight)
+  //    .attr("x2", innerWidth)
+  //    .attr("y2", innerHeight)
 }

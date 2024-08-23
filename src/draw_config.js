@@ -13,16 +13,16 @@ class ConfigManager {
         endDateChart: null,
       },
       summaryChart: {
-        margin: { top: 20, right: 0, bottom: 0, left: 22 },
-        width: 700,
-        height: 320,
+        margin: { top: 20, right: 0, bottom: 0, left: 52 },
+        width: 630,
+        height: 280,
       },
       table: {
-        margin: { top: 42, right: 0, bottom: 0, left: 352 },
+        margin: { top: 0, right: 0, bottom: 0, left: 352 },
         width: 900,
         barHeight: 18,
         labelMaxLength: 50,
-        statusBarWidth: 8,
+        statusBarWidth: 2,
         statusBarSpacing: 5
       }
     };
