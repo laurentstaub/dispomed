@@ -8,19 +8,20 @@
   --grisleger: rgb(220, 220, 220);
   --rupture: rgb(230, 70, 100);
   --rupture-bg: rgba(230, 70, 100, 0.9);
-  --rupture-area: rgba(230, 70, 100, 0.15);
+  --rupture-area: rgba(230, 70, 100, 0.07);
   --tension: rgb(250, 177, 75);
   --tensionleger: rgb(255, 202, 100);
   --tension-bg: rgba(150, 135, 100, 0.9);
-  --tension-area: rgba(255, 235, 170, 0.2);
+  --tension-area: rgba(255, 235, 170, 0.03);
   --disponible-bg: rgba(144, 238, 144, 0.9);
   --arret-bg: rgba(150, 150, 150, 0.9);
+  --arret-area: rgba(220, 220, 220, 0.3);
 }
 
 #chart-container {
   margin: auto;
   position: absolute;
-  width: 1000px;
+  width: 910px;
 }
 
 button {
@@ -139,7 +140,7 @@ button {
   border-radius: 0px;
   display: inline-block;
   font-size: 12px;
-  width: 250px;
+  width: 300px;
 }
 
 .selector[open] {
@@ -155,8 +156,18 @@ button {
   margin-left: 5px;
 }
 
+#last-report-date {
+  border-bottom: var(--gris) solid 1px;
+  color: var(--grisfonce);
+  font-size: 16px;
+  font-weight: 500;
+  padding: 10px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
 #controls-and-search {
-  height: 230px;
+  height: 250px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -165,7 +176,7 @@ button {
 .chart-controls-container {
   border: none;
   padding: 15px;
-  width: 248px;
+  width: 300px;
 }
 
 #chart-controls {
@@ -208,13 +219,6 @@ button {
 
 #chart-controls {
   width: 300px;
-}
-
-#last-report-date {
-  background-color: var(--grisleger);
-  font-size: 15px;
-  padding: 10px;
-  margin-bottom: 20px;
 }
 
 #reinitialiser {
