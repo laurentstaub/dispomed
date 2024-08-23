@@ -14,15 +14,15 @@ class ConfigManager {
       },
       summaryChart: {
         margin: { top: 20, right: 0, bottom: 0, left: 22 },
-        width: 710,
-        height: 300,
+        width: 700,
+        height: 320,
       },
       table: {
-        margin: { top: 42, right: 20, bottom: 30, left: 300 },
-        width: 1000,
+        margin: { top: 42, right: 0, bottom: 0, left: 352 },
+        width: 900,
         barHeight: 18,
-        labelMaxLength: 40,
-        statusBarWidth: 20,
+        labelMaxLength: 50,
+        statusBarWidth: 8,
         statusBarSpacing: 5
       }
     };

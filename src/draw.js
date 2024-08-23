@@ -163,7 +163,7 @@ let data = await fetchTableChartData(true);
 let lastDateReport = d3.timeFormat("%d/%m/%Y")(configManager.getDateLastReport());
 let monthlyData = configManager.processDataMonthlyChart(data);
 
-d3.select("#last-report-date").text(`Date de dernier rapport: ${lastDateReport}`);
+d3.select("#last-report-date").text(`Rapport de disponibilité des médicaments au ${lastDateReport}`);
 drawTableChart(data, true);
 drawSummaryChart(monthlyData, true);
 
@@ -331,6 +331,13 @@ function drawTableChart(data, isInitialSetup) {
     "Disponible": "var(--disponible-bg)"
   };
 
+  const statusBackColors = {
+    "Rupture de stock": "var(--rupture-area)",
+    "Tension d'approvisionnement": "var(--tension-area)",
+    "Arrêt de commercialisation": "var(--arret-area)",
+    "Disponible": "none"
+  };
+
   // Used to get the height of the chart (variable to products)
   const totalProductLength = getUniqueProductLength(data);
   let accumulatedHeight = 0;
@@ -353,6 +360,14 @@ function drawTableChart(data, isInitialSetup) {
       .attr("width", configManager.config.table.statusBarWidth)
       .attr("height", groupHeight)
       .attr("fill", statusColors[status]);
+
+    innerChart.append("rect")
+      .attr("class", "status-back")
+      .attr("x", -configManager.config.table.margin.left)
+      .attr("y", accumulatedHeight)
+      .attr("width", configManager.config.table.margin.left)
+      .attr("height", groupHeight)
+      .attr("fill", statusBackColors[status]);
 
     accumulatedHeight += groupHeight;
     productLeft -= productLength;
@@ -386,15 +401,16 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .tickSize(3)
 
   // Create line generators
+  const lineTension = d3.line()
+      .x(d => xScale(d.date))
+      .y(d => y(d.tension))
+      .defined(d => d.tension > 0);
+
   const lineRupture = d3.line()
     .x(d => xScale(d.date))
     .y(d => y(d.rupture))
     .defined(d => d.rupture > 0);
 
-  const lineTension = d3.line()
-    .x(d => xScale(d.date))
-    .y(d => y(d.tension))
-    .defined(d => d.tension > 0);
 
   // Create SVG
   let svg;
@@ -420,37 +436,37 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
   // Draw lines
   g.append("path")
     .datum(filteredData)
-    .attr("class", "rupture-line")
-    .attr("d", lineRupture);
-
-  g.append("path")
-    .datum(filteredData)
     .attr("class", "tension-line")
     .attr("d", lineTension);
 
-  // Create area generators
-  const areaRupture = d3.area()
-    .x(d => xScale(d.date))
-    .y0(innerHeight)
-    .y1(d => y(d.rupture))
-    .defined(d => d.rupture > 0);
-
-  const areaTension = d3.area()
-    .x(d => xScale(d.date))
-    .y0(innerHeight)
-    .y1(d => y(d.tension))
-    .defined(d => d.tension > 0);
-
-  // Draw areas
   g.append("path")
     .datum(filteredData)
-    .attr("class", "area rupture-area")
-    .attr("d", areaRupture);
+    .attr("class", "rupture-line")
+    .attr("d", lineRupture);
 
-  g.append("path")
-    .datum(filteredData)
-    .attr("class", "area tension-area")
-    .attr("d", areaTension);
+  // // Create area generators
+  // const areaTension = d3.area()
+  //     .x(d => xScale(d.date))
+  //     .y0(innerHeight)
+  //     .y1(d => y(d.tension))
+  //     .defined(d => d.tension > 0);
+
+  // const areaRupture = d3.area()
+  //   .x(d => xScale(d.date))
+  //   .y0(innerHeight)
+  //   .y1(d => y(d.rupture))
+  //   .defined(d => d.rupture > 0);
+
+  // // Draw areas
+  // g.append("path")
+  //   .datum(filteredData)
+  //   .attr("class", "area tension-area")
+  //   .attr("d", areaTension);
+
+  // g.append("path")
+  //   .datum(filteredData)
+  //   .attr("class", "area rupture-area")
+  //   .attr("d", areaRupture);
 
   // Add data points and labels
   g.selectAll(".rupture-point")
@@ -497,12 +513,4 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
      .attr("y1", innerHeight)
      .attr("x2", innerWidth)
      .attr("y2", innerHeight)
-
-  // Add an additional vertical line at the end of the x-axis
-  g.append("line")
-    .attr("class", "end-line")
-    .attr("x1", innerWidth)
-    .attr("x2", innerWidth)
-    .attr("y1", -20)
-    .attr("y2", innerHeight);
 }
