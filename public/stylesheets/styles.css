@@ -27,13 +27,13 @@
 .tension-line {
   fill: none;
   stroke: var(--tension);
-  stroke-width: 1px;
+  stroke-width: 2px;
 }
 
 .rupture-line {
   fill: none;
   stroke: var(--rupture);
-  stroke-width: 1px;
+  stroke-width: 2px;
 }
 
 .rupture-label {
@@ -46,25 +46,9 @@
   font-size: 12px;
 }
 
-.rupture-point {
-  fill: var(--rupture);
-}
-
-.tension-point {
-  fill: var(--tension);
-}
-
-.rupture-area {
-  fill: var(--rupture-area);
-}
-
-.tension-area {
-  fill: var(--tension-area);
-}
-
 .grid-line {
   stroke: var(--blanc);
-  stroke-width: 12px;
+  stroke-width: 14px;
 }
 
 .Rupture {
@@ -80,18 +64,18 @@
 }
 
 .top-axis text {
-  fill: var(--grisfonce);
+  fill: var(--gris);
   font-weight: 400;
   font-size: 12px;
 }
 
 .top-axis line {
-  stroke: var(--gris);
+  stroke: var(--grismedium);
   stroke-width: 1px;
 }
 
 .top-axis .domain {
-  stroke: var(--gris);
+  stroke: var(--grismedium);
   stroke-width: 1px;
 }
 
@@ -251,30 +235,29 @@ p.controls {
 }
 
 #tooltip {
-  padding: 8px;
-  border-radius: 4px;
+  padding: 5px;
+  background-color: var(--blanc);
+  border-radius: 0px;
+  border: 2px solid;
+  color: var(--grisfonce);
   font-size: 12px;
   max-width: 300px;
   pointer-events: none;
   position: absolute;
 }
 
-.tooltip-rupture {
-  background-color: var(--rupture-bg);
-  color: var(--blanc);
+#tooltip.tooltip-rupture {
+  border-color: var(--rupture);
 }
 
-.tooltip-tension {
-  background-color: var(--tension-bg);
-  color: var(--blanc);
+#tooltip.tooltip-tension {
+  border-color: var(--tension);
 }
 
-.tooltip-disponible {
-  background-color: var(--disponible-bg);
-  color: var(--blanc);
+#tooltip.tooltip-disponible {
+  border-color: var(--disponible-bg);
 }
 
-.tooltip-arret {
-  background-color: var(--arret-bg);
-  color: var(--blanc);
+#tooltip.tooltip-arret {
+  border-color: var(--arret-area);
 }

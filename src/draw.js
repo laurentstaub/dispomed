@@ -248,7 +248,7 @@ function drawTableChart(data, isInitialSetup) {
           <strong>Fin:</strong> ${d3.timeFormat("%d/%m/%Y")(d.calculated_end_date)}
         `)
           .attr("class", statusClass)
-          .style("left", (d3.pointer(event)[0] + 300) + "px")
+          .style("left", (d3.pointer(event)[0] + 360) + "px")
           .style("top", (d3.pointer(event)[1] + 350) + "px")
           .style("opacity", 0.9);
       })
@@ -417,16 +417,6 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
       .attr("y1", -configManager.config.summaryChart.margin.top - 12)
       .attr("y2", innerHeight);
 
-  // Add data points and labels
-  g.selectAll(".rupture-point")
-    .data(filteredData.filter(d => d.rupture > 0))
-    .enter()
-    .append("circle")
-      .attr("class", "rupture-point")
-      .attr("cx", d => xScale(d.date))
-      .attr("cy", d => y(d.rupture))
-      .attr("r", 2);
-
   g.selectAll(".rupture-label")
     .data(filteredData.filter(d => d.rupture > 0))
     .enter()
@@ -436,15 +426,6 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
       .attr("y", d => y(d.rupture) - 10)
       .attr("text-anchor", "middle")
       .text(d => d.rupture);
-
-  g.selectAll(".tension-point")
-    .data(filteredData.filter(d => d.tension > 0))
-    .enter()
-    .append("circle")
-      .attr("class", "tension-point")
-      .attr("cx", d => xScale(d.date))
-      .attr("cy", d => y(d.tension))
-      .attr("r", 2);
 
   g.selectAll(".tension-label")
     .data(filteredData.filter(d => d.tension > 0))
