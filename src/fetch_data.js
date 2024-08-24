@@ -47,7 +47,6 @@ export async function fetchTableChartData(isInitialSetup, monthsToShow = 12, sea
   return fetch(url)
     .then(response => response.json())
     .then(data => {
-      console.log(`Data form the central fetch function:`, data);
       const processedData = processDates(data);
       const lastReportDate = Math.max(...processedData.map(d => new Date(d.calculated_end_date)));
       const [startDate, endDate] = getDateRange(lastReportDate, monthsToShow);
@@ -86,7 +85,6 @@ export async function fetchTableChartData(isInitialSetup, monthsToShow = 12, sea
           return a.moleculeName.localeCompare(b.moleculeName);
         });
 
-        console.log(sortedAtcMolecules);
         configManager.setMoleculeClassMap(sortedAtcMolecules);
       }
 

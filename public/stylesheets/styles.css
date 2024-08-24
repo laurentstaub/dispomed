@@ -4,7 +4,7 @@
   --blanc: rgb(255, 255, 255);
   --grisfonce: rgb(80, 80, 80);
   --gris: rgb(150, 150, 150);
-  --grismedium: rgb(180, 180, 180);
+  --grismedium: rgb(190, 190, 190);
   --grisleger: rgb(220, 220, 220);
   --rupture: rgb(230, 70, 100);
   --rupture-bg: rgba(230, 70, 100, 0.9);
@@ -119,11 +119,6 @@ g.tick text:hover {
   stroke-width: 0.5px;
 }
 
-.end-line {
-  stroke: var(--grisleger);
-  stroke-width: 0.5px;
-}
-
 .current-date-line {
   stroke:var(--gris);
   stroke-width: 1px;
@@ -163,8 +158,8 @@ g.tick text:hover {
 }
 
 #last-report-date {
-  border-bottom: var(--gris) solid 1px;
-  border-top: var(--gris) solid 1px;
+  border-bottom: var(--grisleger) solid 1px;
+  border-top: var(--grisleger) solid 1px;
   color: var(--grisfonce);
   font-size: 20px;
   font-weight: 500;
@@ -207,7 +202,7 @@ g.tick text:hover {
 }
 
 #search-box {
-  border-color: var(--gris);
+  border-color: var(--grisleger);
   border-radius: 0px;
   border-width: 1px;
   flex: 0 0 calc(10% - 5px);
@@ -229,7 +224,7 @@ g.tick text:hover {
   color: var(--grisfonce);
   height: 30px;
   width: 280px;
-  border: 1px solid var(--grisleger);
+  border: none;
   border-radius: 0px;
   cursor: pointer;
 }
@@ -239,14 +234,14 @@ g.tick text:hover {
   flex: 1;
   padding: 5px;
   text-align: center;
-  border: 1px solid var(--grisleger);
+  border: none;
   border-radius: 0px;
   cursor: pointer;
 }
 
-.chart-button:hover {
-  background-color: var(--gris);
-}
+/* .chart-button:hover {
+  background-color: var(--grismedium);
+} */
 
 p.controls {
   color: var(--grisfonce);
@@ -260,6 +255,8 @@ p.controls {
   border-radius: 4px;
   font-size: 12px;
   max-width: 300px;
+  pointer-events: none;
+  position: absolute;
 }
 
 .tooltip-rupture {

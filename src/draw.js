@@ -70,10 +70,6 @@ function updateMoleculeDropdown(atcClass) {
       }
     });
 
-  console.log('Updating molecule dropdown for ATC class:', atcClass);
-  console.log('Molecules:', molecules);
-  console.log(selectedMoleculeId);
-
   moleculeSelect.selectAll("option")
     .data([{ code: "", name: 'Choisir une molécule' }, ...molecules])
     .join('option')
@@ -84,7 +80,6 @@ function updateMoleculeDropdown(atcClass) {
   if (selectedMoleculeId) {
     moleculeSelect.selectAll(`option[value='${selectedMoleculeId}']`)
       .attr('selected', 'selected');
-    console.log("selected")
   }
 }
 
@@ -220,8 +215,8 @@ function drawTableChart(data, isInitialSetup) {
             <strong>Statut:</strong> ${status.text}
           `)
             .attr("class", status.class)
-            // .style("left", (event.pageX - 280) + "px")
-            // .style("top", (event.pageY - 110) + "px");
+            .style("left", (event.pageX - 160) + "px")
+            .style("top", (event.pageY - 80) + "px");
           }
         })
         .on("mouseout", function() {
@@ -244,7 +239,7 @@ function drawTableChart(data, isInitialSetup) {
         return Math.max(0, xScale(endDate) - xScale(effectiveStartDate));
       })
       .attr("height", configManager.config.table.barHeight)
-      .on("mouseover", function(event, d) {
+      .on("mousemove", function(event, d) {
         let statusClass = `tooltip-${d.status.toLowerCase()}`;
         tooltip.html(`
           <strong>Produit:</strong> ${d.product}<br>
@@ -252,10 +247,10 @@ function drawTableChart(data, isInitialSetup) {
           <strong>Début:</strong> ${d3.timeFormat("%d/%m/%Y")(d.start_date)}<br>
           <strong>Fin:</strong> ${d3.timeFormat("%d/%m/%Y")(d.calculated_end_date)}
         `)
-        .attr("class", statusClass)
-        .style("opacity", 0.9)
-        .style("left", (event.pageX - 250) + "px")
-        .style("top", (event.pageY - 150) + "px");
+          .attr("class", statusClass)
+          .style("left", (d3.pointer(event)[0] + 300) + "px")
+          .style("top", (d3.pointer(event)[1] + 350) + "px")
+          .style("opacity", 0.9);
       })
       .on("mouseout", function() {
         tooltip.style("opacity", 0);
