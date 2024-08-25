@@ -209,10 +209,10 @@ function drawTableChart(data, isInitialSetup) {
         if (d.length > configManager.config.table.labelMaxLength || product) {
           const status = getProductStatus(product);
           const tooltip = d3.select("#tooltip");
-          tooltip.transition().duration(200).style("opacity", 0.9);
+          tooltip.transition().duration(200).style("opacity", 1);
           tooltip.html(`
-            <strong>Produit:</strong> ${d}<br>
-            <strong>Statut:</strong> ${status.text}
+            ${d}<br>
+            Ce produit est en <strong>${status.text}</strong>
           `)
             .attr("class", status.class)
             .style("left", (event.pageX - 160) + "px")
@@ -242,10 +242,9 @@ function drawTableChart(data, isInitialSetup) {
       .on("mousemove", function(event, d) {
         let statusClass = `tooltip-${d.status.toLowerCase()}`;
         tooltip.html(`
-          <strong>Produit:</strong> ${d.product}<br>
-          <strong>Incident:</strong> ${d.status}<br>
-          <strong>Début:</strong> ${d3.timeFormat("%d/%m/%Y")(d.start_date)}<br>
-          <strong>Fin:</strong> ${d3.timeFormat("%d/%m/%Y")(d.calculated_end_date)}
+          <strong>${d.status}</strong><br>
+          ${d.product}<br>
+          ${d3.timeFormat("%d/%m/%Y")(d.start_date)} - ${d3.timeFormat("%d/%m/%Y")(d.calculated_end_date)}
         `)
           .attr("class", statusClass)
           .style("left", (d3.pointer(event)[0] + 360) + "px")

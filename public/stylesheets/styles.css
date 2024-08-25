@@ -8,14 +8,12 @@
   --grisleger: rgb(220, 220, 220);
   --rupture: rgb(230, 70, 100);
   --rupture-bg: rgba(230, 70, 100, 0.9);
-  --rupture-area: rgba(230, 70, 100, 0.07);
   --tension: rgb(250, 177, 75);
   --tensionleger: rgb(255, 202, 100);
   --tension-bg: rgba(150, 135, 100, 0.9);
-  --tension-area: rgba(255, 235, 170, 0.03);
   --disponible-bg: rgba(144, 238, 144, 0.9);
+  --disponible: rgb(144, 238, 144);
   --arret-bg: rgba(150, 150, 150, 0.9);
-  --arret-area: rgba(220, 220, 220, 0.3);
 }
 
 #chart-container {
@@ -221,11 +219,8 @@ g.tick text:hover {
   border: none;
   border-radius: 0px;
   cursor: pointer;
+  overflow: visible;
 }
-
-/* .chart-button:hover {
-  background-color: var(--grismedium);
-} */
 
 p.controls {
   color: var(--grisfonce);
@@ -235,15 +230,16 @@ p.controls {
 }
 
 #tooltip {
-  padding: 5px;
   background-color: var(--blanc);
   border-radius: 0px;
   border: 2px solid;
   color: var(--grisfonce);
   font-size: 12px;
-  max-width: 300px;
+  opacity: 0;
+  padding: 5px;
   pointer-events: none;
   position: absolute;
+  width: 250px;
 }
 
 #tooltip.tooltip-rupture {
@@ -259,5 +255,25 @@ p.controls {
 }
 
 #tooltip.tooltip-arret {
-  border-color: var(--arret-area);
+  border-color: var(--grisfonce);
+}
+
+#tooltip.tooltip-rupture strong {
+    color: var(--rupture);
+    font-weight: 600;
+}
+
+#tooltip.tooltip-tension strong {
+    color: var(--tension);
+    font-weight: 600;
+}
+
+#tooltip.tooltip-arret strong {
+    color: var(--grisfonce);
+    font-weight: 600;
+}
+
+#tooltip.tooltip-disponible strong {
+    color: var(--disponible);
+    font-weight: 600;
 }
