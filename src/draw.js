@@ -1,5 +1,23 @@
 import { configManager } from './draw_config.js';
 import { fetchTableChartData } from './fetch_data.js';
+const HOURS_IN_DAY = 24;
+const MINS_IN_HOUR = 60;
+const SECS_IN_MIN = 60;
+const MS_IN_SEC = 1000;
+const MS_IN_DAY = HOURS_IN_DAY * MINS_IN_HOUR * SECS_IN_MIN * MS_IN_SEC;
+
+const frFr = d3.timeFormatLocale({
+  dateTime: "%A %e %B %Y à %X",
+  date: "%d/%m/%Y",
+  time: "%H:%M:%S",
+  periods: ["", ""],
+  days: ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
+  shortDays: ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."],
+  months: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
+  shortMonths: ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."]
+});
+
+const formatDate = frFr.format("%e %B %Y");
 
 function getProductStatus(d) {
   const dateLastReport = configManager.getDateLastReport();
@@ -155,16 +173,14 @@ window.addEventListener('load', function() {
 });
 
 let data = await fetchTableChartData(true);
-let lastDateReport = d3.timeFormat("%d/%m/%Y")(configManager.getDateLastReport());
 let monthlyData = configManager.processDataMonthlyChart(data);
 
-d3.select("#last-report-date").text(`Rapport de disponibilité des médicaments au ${lastDateReport}`);
+d3.select("#last-report-date").text(`Rapport de disponibilité des médicaments MITM au ${formatDate(configManager.getDateLastReport())}`);
 drawTableChart(data, true);
 drawSummaryChart(monthlyData, true);
 
 function drawTableChart(data, isInitialSetup) {
   const { height, innerWidth, innerHeight } = configManager.getTableDimensions(configManager.getProducts().length);
-  const dateLastReport = configManager.getDateLastReport();
   configManager.createScales(configManager.getStartDateChart(), configManager.getEndDateChart(), configManager.getProducts(), innerWidth, innerHeight);
   const xScale = configManager.getXScale();
   const yScale = configManager.getYScale();
@@ -241,12 +257,32 @@ function drawTableChart(data, isInitialSetup) {
       .attr("height", configManager.config.table.barHeight)
       .on("mousemove", function(event, d) {
         let statusClass = `tooltip-${d.status.toLowerCase()}`;
-        tooltip.html(`
-          <strong>${d.status}</strong><br>
-          ${d.product}<br>
-          ${d3.timeFormat("%d/%m/%Y")(d.start_date)} - ${d3.timeFormat("%d/%m/%Y")(d.calculated_end_date)}
-        `)
-          .attr("class", statusClass)
+        let tooltipHTML;
+        const dateLastReport = configManager.getDateLastReport();
+        const diffIndays = (startDate, endDate) => Math.round((endDate - startDate) / MS_IN_DAY);
+
+        if (statusClass === "tooltip-arret") {
+          tooltipHTML = tooltip.html(`
+            <strong>${d.status}</strong>, plus disponible depuis le <strong>${formatDate(d.start_date)}</strong><br>
+            ${d.product}<br>
+          `)
+        } else {
+          if (formatDate(d.calculated_end_date) === formatDate(dateLastReport)) {
+            tooltipHTML = tooltip.html(`
+              <strong>${d.status} / En cours</strong><br>
+              ${d.product}<br>
+              Depuis le ${formatDate(d.start_date)} (${diffIndays(d.start_date, dateLastReport)} jours)
+            `)
+          } else {
+            tooltipHTML = tooltip.html(`
+              <span class="termine">${d.status} / Terminé</span><br>
+              ${d.product}<br>
+              ${formatDate(d.start_date)} - ${formatDate(d.calculated_end_date)} (${diffIndays(d.start_date, d.calculated_end_date)} jours)
+            `)
+          }
+        };
+
+          tooltipHTML.attr("class", statusClass)
           .style("left", (d3.pointer(event)[0] + 360) + "px")
           .style("top", (d3.pointer(event)[1] + 350) + "px")
           .style("opacity", 0.9);
@@ -279,8 +315,8 @@ function drawTableChart(data, isInitialSetup) {
       .attr("class", "grid-line")
       .attr("x1", 0)
       .attr("x2", innerWidth)
-      .attr("y1", 0)
-      .attr("y2", 0);
+      .attr("y1", 1)
+      .attr("y2", 1);
 
   // Add vertical grid lines for years
   const yearTicks = xScale.ticks(d3.timeYear.every(1));

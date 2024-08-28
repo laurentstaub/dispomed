@@ -40,11 +40,23 @@ class ConfigManager {
     instance = this;
   }
 
-  setStartDateChart(date) { this.config.report.startDateChart = date; }
-  getStartDateChart() { return this.config.report.startDateChart; }
-  setDateLastReport(date) { this.config.report.dateLastReport = date; }
-  getDateLastReport() { return this.config.report.dateLastReport; }
-  setEndDateChart(date) { this.config.report.endDateChart = date; }
+  setStartDateChart(date) {
+    this.config.report.startDateChart = date;
+  }
+  getStartDateChart() {
+    return this.config.report.startDateChart;
+  }
+
+  setDateLastReport(date) {
+    this.config.report.dateLastReport = date;
+  }
+  getDateLastReport() {
+    return this.config.report.dateLastReport;
+  }
+
+  setEndDateChart(date) {
+    this.config.report.endDateChart = date;
+  }
   getEndDateChart() { return this.config.report.endDateChart; }
 
   setProducts(data) {

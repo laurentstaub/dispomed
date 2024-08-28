@@ -2,10 +2,12 @@
   font-family: Roboto, Times, serif;
   font-weight: 400;
   --blanc: rgb(255, 255, 255);
-  --grisfonce: rgb(80, 80, 80);
-  --gris: rgb(150, 150, 150);
+  --gristresfonce: rgb(90, 90, 90);
+  --grisfonce: rgb(110, 110, 110);
+  --gris: rgb(140, 140, 140);
   --grismedium: rgb(190, 190, 190);
   --grisleger: rgb(220, 220, 220);
+  --gristresleger: rgb(240, 240, 240);
   --rupture: rgb(230, 70, 100);
   --rupture-bg: rgba(230, 70, 100, 0.9);
   --tension: rgb(250, 177, 75);
@@ -20,6 +22,11 @@
   margin: auto;
   position: absolute;
   width: 910px;
+}
+
+.termine {
+  color: var(--gris);
+  font-weight: 600;
 }
 
 .tension-line {
@@ -84,7 +91,7 @@
 
 .y-axis text{
   font-size: 12px;
-  fill: var(--grisfonce);
+  fill: var(--gristresfonce);
 }
 
 .y-axis line {
@@ -141,10 +148,9 @@ g.tick text:hover {
 
 #last-report-date {
   border-bottom: var(--grisleger) solid 1px;
-  border-top: var(--grisleger) solid 1px;
   color: var(--grisfonce);
   font-size: 20px;
-  font-weight: 500;
+  font-weight: 400;
   padding: 10px;
   margin-bottom: 30px;
   text-align: center;
@@ -175,10 +181,6 @@ g.tick text:hover {
   gap: 10px;
 }
 
-.button-selected {
-  background-color: var(--grismedium);
-}
-
 #chart-controls button {
   flex: 1 0 calc(50% - 5px);
 }
@@ -187,6 +189,7 @@ g.tick text:hover {
   border-color: var(--grisleger);
   border-radius: 0px;
   border-width: 1px;
+  border-style: solid;
   flex: 0 0 calc(10% - 5px);
   font-size: 12px;
   padding: 1px;
@@ -201,9 +204,9 @@ g.tick text:hover {
   position: relative;
 }
 
-
 #reinitialiser {
-  color: var(--grisfonce);
+  background-color: var(--gristresleger);
+  color: var(--gris);
   height: 30px;
   width: 280px;
   border: none;
@@ -212,14 +215,20 @@ g.tick text:hover {
 }
 
 .chart-button {
-  color: var(--grisfonce);
+  background-color: var(--white);
+  border: 0.5px solid var(--gris) ;
+  color: var(--gris);
   flex: 1;
   padding: 5px;
   text-align: center;
-  border: none;
   border-radius: 0px;
   cursor: pointer;
   overflow: visible;
+}
+
+.button-selected {
+  background-color: var(--gristresleger);
+  border: none;
 }
 
 p.controls {
