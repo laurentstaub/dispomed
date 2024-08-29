@@ -51,7 +51,6 @@ export async function fetchTableChartData(isInitialSetup, monthsToShow = 12, sea
       const lastReportDate = Math.max(configManager.getDateLastReport(), Math.max(...processedData.map(d => new Date(d.calculated_end_date))));
       const [ startDate, endDate ] = getDateRange(lastReportDate, monthsToShow);
       configManager.setDateLastReport(lastReportDate);
-
       configManager.setStartDateChart(startDate);
       configManager.setEndDateChart(endDate);
       configManager.setProducts(processedData);

@@ -2,26 +2,24 @@
   font-family: Roboto, Times, serif;
   font-weight: 400;
   --blanc: rgb(255, 255, 255);
-  --gristresfonce: rgb(90, 90, 90);
+  --gristresfonce: rgb(80, 80, 80);
   --grisfonce: rgb(110, 110, 110);
   --gris: rgb(140, 140, 140);
-  --grismedium: rgb(190, 190, 190);
-  --grisleger: rgb(220, 220, 220);
-  --gristresleger: rgb(240, 240, 240);
+  --gristresleger: rgb(230, 230, 230);
   --rupture: rgb(230, 70, 100);
   --rupture-bg: rgba(230, 70, 100, 0.9);
   --tension: rgb(250, 177, 75);
   --tensionleger: rgb(255, 202, 100);
   --tension-bg: rgba(150, 135, 100, 0.9);
-  --disponible-bg: rgba(144, 238, 144, 0.9);
   --disponible: rgb(144, 238, 144);
+  --disponiblefonce: rgb(100, 150, 100);
   --arret-bg: rgba(150, 150, 150, 0.9);
 }
 
 #chart-container {
   margin: auto;
   position: absolute;
-  width: 910px;
+  width: 907px;
 }
 
 .termine {
@@ -42,13 +40,13 @@
 }
 
 .rupture-label {
-  fill: var(--grisfonce);
-  font-size: 12px;
+  fill: var(--gris);
+  font-size: 10px;
 }
 
 .tension-label {
-  fill: var(--grisfonce);
-  font-size: 12px;
+  fill: var(--gris);
+  font-size: 10px;
 }
 
 .grid-line {
@@ -75,13 +73,12 @@
 }
 
 .top-axis line {
-  stroke: var(--grismedium);
-  stroke-width: 1px;
+  stroke: none;
 }
 
 .top-axis .domain {
-  stroke: var(--grismedium);
-  stroke-width: 1px;
+  stroke: var(--gris);
+  stroke-width: 0.5px;
 }
 
 .y-axis .domain {
@@ -95,16 +92,12 @@
 }
 
 .y-axis line {
-  stroke: var(--grisleger);
+  stroke: var(--gris);
   stroke-width: 1px;
 }
 
-g.tick text:hover {
-  background-color: var(--grismedium);
-}
-
 .year-line {
-  stroke: var(--grisleger);
+  stroke: var(--gris);
   stroke-width: 0.5px;
 }
 
@@ -125,11 +118,13 @@ g.tick text:hover {
 }
 
 .selector {
-  border-color: var(--grisleger);
+  border-color: var(--gris);
   border-radius: 0px;
   color: var(--grisfonce);
   display: inline-block;
   font-size: 12px;
+  height: 30px;
+  margin-top: 10px;
   width: 280px;
 }
 
@@ -147,17 +142,17 @@ g.tick text:hover {
 }
 
 #last-report-date {
-  border-bottom: var(--grisleger) solid 1px;
+  border-bottom: var(--gris) solid 1px;
   color: var(--grisfonce);
   font-size: 20px;
   font-weight: 400;
   padding: 10px;
-  margin-bottom: 30px;
+  margin-bottom: 50px;
   text-align: center;
 }
 
 #controls-and-search {
-  height: 250px;
+  height: 200px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -186,18 +181,18 @@ g.tick text:hover {
 }
 
 #search-box {
-  border-color: var(--grisleger);
+  border-color: var(--gris);
   border-radius: 0px;
   border-width: 1px;
   border-style: solid;
-  flex: 0 0 calc(10% - 5px);
   font-size: 12px;
+  height: 30px;
   padding: 1px;
 }
 
 #summary {
   flex: 1;
-  height: 280px;
+  height: 292px;
 }
 
 #chart-container {
@@ -205,37 +200,32 @@ g.tick text:hover {
 }
 
 #reinitialiser {
-  background-color: var(--gristresleger);
-  color: var(--gris);
-  height: 30px;
-  width: 280px;
-  border: none;
+  background-color: var(--blanc);
+  border: 1px solid var(--gris);
   border-radius: 0px;
   cursor: pointer;
+  color: var(--grisfonce);
+  font-size: 13px;
+  height: 30px;
+  width: 280px;
 }
 
 .chart-button {
   background-color: var(--white);
-  border: 0.5px solid var(--gris) ;
-  color: var(--gris);
-  flex: 1;
-  padding: 5px;
-  text-align: center;
+  border: 1px solid var(--gris);
   border-radius: 0px;
   cursor: pointer;
+  color: var(--grisfonce);
+  flex: 1;
+  font-size: 12px;
+  padding: 5px;
+  text-align: center;
   overflow: visible;
 }
 
 .button-selected {
   background-color: var(--gristresleger);
   border: none;
-}
-
-p.controls {
-  color: var(--grisfonce);
-  font-size: 14px;
-  font-weight: 500;
-  margin: 0px;
 }
 
 #tooltip {
@@ -260,7 +250,7 @@ p.controls {
 }
 
 #tooltip.tooltip-disponible {
-  border-color: var(--disponible-bg);
+  border-color: var(--disponible);
 }
 
 #tooltip.tooltip-arret {
@@ -283,6 +273,6 @@ p.controls {
 }
 
 #tooltip.tooltip-disponible strong {
-    color: var(--disponible);
+    color: var(--disponiblefonce);
     font-weight: 600;
 }

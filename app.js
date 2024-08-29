@@ -81,7 +81,7 @@ app.get('/api/incidents', async (req, res) => {
           GROUP BY i.id, p.name, i.status, i.start_date, i.end_date, i.mise_a_jour, i.date_dernier_rapport, i.calculated_end_date
         )
         SELECT * FROM incidents_with_sorting
-        ORDER BY is_active DESC, status_priority ASC, start_date DESC
+        ORDER BY is_active DESC, status_priority ASC, product ASC
         `;
     const result = await dbQuery(query, ...params);
     res.json(result.rows);

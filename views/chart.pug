@@ -12,24 +12,23 @@ html(lang="en")
             h1#last-report-date
             div.flex-container
                 div#controls-and-search.chart-controls-container
-                    p.controls Recherches
                     div.atc-wrapper
                         select.selector#atc(name="atc")
-                            option(value="" selected=selectedAtcClass === "") Choisir une classe ATC
+                            option(value="" selected=selectedAtcClass === "") Classe ATC
                             each atcClass in ATCClasses
                                 option(value=atcClass.code, selected=atcClass.code === selectedAtcClass)= `${atcClass.code} - ${atcClass.description}`
                         select.selector#molecule(name="molecule")
-                            option(value="") Choisir une molécule
+                            option(value="") Molécule
                             each molecule in molecules
                                 option(value=molecule.code)=`${molecule.name}`
                     input(type="text" id="search-box" placeholder="Rechercher un produit...")
-                    button#reinitialiser Réinitialiser la recherche
-                    p.controls Echelle de temps
                     div.button-row
-                        button#show-12-months.chart-button Derniers 12 mois
-                        button#show-24-months.chart-button Derniers 24 mois
-                    div.button-row
-                        button#show-all-data.chart-button Toutes les données
+                        button#show-12-months.chart-button 12 mois
+                        button#show-24-months.chart-button 24 mois
+                        button#show-all-data.chart-button Tout
+                    button#reinitialiser Réinitialiser
+
+
                 div#summary
             div#dash
                 div#tooltip

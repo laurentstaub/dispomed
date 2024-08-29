@@ -18,6 +18,7 @@ const frFr = d3.timeFormatLocale({
 });
 
 const formatDate = frFr.format("%e %B %Y");
+const formatDateShort = frFr.format("%B");
 
 function getProductStatus(d) {
   const dateLastReport = configManager.getDateLastReport();
@@ -175,7 +176,7 @@ window.addEventListener('load', function() {
 let data = await fetchTableChartData(true);
 let monthlyData = configManager.processDataMonthlyChart(data);
 
-d3.select("#last-report-date").text(`Rapport de disponibilité des médicaments MITM au ${formatDate(configManager.getDateLastReport())}`);
+d3.select("#last-report-date").text(`Disponibilité des médicaments (MITM) au ${formatDate(configManager.getDateLastReport())}`);
 drawTableChart(data, true);
 drawSummaryChart(monthlyData, true);
 
@@ -338,7 +339,7 @@ function drawTableChart(data, isInitialSetup) {
     "Rupture de stock": "var(--rupture)",
     "Tension d'approvisionnement": "var(--tension)",
     "Arrêt de commercialisation": "var(--gris)",
-    "Disponible": "var(--disponible-bg)"
+    "Disponible": "var(--disponible)"
   };
 
   // Used to get the height of the chart (variable to products)
@@ -391,8 +392,8 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .range([innerHeight, 0]);
 
   const xAxis = d3.axisTop(xScale)
-    .ticks(d3.timeMonth.every(1))
-    .tickFormat(d => (d.getMonth() === 0) ? d3.timeFormat("%Y")(d) : d3.timeFormat("%b")(d).charAt(0))
+    .ticks(d3.timeMonth.every(3))
+    .tickFormat(d => (d.getMonth() === 0) ? d3.timeFormat("%Y")(d) : formatDateShort(d))
     .tickSize(3)
 
   // Create line generators

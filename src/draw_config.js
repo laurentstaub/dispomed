@@ -22,7 +22,7 @@ class ConfigManager {
         width: 900,
         barHeight: 18,
         labelMaxLength: 50,
-        statusBarWidth: 2,
+        statusBarWidth: 3,
         statusBarSpacing: 5
       }
     };
