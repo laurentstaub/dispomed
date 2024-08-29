@@ -5,6 +5,7 @@
   --gristresfonce: rgb(80, 80, 80);
   --grisfonce: rgb(110, 110, 110);
   --gris: rgb(140, 140, 140);
+  --grisleger: rgb(180, 180, 180);
   --gristresleger: rgb(230, 230, 230);
   --rupture: rgb(230, 70, 100);
   --rupture-bg: rgba(230, 70, 100, 0.9);
@@ -19,7 +20,107 @@
 #chart-container {
   margin: auto;
   position: absolute;
-  width: 907px;
+  width: 900px;
+}
+
+#chart-container {
+  position: relative;
+}
+
+#last-report-date {
+  border-bottom: var(--gris) solid 1px;
+  color: var(--grisfonce);
+  font-size: 20px;
+  font-weight: 400;
+  padding: 10px;
+  margin-bottom: 50px;
+  text-align: center;
+}
+
+#controls-and-search {
+  height: 240px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.chart-controls-container {
+  border: none;
+  padding: 5px 15px 5px 5px;
+  width: 280px;
+}
+
+#chart-controls {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+#search-box {
+  border-color: var(--gris);
+  border-radius: 0px;
+  border-width: 1px;
+  border-style: solid;
+  font-size: 12px;
+  height: 30px;
+  padding: 1px;
+}
+
+#chart-controls button {
+  flex: 1 0 calc(50% - 5px);
+}
+
+.chart-button {
+  background-color: var(--white);
+  border: 1px solid var(--gris);
+  border-radius: 0px;
+  cursor: pointer;
+  color: var(--grisfonce);
+  flex: 1;
+  font-size: 12px;
+  padding: 5px;
+  text-align: center;
+  overflow: visible;
+}
+
+.button-selected {
+  background-color: var(--gristresleger);
+  border: none;
+}
+
+#reinitialiser {
+  background-color: var(--blanc);
+  border: 1px solid var(--gris);
+  border-radius: 0px;
+  cursor: pointer;
+  color: var(--grisfonce);
+  font-size: 13px;
+  height: 30px;
+  width: 280px;
+}
+
+.legende {
+  color: var(--grisfonce);
+  font-size: 12px;
+}
+
+#legende-rupture strong {
+  color: var(--rupture);
+}
+
+#legende-tension strong {
+  color: var(--tension);
+}
+
+#summary {
+  flex: 1;
+  height: 292px;
 }
 
 .termine {
@@ -54,15 +155,15 @@
   stroke-width: 14px;
 }
 
-.Rupture {
+.rupture {
   fill: var(--rupture);
 }
 
-.Tension {
+.tension {
   fill: var(--tensionleger);
 }
 
-.Arret {
+.arret {
   fill: var(--gris);
 }
 
@@ -78,7 +179,7 @@
 
 .top-axis .domain {
   stroke: var(--gris);
-  stroke-width: 0.5px;
+  stroke-width: 1px;
 }
 
 .y-axis .domain {
@@ -92,12 +193,12 @@
 }
 
 .y-axis line {
-  stroke: var(--gris);
+  stroke: var(--grisleger);
   stroke-width: 1px;
 }
 
 .year-line {
-  stroke: var(--gris);
+  stroke: var(--grisleger);
   stroke-width: 0.5px;
 }
 
@@ -139,93 +240,6 @@
 
 .atc-option label {
   margin-left: 5px;
-}
-
-#last-report-date {
-  border-bottom: var(--gris) solid 1px;
-  color: var(--grisfonce);
-  font-size: 20px;
-  font-weight: 400;
-  padding: 10px;
-  margin-bottom: 50px;
-  text-align: center;
-}
-
-#controls-and-search {
-  height: 200px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.chart-controls-container {
-  border: none;
-  padding: 5px 15px 5px 5px;
-  width: 280px;
-}
-
-#chart-controls {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-.button-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-#chart-controls button {
-  flex: 1 0 calc(50% - 5px);
-}
-
-#search-box {
-  border-color: var(--gris);
-  border-radius: 0px;
-  border-width: 1px;
-  border-style: solid;
-  font-size: 12px;
-  height: 30px;
-  padding: 1px;
-}
-
-#summary {
-  flex: 1;
-  height: 292px;
-}
-
-#chart-container {
-  position: relative;
-}
-
-#reinitialiser {
-  background-color: var(--blanc);
-  border: 1px solid var(--gris);
-  border-radius: 0px;
-  cursor: pointer;
-  color: var(--grisfonce);
-  font-size: 13px;
-  height: 30px;
-  width: 280px;
-}
-
-.chart-button {
-  background-color: var(--white);
-  border: 1px solid var(--gris);
-  border-radius: 0px;
-  cursor: pointer;
-  color: var(--grisfonce);
-  flex: 1;
-  font-size: 12px;
-  padding: 5px;
-  text-align: center;
-  overflow: visible;
-}
-
-.button-selected {
-  background-color: var(--gristresleger);
-  border: none;
 }
 
 #tooltip {

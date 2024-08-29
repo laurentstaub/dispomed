@@ -246,7 +246,7 @@ function drawTableChart(data, isInitialSetup) {
     .data(data)
     .enter()
     .append("rect")
-      .attr("class", d => `bar ${d.status}`)
+      .attr("class", d => (`bar ${d.status}`).toLowerCase())
       .attr("x", d => xScale(d.start_date > configManager.getStartDateChart() ? d.start_date : configManager.getStartDateChart()))
       .attr("y", d => yScale(d.product) + yScale.bandwidth() / 2 - configManager.config.table.barHeight / 2 - 1)
       .attr("width", d => {
@@ -371,7 +371,7 @@ function drawTableChart(data, isInitialSetup) {
 }
 
 function drawSummaryChart(monthlyChartData, isInitialSetup) {
-  const { innerWidth, innerHeight } = configManager.getSummaryChartDimensions();
+  const { innerHeight } = configManager.getSummaryChartDimensions();
   const margin = configManager.config.summaryChart.margin;
 
   // Parse dates
