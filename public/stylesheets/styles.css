@@ -1,274 +1,278 @@
 * {
-  font-family: Roboto, Times, serif;
-  font-weight: 400;
-  --blanc: rgb(255, 255, 255);
-  --gristresfonce: rgb(80, 80, 80);
-  --grisfonce: rgb(110, 110, 110);
-  --gris: rgb(140, 140, 140);
-  --grisleger: rgb(180, 180, 180);
-  --gristresleger: rgb(230, 230, 230);
-  --rupture: rgb(230, 70, 100);
-  --rupture-bg: rgba(230, 70, 100, 0.9);
-  --tension: rgb(250, 177, 75);
-  --tensionleger: rgb(255, 202, 100);
-  --tension-bg: rgba(150, 135, 100, 0.9);
-  --disponible: rgb(144, 238, 144);
-  --disponiblefonce: rgb(100, 150, 100);
-  --arret-bg: rgba(150, 150, 150, 0.9);
+    font-family: Roboto, sans-serif;
+    font-weight: 400;
+    --blanc: rgb(255, 255, 255);
+    --gristresfonce: rgb(50, 50, 50);
+    --grisfonce: rgb(110, 110, 110);
+    --gris: rgb(140, 140, 140);
+    --grisleger: rgb(180, 180, 180);
+    --gristresleger: rgb(230, 230, 230);
+    --rupture: rgb(230, 70, 100);
+    --rupture-bg: rgba(230, 70, 100, 0.9);
+    --tension: rgb(250, 177, 75);
+    --tensionleger: rgb(255, 202, 100);
+    --tension-bg: rgba(150, 135, 100, 0.9);
+    --disponible: rgb(144, 238, 144);
+    --disponiblefonce: rgb(100, 150, 100);
+    --arret-bg: rgba(150, 150, 150, 0.9);
+    --vertleger: rgb(235, 250, 235);
+    --vert: rgb(100, 150, 100);
 }
 
 #chart-container {
-  margin: auto;
-  position: absolute;
-  width: 900px;
+    margin: auto;
+    position: absolute;
+    width: 900px;
 }
 
 #chart-container {
-  position: relative;
+    position: relative;
 }
 
 #last-report-date {
-  border-bottom: var(--gris) solid 1px;
-  color: var(--grisfonce);
-  font-size: 20px;
-  font-weight: 400;
-  padding: 10px;
-  margin-bottom: 50px;
-  text-align: center;
+    border-bottom: var(--grisfonce) solid 1px;
+    color: var(--gristresfonce);
+    font-size: 20px;
+    font-weight: 400;
+    padding: 10px;
+    margin-bottom: 50px;
+    text-align: center;
 }
 
 #controls-and-search {
-  height: 240px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+    height: 240px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .chart-controls-container {
-  border: none;
-  padding: 5px 15px 5px 5px;
-  width: 280px;
+    border: none;
+    padding: 5px 15px 5px 5px;
+    width: 280px;
 }
 
 #chart-controls {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
 }
 
 .button-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
 }
 
 #search-box {
-  border-color: var(--gris);
-  border-radius: 0px;
-  border-width: 1px;
-  border-style: solid;
-  font-size: 12px;
-  height: 30px;
-  padding: 1px;
+    border-color: var(--vert);
+    border-radius: 2px;
+    border-width: 1px;
+    border-style: solid;
+    font-size: 12px;
+    height: 28px;
+    padding-left: 3px;
 }
 
 #chart-controls button {
-  flex: 1 0 calc(50% - 5px);
+    flex: 1 0 calc(50% - 5px);
 }
 
 .chart-button {
-  background-color: var(--white);
-  border: 1px solid var(--gris);
-  border-radius: 0px;
-  cursor: pointer;
-  color: var(--grisfonce);
-  flex: 1;
-  font-size: 12px;
-  padding: 5px;
-  text-align: center;
-  overflow: visible;
+    background-color: var(--vertleger);
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    color: var(--vert);
+    flex: 1;
+    font-size: 12px;
+    height: 28px;
+    padding: 5px;
+    text-align: center;
+    overflow: visible;
 }
 
 .button-selected {
-  background-color: var(--gristresleger);
-  border: none;
+    background-color: var(--vert);
+    border: none;
+    color: var(--blanc);
 }
 
 #reinitialiser {
-  background-color: var(--blanc);
-  border: 1px solid var(--gris);
-  border-radius: 0px;
-  cursor: pointer;
-  color: var(--grisfonce);
-  font-size: 13px;
-  height: 30px;
-  width: 280px;
+    background-color: var(--vertleger);
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+    color: var(--vert);
+    font-size: 13px;
+    height: 30px;
+    width: 280px;
 }
 
 .legende {
-  color: var(--grisfonce);
-  font-size: 12px;
+    color: var(--grisfonce);
+    font-size: 12px;
 }
 
 #legende-rupture strong {
-  color: var(--rupture);
+    color: var(--rupture);
 }
 
 #legende-tension strong {
-  color: var(--tension);
+    color: var(--tension);
 }
 
 #summary {
-  flex: 1;
-  height: 292px;
+    flex: 1;
+    height: 292px;
 }
 
 .termine {
-  color: var(--gris);
-  font-weight: 600;
+    color: var(--gris);
+    font-weight: 600;
 }
 
 .tension-line {
-  fill: none;
-  stroke: var(--tension);
-  stroke-width: 2px;
+    fill: none;
+    stroke: var(--tension);
+    stroke-width: 2px;
 }
 
 .rupture-line {
-  fill: none;
-  stroke: var(--rupture);
-  stroke-width: 2px;
+    fill: none;
+    stroke: var(--rupture);
+    stroke-width: 2px;
 }
 
 .rupture-label {
-  fill: var(--gris);
-  font-size: 10px;
+    fill: var(--gris);
+    font-size: 10px;
 }
 
 .tension-label {
-  fill: var(--gris);
-  font-size: 10px;
+    fill: var(--gris);
+    font-size: 10px;
 }
 
 .grid-line {
-  stroke: var(--blanc);
-  stroke-width: 14px;
+    stroke: var(--blanc);
+    stroke-width: 14px;
 }
 
 .rupture {
-  fill: var(--rupture);
+    fill: var(--rupture);
 }
 
 .tension {
-  fill: var(--tensionleger);
+    fill: var(--tensionleger);
 }
 
 .arret {
-  fill: var(--gris);
+    fill: var(--gris);
 }
 
 .top-axis text {
-  fill: var(--gris);
-  font-weight: 400;
-  font-size: 12px;
+    fill: var(--gris);
+    font-weight: 400;
+    font-size: 12px;
 }
 
 .top-axis line {
-  stroke: none;
+    stroke: none;
 }
 
 .top-axis .domain {
-  stroke: var(--gris);
-  stroke-width: 1px;
+    stroke: var(--gris);
+    stroke-width: 1px;
 }
 
 .y-axis .domain {
-  stroke: none;
-  stroke-width: 0.5px;
+    stroke: none;
+    stroke-width: 0.5px;
 }
 
-.y-axis text{
-  font-size: 12px;
-  fill: var(--gristresfonce);
+.y-axis text {
+    font-size: 12px;
+    fill: var(--gristresfonce);
 }
 
 .y-axis line {
-  stroke: var(--grisleger);
-  stroke-width: 1px;
+    stroke: var(--grisleger);
+    stroke-width: 1px;
 }
 
 .year-line {
-  stroke: var(--grisleger);
-  stroke-width: 0.5px;
+    stroke: var(--grisleger);
+    stroke-width: 0.5px;
 }
 
 .current-date-line {
-  stroke:var(--gris);
-  stroke-width: 1px;
+    stroke: var(--gris);
+    stroke-width: 1px;
 }
 
 .summary-chart-xline {
-  stroke-width: 1;
-  stroke: var(--gris);
+    stroke-width: 1;
+    stroke: var(--gris);
 }
 
 .flex-container {
-  display: flex;
-  align-items: flex-start;
-  gap: 0px;
+    display: flex;
+    align-items: flex-start;
+    gap: 0px;
 }
 
 .selector {
-  border-color: var(--gris);
-  border-radius: 0px;
-  color: var(--grisfonce);
-  display: inline-block;
-  font-size: 12px;
-  height: 30px;
-  margin-top: 10px;
-  width: 280px;
+    border-color: var(--vert);
+    border-radius: 2px;
+    color: var(--vert);
+    display: inline-block;
+    font-size: 12px;
+    height: 30px;
+    margin-top: 10px;
+    width: 280px;
 }
 
 .selector[open] {
-  background-color: var(--gris);
+    background-color: var(--gris);
 }
 
 .atc-option {
-  font-size: 12px;
-  margin-bottom: 5px;
+    font-size: 12px;
+    margin-bottom: 5px;
 }
 
 .atc-option label {
-  margin-left: 5px;
+    margin-left: 5px;
 }
 
 #tooltip {
-  background-color: var(--blanc);
-  border-radius: 0px;
-  border: 2px solid;
-  color: var(--grisfonce);
-  font-size: 12px;
-  opacity: 0;
-  padding: 5px;
-  pointer-events: none;
-  position: absolute;
-  width: 250px;
+    background-color: var(--blanc);
+    border-radius: 0px;
+    border: 2px solid;
+    color: var(--grisfonce);
+    font-size: 12px;
+    opacity: 0;
+    padding: 5px;
+    pointer-events: none;
+    position: absolute;
+    width: 250px;
 }
 
 #tooltip.tooltip-rupture {
-  border-color: var(--rupture);
+    border-color: var(--rupture);
 }
 
 #tooltip.tooltip-tension {
-  border-color: var(--tension);
+    border-color: var(--tension);
 }
 
 #tooltip.tooltip-disponible {
-  border-color: var(--disponible);
+    border-color: var(--disponible);
 }
 
 #tooltip.tooltip-arret {
-  border-color: var(--grisfonce);
+    border-color: var(--grisfonce);
 }
 
 #tooltip.tooltip-rupture strong {
