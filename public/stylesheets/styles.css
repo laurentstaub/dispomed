@@ -16,7 +16,17 @@
     --disponiblefonce: rgb(100, 150, 100);
     --arret-bg: rgba(150, 150, 150, 0.9);
     --vertleger: rgb(235, 250, 235);
-    --vert: rgb(100, 150, 100);
+    --vert: rgb(80, 120, 80);
+}
+
+#last-report-date {
+    background-color: var(--rupture);
+    color: var(--blanc);
+    font-size: 18px;
+    font-weight: 300;
+    padding: 7px;
+    margin-bottom: 50px;
+    text-align: center;
 }
 
 #chart-container {
@@ -29,27 +39,20 @@
     position: relative;
 }
 
-#last-report-date {
-    border-bottom: var(--grisfonce) solid 1px;
-    color: var(--gristresfonce);
-    font-size: 20px;
-    font-weight: 400;
-    padding: 10px;
-    margin-bottom: 50px;
-    text-align: center;
-}
-
 #controls-and-search {
-    height: 240px;
+    border-radius: 3px;
+    border: 1px solid var(--gristresleger);
     display: flex;
     flex-direction: column;
+    height: 270px;
     justify-content: space-between;
+    padding: 2px 10px;
 }
 
 .chart-controls-container {
     border: none;
-    padding: 5px 15px 5px 5px;
-    width: 280px;
+    padding: 10px 15px 10px 5px;
+    width: 290px;
 }
 
 #chart-controls {
@@ -65,12 +68,12 @@
 }
 
 #search-box {
-    border-color: var(--vert);
-    border-radius: 2px;
+    border-color: var(--grisleger);
+    border-radius: 3px;
     border-width: 1px;
     border-style: solid;
     font-size: 12px;
-    height: 28px;
+    height: 22px;
     padding-left: 3px;
 }
 
@@ -79,11 +82,11 @@
 }
 
 .chart-button {
-    background-color: var(--vertleger);
+    background-color: var(--gristresleger);
     border: none;
-    border-radius: 2px;
+    border-radius: 3px;
     cursor: pointer;
-    color: var(--vert);
+    color: var(--grisfonce);
     flex: 1;
     font-size: 12px;
     height: 28px;
@@ -93,17 +96,17 @@
 }
 
 .button-selected {
-    background-color: var(--vert);
+    background-color: var(--gris);
     border: none;
     color: var(--blanc);
 }
 
 #reinitialiser {
-    background-color: var(--vertleger);
+    background-color: var(--gristresleger);
     border: none;
-    border-radius: 0px;
+    border-radius: 3px;
     cursor: pointer;
-    color: var(--vert);
+    color: var(--gris);
     font-size: 13px;
     height: 30px;
     width: 280px;
@@ -111,7 +114,12 @@
 
 .legende {
     color: var(--grisfonce);
-    font-size: 12px;
+    font-size: 13px;
+    padding: 10px 10px 30px 0px;
+}
+
+#legende-rupture {
+    margin-bottom: 10px;
 }
 
 #legende-rupture strong {
@@ -124,7 +132,7 @@
 
 #summary {
     flex: 1;
-    height: 292px;
+    height: 312px;
 }
 
 .termine {
@@ -135,22 +143,22 @@
 .tension-line {
     fill: none;
     stroke: var(--tension);
-    stroke-width: 2px;
+    stroke-width: 3px;
 }
 
 .rupture-line {
     fill: none;
     stroke: var(--rupture);
-    stroke-width: 2px;
+    stroke-width: 3px;
 }
 
 .rupture-label {
-    fill: var(--gris);
+    fill: var(--rupture);
     font-size: 10px;
 }
 
 .tension-label {
-    fill: var(--gris);
+    fill: var(--tension);
     font-size: 10px;
 }
 
@@ -223,12 +231,12 @@
 }
 
 .selector {
-    border-color: var(--vert);
-    border-radius: 2px;
-    color: var(--vert);
+    border-color: var(--grisleger);
+    border-radius: 3px;
+    color: var(--gris);
     display: inline-block;
     font-size: 12px;
-    height: 30px;
+    height: 22px;
     margin-top: 10px;
     width: 280px;
 }
@@ -248,7 +256,7 @@
 
 #tooltip {
     background-color: var(--blanc);
-    border-radius: 0px;
+    border-radius: 3px;
     border: 2px solid;
     color: var(--grisfonce);
     font-size: 12px;
