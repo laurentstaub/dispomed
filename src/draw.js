@@ -549,7 +549,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("class", "year-line")
     .attr("x1", (d) => xScale(d))
     .attr("x2", (d) => xScale(d))
-    .attr("y1", -configManager.config.summaryChart.margin.top - 12)
+    .attr("y1", -configManager.config.summaryChart.margin.top - 14)
     .attr("y2", innerHeight);
 
   g.selectAll(".rupture-label")
