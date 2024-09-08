@@ -35,24 +35,11 @@ const frFr = d3.timeFormatLocale({
     "novembre",
     "décembre",
   ],
-  shortMonths: [
-    "janv.",
-    "févr.",
-    "mars",
-    "avr.",
-    "mai",
-    "juin",
-    "juil.",
-    "août",
-    "sept.",
-    "oct.",
-    "nov.",
-    "déc.",
-  ],
+  shortMonths: ["Q1", "|", "|", "Q2", "|", "|", "Q3", "|", "|", "Q4", "|", "|"],
 });
 
 const formatDate = frFr.format("%e %B %Y");
-const formatDateShort = frFr.format("%B");
+const formatDateShort = frFr.format("%b");
 
 function getProductStatus(d) {
   const dateLastReport = configManager.getDateLastReport();
@@ -486,7 +473,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 
   const xAxis = d3
     .axisTop(xScale)
-    .ticks(d3.timeMonth.every(3))
+    .ticks(d3.timeMonth.every(1))
     .tickFormat((d) =>
       d.getMonth() === 0 ? d3.timeFormat("%Y")(d) : formatDateShort(d),
     )

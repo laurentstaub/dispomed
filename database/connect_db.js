@@ -1,14 +1,11 @@
-// const { Client } = require('pg');
-import pg from 'pg';
+import pg from "pg";
 const { Client } = pg;
 
+const isProduction = config.NODE_ENV === "production";
 const CONNECTION = {
-  user: 'laurentstaub',
-  host: 'localhost',
-  database: 'incidents',
-  port: 5432,
-}
-
+  connectionString: config.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+};
 
 export async function dbQuery(statement, ...parameters) {
   const client = new Client(CONNECTION);
@@ -24,8 +21,8 @@ export async function dbQuery(statement, ...parameters) {
 }
 
 function logQuery(statement, parameters) {
-  console.log('Executing query:', statement);
+  console.log("Executing query:", statement);
   if (parameters.length > 0) {
-    console.log('Parameters:', parameters);
+    console.log("Parameters:", parameters);
   }
 }

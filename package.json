@@ -2,8 +2,9 @@
   "name": "dispomed_node",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
+    "heroku-postbuild": "npm install --production",
     "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -17,5 +18,9 @@
     "express": "^4.19.2",
     "pg": "^8.12.0",
     "pug": "^3.0.2"
+  },
+  "engines": {
+    "node": "22.8.0",
+    "npm": "10.8.2"
   }
 }

@@ -40,7 +40,7 @@
 }
 
 #controls-and-search {
-    border-radius: 3px;
+    border-radius: 5px;
     border: 1px solid var(--gristresleger);
     display: flex;
     flex-direction: column;
@@ -52,7 +52,7 @@
 .chart-controls-container {
     border: none;
     padding: 10px 15px 10px 5px;
-    width: 290px;
+    width: 260px;
 }
 
 #chart-controls {
@@ -69,7 +69,7 @@
 
 #search-box {
     border-color: var(--grisleger);
-    border-radius: 3px;
+    border-radius: 5px;
     border-width: 1px;
     border-style: solid;
     font-size: 12px;
@@ -84,7 +84,7 @@
 .chart-button {
     background-color: var(--gristresleger);
     border: none;
-    border-radius: 3px;
+    border-radius: 5px;
     cursor: pointer;
     color: var(--grisfonce);
     flex: 1;
@@ -104,12 +104,11 @@
 #reinitialiser {
     background-color: var(--gristresleger);
     border: none;
-    border-radius: 3px;
+    border-radius: 5px;
     cursor: pointer;
     color: var(--gris);
     font-size: 13px;
     height: 30px;
-    width: 280px;
 }
 
 .legende {
@@ -232,13 +231,13 @@
 
 .selector {
     border-color: var(--grisleger);
-    border-radius: 3px;
-    color: var(--gris);
+    border-radius: 5px;
+    color: var(--grisfonce);
     display: inline-block;
     font-size: 12px;
     height: 22px;
     margin-top: 10px;
-    width: 280px;
+    width: 260px;
 }
 
 .selector[open] {

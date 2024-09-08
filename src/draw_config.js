@@ -13,12 +13,12 @@ class ConfigManager {
         endDateChart: null,
       },
       summaryChart: {
-        margin: { top: 20, right: 0, bottom: 0, left: 52 },
+        margin: { top: 20, right: 0, bottom: 0, left: 60 },
         width: 600,
         height: 312,
       },
       table: {
-        margin: { top: 0, right: 0, bottom: 0, left: 352 },
+        margin: { top: 0, right: 0, bottom: 0, left: 340 },
         width: 900,
         barHeight: 18,
         labelMaxLength: 50,
