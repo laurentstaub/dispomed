@@ -4,7 +4,6 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "heroku-postbuild": "npm install --production",
     "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -20,7 +19,7 @@
     "pug": "^3.0.2"
   },
   "engines": {
-    "node": "22.8.0",
-    "npm": "10.8.2"
+    "node": "22.x",
+    "npm": "10.x"
   }
 }
