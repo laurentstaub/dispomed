@@ -1,31 +1,3 @@
-// import pg from "pg";
-// const { Client } = pg;
-
-// const CONNECTION = {
-//   connectionString: process.env.DATABASE_URL,
-//   ssl: true,
-// };
-
-// export async function dbQuery(statement, ...parameters) {
-//   const client = new Client(CONNECTION);
-
-//   try {
-//     await client.connect();
-//     logQuery(statement, parameters);
-//     const result = await client.query(statement, parameters);
-//     return result;
-//   } finally {
-//     await client.end();
-//   }
-// }
-
-// function logQuery(statement, parameters) {
-//   console.log("Executing query:", statement);
-//   if (parameters.length > 0) {
-//     console.log("Parameters:", parameters);
-//   }
-// }
-
 import pg from "pg";
 const { Client } = pg;
 

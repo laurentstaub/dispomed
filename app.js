@@ -1,11 +1,11 @@
 import express from "express";
-import cors from 'cors';
-import './library/config.js';
-import { dbQuery } from './database/connect_db.js';
+import cors from "cors";
+import "./library/config.js";
+import { dbQuery } from "./database/connect_db.js";
 import ATCDataManager from "./src/fetch_first_atcdata.js";
 
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 
 app.set("view engine", "pug");
 app.set("views", "./views");
@@ -17,14 +17,18 @@ app.get("/", async (req, res) => {
   await ATCDataManager.fetchAndInitialize(12); // 12 for 12 months as default report time length
   const atcClasses = ATCDataManager.getATCClasses();
   const molecules = ATCDataManager.getMolecules();
-  res.render("chart", { ATCClasses: atcClasses, molecules: molecules, selectedAtcClass: ''});
+  res.render("chart", {
+    ATCClasses: atcClasses,
+    molecules: molecules,
+    selectedAtcClass: "",
+  });
 });
 
-app.get('/api/incidents', async (req, res) => {
+app.get("/api/incidents", async (req, res) => {
   const { monthsToShow, product, atcClass, molecule } = req.query;
 
   try {
-      let query = `
+    let query = `
         WITH incidents_with_sorting AS (
           SELECT
             i.id,
@@ -56,28 +60,28 @@ app.get('/api/incidents', async (req, res) => {
           LEFT JOIN classe_atc ca ON mca.classe_atc_id = ca.id
           WHERE i.calculated_end_date >= ((SELECT MAX(calculated_end_date) FROM incidents) - INTERVAL '1 month' * $1)`;
 
-        const params = [monthsToShow];
-        let paramsCounter = 1;
+    const params = [monthsToShow];
+    let paramsCounter = 1;
 
-        if (product) {
-          paramsCounter += 1;
-          query += ` AND p.name ILIKE $${paramsCounter}`;
-          params.push(`%${product}%`);
-        }
+    if (product) {
+      paramsCounter += 1;
+      query += ` AND p.name ILIKE $${paramsCounter}`;
+      params.push(`%${product}%`);
+    }
 
-        if (atcClass) {
-          paramsCounter += 1;
-          query += ` AND ca.code = $${paramsCounter}`;
-          params.push(atcClass);
-        }
+    if (atcClass) {
+      paramsCounter += 1;
+      query += ` AND ca.code = $${paramsCounter}`;
+      params.push(atcClass);
+    }
 
-        if (molecule) {
-          paramsCounter += 1;
-          query += ` AND m.id = $${paramsCounter}`;
-          params.push(molecule);
-        }
+    if (molecule) {
+      paramsCounter += 1;
+      query += ` AND m.id = $${paramsCounter}`;
+      params.push(molecule);
+    }
 
-        query += `
+    query += `
           GROUP BY i.id, p.name, i.status, i.start_date, i.end_date, i.mise_a_jour, i.date_dernier_rapport, i.calculated_end_date
         )
         SELECT * FROM incidents_with_sorting
@@ -85,14 +89,13 @@ app.get('/api/incidents', async (req, res) => {
         `;
     const result = await dbQuery(query, ...params);
     res.json(result.rows);
-
   } catch (error) {
-    console.error('Error fetching incidents:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching incidents:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-app.get('/api/incidents/ATCClasses', async (req, res) => {
+app.get("/api/incidents/ATCClasses", async (req, res) => {
   const { monthsToShow } = req.query;
 
   try {
@@ -120,10 +123,9 @@ app.get('/api/incidents/ATCClasses', async (req, res) => {
 
     const result = await dbQuery(query);
     res.json(result.rows);
-
   } catch (error) {
-    console.error('Error fetching incidents:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching incidents:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

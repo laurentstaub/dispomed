@@ -4,11 +4,10 @@ const ATCDataManager = (function () {
   let atcMoleculeMap = {};
 
   async function fetchAndInitialize(monthsToShow) {
-    const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000";
     const queryString = new URLSearchParams({
       monthsToShow: monthsToShow,
     }).toString();
-    const url = `${API_BASE_URL}/api/incidents/ATCClasses${queryString ? "?" + queryString : ""}`;
+    const url = `/api/incidents/ATCClasses${queryString ? "?" + queryString : ""}`;
 
     const response = await fetch(url);
     if (!response.ok) {
