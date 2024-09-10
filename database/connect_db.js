@@ -1,7 +1,6 @@
 import pg from "pg";
 const { Client } = pg;
 
-const isProduction = config.NODE_ENV === "production";
 const CONNECTION = {
   connectionString: config.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
