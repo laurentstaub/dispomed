@@ -1,12 +1,14 @@
-const ATCDataManager = (function() {
+const ATCDataManager = (function () {
   let atcClasses = [];
   let allMolecules = [];
   let atcMoleculeMap = {};
 
   async function fetchAndInitialize(monthsToShow) {
-    const baseUrl = 'http://localhost:3000'; // Or your server's base URL
-    const queryString = new URLSearchParams({ monthsToShow: monthsToShow }).toString();
-    const url = `${baseUrl}/api/incidents/ATCClasses${queryString ? '?' + queryString : ''}`;
+    const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000";
+    const queryString = new URLSearchParams({
+      monthsToShow: monthsToShow,
+    }).toString();
+    const url = `${API_BASE_URL}/api/incidents/ATCClasses${queryString ? "?" + queryString : ""}`;
 
     const response = await fetch(url);
     if (!response.ok) {
@@ -18,7 +20,7 @@ const ATCDataManager = (function() {
     const moleculesSet = new Set();
     const tempAtcMoleculeMap = new Map();
 
-    data.forEach(row => {
+    data.forEach((row) => {
       atcClassesMap.set(row.atc_code, row.atc_description);
 
       if (row.molecule_id && row.molecule_name) {
@@ -32,8 +34,10 @@ const ATCDataManager = (function() {
       }
     });
 
-    atcClasses = Array.from(atcClassesMap, ([code, description]) => ({ code, description }))
-      .sort((a, b) => a.code.localeCompare(b.code));
+    atcClasses = Array.from(atcClassesMap, ([code, description]) => ({
+      code,
+      description,
+    })).sort((a, b) => a.code.localeCompare(b.code));
 
     allMolecules = Array.from(moleculesSet)
       .map(JSON.parse)
@@ -42,8 +46,10 @@ const ATCDataManager = (function() {
     atcMoleculeMap = Object.fromEntries(
       Array.from(tempAtcMoleculeMap, ([code, molecules]) => [
         code,
-        Array.from(molecules).map(JSON.parse).sort((a, b) => a.name.localeCompare(b.name))
-      ])
+        Array.from(molecules)
+          .map(JSON.parse)
+          .sort((a, b) => a.name.localeCompare(b.name)),
+      ]),
     );
   }
 
@@ -55,7 +61,7 @@ const ATCDataManager = (function() {
     return allMolecules;
   }
 
-  function getMoleculeMap () {
+  function getMoleculeMap() {
     return atcMoleculeMap;
   }
 
