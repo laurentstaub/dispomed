@@ -2,7 +2,7 @@ import pg from "pg";
 const { Client } = pg;
 
 const CONNECTION = {
-  connectionString: config.DATABASE_URL,
+  connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
 };
 
