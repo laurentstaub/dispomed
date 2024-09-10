@@ -3,7 +3,7 @@ const { Client } = pg;
 
 const CONNECTION = {
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+  ssl: true,
 };
 
 export async function dbQuery(statement, ...parameters) {
