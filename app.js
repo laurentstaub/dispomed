@@ -2,15 +2,15 @@ import express from "express";
 import cors from "cors";
 import "./library/config.js";
 import { dbQuery } from "./database/connect_db.js";
-import ATCDataManager from "./src/fetch_first_atcdata.js";
+import ATCDataManager from "./public/js/fetch_first_atcdata.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.set("view engine", "pug");
 app.set("views", "./views");
+app.set("view engine", "pug");
 
-app.use(express.static("."));
+app.use(express.static("public"));
 app.use(cors());
 
 app.get("/", async (req, res) => {
