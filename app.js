@@ -122,7 +122,6 @@ app.get("/api/incidents/ATCClasses", async (req, res) => {
      `;
 
     const result = await dbQuery(query);
-    console.log(res.json(result.rows));
     res.json(result.rows);
   } catch (error) {
     console.error("Error fetching incidents:", error);
