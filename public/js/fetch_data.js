@@ -1,17 +1,17 @@
-import { configManager } from './draw_config.js';
+import { configManager } from "./draw_config.js";
 
 // Parses dates from the sql query
 function processDates(data) {
   const parseTime = createTimeParse("%Y-%m-%d");
 
-  return data.map(d => ({
+  return data.map((d) => ({
     ...d,
     start_date: parseTime(d.start_date),
     end_date: parseTime(d.end_date),
     mise_a_jour_date: parseTime(d.mise_a_jour_date),
     date_dernier_rapport: parseTime(d.date_dernier_rapport),
     end_date: parseTime(d.end_date),
-    calculated_end_date: parseTime(d.calculated_end_date)
+    calculated_end_date: parseTime(d.calculated_end_date),
   }));
 }
 
@@ -25,7 +25,7 @@ function createTimeParse(format) {
   return function parseTime(dateString) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return null;
 
-    const [year, month, day] = dateString.split('-').map(Number);
+    const [year, month, day] = dateString.split("-").map(Number);
     const date = new Date(year, month - 1, day);
 
     if (isNaN(date.getTime())) return null;
@@ -34,22 +34,31 @@ function createTimeParse(format) {
   };
 }
 
-export async function fetchTableChartData(isInitialSetup, monthsToShow = 12, searchTerm = '', atcClass = '', molecule = '') {
-  const baseUrl = 'http://localhost:3000';
+export async function fetchTableChartData(
+  isInitialSetup,
+  monthsToShow = 12,
+  searchTerm = "",
+  atcClass = "",
+  molecule = "",
+) {
+  const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000";
   const queryString = new URLSearchParams({
     monthsToShow: monthsToShow,
     product: searchTerm,
     atcClass: atcClass,
-    molecule: molecule
+    molecule: molecule,
   }).toString();
-  const url = `${baseUrl}/api/incidents${queryString ? '?' + queryString : ''}`;
+  const url = `${API_BASE_URL}/api/incidents${queryString ? "?" + queryString : ""}`;
 
   return fetch(url)
-    .then(response => response.json())
-    .then(data => {
+    .then((response) => response.json())
+    .then((data) => {
       const processedData = processDates(data);
-      const lastReportDate = Math.max(configManager.getDateLastReport(), Math.max(...processedData.map(d => new Date(d.calculated_end_date))));
-      const [ startDate, endDate ] = getDateRange(lastReportDate, monthsToShow);
+      const lastReportDate = Math.max(
+        configManager.getDateLastReport(),
+        Math.max(...processedData.map((d) => new Date(d.calculated_end_date))),
+      );
+      const [startDate, endDate] = getDateRange(lastReportDate, monthsToShow);
       configManager.setDateLastReport(lastReportDate);
       configManager.setStartDateChart(startDate);
       configManager.setEndDateChart(endDate);
@@ -59,24 +68,28 @@ export async function fetchTableChartData(isInitialSetup, monthsToShow = 12, sea
       // to populate the list of classes and molecules whatever the selections are
       // We trigger an initial setup every time we change the period
       if (isInitialSetup) {
-        const atcMoleculeFullMap = data.map(d => {
+        const atcMoleculeFullMap = data.map((d) => {
           return {
             molecule: `${d.molecule_id} - ${d.molecule}`,
             atcClass: d.atc_code,
-          }
+          };
         });
 
         // To get the unique atcClass/molecules couples
-        let mappedAtcMolecules = [...new Map(atcMoleculeFullMap.map((line) => {
-          return [ line['molecule'], line['atcClass' ]];
-        }))];
+        let mappedAtcMolecules = [
+          ...new Map(
+            atcMoleculeFullMap.map((line) => {
+              return [line["molecule"], line["atcClass"]];
+            }),
+          ),
+        ];
 
-        let arrayAtcMolecules = mappedAtcMolecules.map(line => {
+        let arrayAtcMolecules = mappedAtcMolecules.map((line) => {
           return {
             atcClass: line[1],
             moleculeName: line[0].split(" - ")[1],
             moleculeId: line[0].split(" - ")[0],
-          }
+          };
         });
 
         let sortedAtcMolecules = arrayAtcMolecules.sort((a, b) => {
@@ -87,7 +100,7 @@ export async function fetchTableChartData(isInitialSetup, monthsToShow = 12, sea
       }
 
       return processedData;
-    })
+    });
 }
 
 function getDateRange(lastReportDate, monthsToShow) {
