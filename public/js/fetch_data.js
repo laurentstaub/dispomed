@@ -1,4 +1,5 @@
 import { configManager } from "./draw_config.js";
+let API_BASE_URL = "http://localhost:3000";
 
 // Parses dates from the sql query
 function processDates(data) {
@@ -34,6 +35,16 @@ function createTimeParse(format) {
   };
 }
 
+async function fetchConfig() {
+  try {
+    const response = await fetch("/api/config");
+    const config = await response.json();
+    API_BASE_URL = config.API_BASE_URL;
+  } catch (error) {
+    console.error("Failed to fetch config:", error);
+  }
+}
+
 export async function fetchTableChartData(
   isInitialSetup,
   monthsToShow = 12,
@@ -41,13 +52,14 @@ export async function fetchTableChartData(
   atcClass = "",
   molecule = "",
 ) {
-  const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000";
+  await fetchConfig();
   const queryString = new URLSearchParams({
     monthsToShow: monthsToShow,
     product: searchTerm,
     atcClass: atcClass,
     molecule: molecule,
   }).toString();
+
   const url = `${API_BASE_URL}/api/incidents${queryString ? "?" + queryString : ""}`;
 
   return fetch(url)
