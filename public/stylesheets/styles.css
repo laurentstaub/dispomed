@@ -23,14 +23,14 @@
     background-color: var(--rupture);
     color: var(--blanc);
     font-size: 18px;
-    font-weight: 300;
+    font-weight: 400;
     padding: 7px;
     margin-bottom: 50px;
     text-align: center;
 }
 
 #chart-container {
-    margin: auto;
+    margin: 40px auto;
     position: absolute;
     width: 900px;
 }

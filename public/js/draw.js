@@ -152,7 +152,6 @@ d3.select("#search-box").on("input", function () {
 d3.select("#atc").on("input", function () {
   configManager.setATCClass(this.value);
   configManager.setMolecule("");
-  // Reset the molecule selector to default
   d3.select("#molecule").property("value", "").dispatch("change");
 
   handleSearch(false, configManager.getSearchTerm());
@@ -208,7 +207,7 @@ let data = await fetchTableChartData(true);
 let monthlyData = configManager.processDataMonthlyChart(data);
 
 d3.select("#last-report-date").text(
-  `Incident de disponibilité des médicaments (MITM) au ${formatDate(configManager.getDateLastReport())}`,
+  `Incidents de disponibilité des médicaments (MITM) au ${formatDate(configManager.getDateLastReport())}`,
 );
 drawTableChart(data, true);
 drawSummaryChart(monthlyData, true);
