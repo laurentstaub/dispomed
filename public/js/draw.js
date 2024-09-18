@@ -471,7 +471,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .range([innerHeight, 0]);
 
   const xAxis = d3
-    .axisTop(xScale)
+    .axisBottom(xScale)
     .ticks(d3.timeMonth.every(1))
     .tickFormat((d) =>
       d.getMonth() === 0 ? d3.timeFormat("%Y")(d) : formatDateShort(d),
@@ -506,11 +506,11 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 
   const g = svg
     .append("g")
-    .attr("transform", `translate(${margin.left},${margin.top + 30})`);
+    .attr("transform", `translate(${margin.left},${margin.top})`);
 
   g.append("g")
     .attr("class", "x-axis top-axis")
-    .attr("transform", `translate(0, -35)`)
+    .attr("transform", `translate(0, 250)`)
     .call(xAxis);
 
   // Draw lines
@@ -526,17 +526,6 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 
   // Add vertical grid lines for years
   const yearTicks = xScale.ticks(d3.timeYear.every(1));
-
-  // Add vertical lines for each year beginning
-  g.selectAll(".year-line")
-    .data(yearTicks)
-    .enter()
-    .append("line")
-    .attr("class", "year-line")
-    .attr("x1", (d) => xScale(d))
-    .attr("x2", (d) => xScale(d))
-    .attr("y1", -configManager.config.summaryChart.margin.top - 14)
-    .attr("y2", innerHeight);
 
   g.selectAll(".rupture-label")
     .data(filteredData.filter((d) => d.rupture > 0))
