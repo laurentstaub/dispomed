@@ -1,3 +1,10 @@
+:root {
+    --chart-width: 768;
+    --bar-height: 18;
+    --label-max-length: 50;
+    --left-margin-table: 310;
+}
+
 * {
     font-family: Roboto, sans-serif;
     font-weight: 400;
@@ -32,13 +39,13 @@
 #chart-container {
     margin: 40px auto;
     position: relative;
-    max-width: 900px;
+    max-width: 768px;
 }
 
 #controls-and-search {
     display: flex;
     flex-direction: column;
-    max-height: 270px;
+    max-height: 250px;
     justify-content: space-between;
     padding: 20px 9px;
 }
@@ -46,7 +53,7 @@
 .chart-controls-container {
     border: none;
     padding: 10px 15px 10px 5px;
-    width: 260px;
+    width: 240px;
 }
 
 #chart-controls {
@@ -234,7 +241,7 @@
     font-size: 12px;
     height: 22px;
     margin-bottom: 10px;
-    max-width: 260px;
+    max-width: 240px;
 }
 
 .selector[open] {
@@ -300,8 +307,11 @@
 }
 
 @media screen and (max-width: 768px) {
-    #chart-container {
-        width: 95%;
+    :root {
+        --chart-width: 580;
+        --bar-height: 14;
+        --label-max-length: 25;
+        --left-margin-table: 150;
     }
 
     .selector {

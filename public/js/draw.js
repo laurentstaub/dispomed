@@ -35,7 +35,7 @@ const frFr = d3.timeFormatLocale({
     "novembre",
     "décembre",
   ],
-  shortMonths: ["Q1", "|", "|", "Q2", "|", "|", "Q3", "|", "|", "Q4", "|", "|"],
+  shortMonths: ["Q1", "", "", "Q2", "", "", "Q3", "", "", "Q4", "", ""],
 });
 
 const formatDate = frFr.format("%e %B %Y");
@@ -72,6 +72,38 @@ function getUniqueProductLength(eventList) {
   });
 
   return result.length;
+}
+
+window.addEventListener(
+  "resize",
+  debounce(() => {
+    console.log("Hello, refresh");
+    monthlyData = configManager.processDataMonthlyChart(data);
+    drawTableChart(data, false);
+    drawSummaryChart(monthlyData, false);
+  }, 250),
+);
+
+function debounce(func, delay) {
+  let debounceTimer;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(debounceTimer);
+      func(...args);
+    };
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(later, delay);
+  };
+}
+
+function updateChartDimensions() {
+  const containerWidth = document.getElementById("chart-container").clientWidth;
+  const styles = getComputedStyle(document.documentElement);
+
+  if (containerWidth < 768) {
+    configManager.config.table.width = containerWidth;
+    configManager.config.summaryChart.width = containerWidth;
+  }
 }
 
 function createDebouncedSearch(callback, delay = 400) {
@@ -216,6 +248,7 @@ function drawTableChart(data, isInitialSetup) {
   const { height, innerWidth, innerHeight } = configManager.getTableDimensions(
     configManager.getProducts().length,
   );
+
   configManager.createScales(
     configManager.getStartDateChart(),
     configManager.getEndDateChart(),
@@ -223,6 +256,9 @@ function drawTableChart(data, isInitialSetup) {
     innerWidth,
     innerHeight,
   );
+
+  updateChartDimensions();
+
   const xScale = configManager.getXScale();
   const yScale = configManager.getYScale();
   let outerBox, innerChart;
@@ -256,10 +292,14 @@ function drawTableChart(data, isInitialSetup) {
 
   // Y-AXIS
   // Add Produits to the left of the chart
+  let verticalTicks =
+    Number(configManager.config.table.width) -
+    Number(configManager.config.table.margin.left);
+
   innerChart
     .append("g")
     .attr("class", "y-axis")
-    .call(d3.axisLeft(yScale).tickSize(-548))
+    .call(d3.axisLeft(yScale).tickSize(-verticalTicks))
     .selectAll(".tick text")
     .attr(
       "x",
@@ -447,6 +487,7 @@ function drawTableChart(data, isInitialSetup) {
 }
 
 function drawSummaryChart(monthlyChartData, isInitialSetup) {
+  updateChartDimensions();
   const { innerHeight } = configManager.getSummaryChartDimensions();
   const margin = configManager.config.summaryChart.margin;
 

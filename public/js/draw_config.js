@@ -1,3 +1,5 @@
+const styles = getComputedStyle(document.documentElement);
+
 let instance = null;
 
 class ConfigManager {
@@ -18,10 +20,15 @@ class ConfigManager {
         height: 312,
       },
       table: {
-        margin: { top: 0, right: 0, bottom: 0, left: 340 },
-        width: 900,
-        barHeight: 18,
-        labelMaxLength: 50,
+        margin: {
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: styles.getPropertyValue("--left-margin-table"),
+        },
+        width: styles.getPropertyValue("--chart-width"),
+        barHeight: styles.getPropertyValue("--bar-height"),
+        labelMaxLength: styles.getPropertyValue("--label-max-length"),
         statusBarWidth: 3,
         statusBarSpacing: 5,
       },
