@@ -1,39 +1,23 @@
-const styles = getComputedStyle(document.documentElement);
-
-let instance = null;
-
 class ConfigManager {
-  constructor() {
-    if (instance) {
-      return instance;
+  static instance = null;
+
+  static getInstance() {
+    if (!ConfigManager.instance) {
+      config.instance = new ConfigManager();
     }
+    return ConfigManager.instance;
+  }
 
-    this.config = {
-      report: {
-        dateLastReport: null,
-        startDateChart: null,
-        endDateChart: null,
-      },
-      summaryChart: {
-        margin: { top: 20, right: 0, bottom: 0, left: 60 },
-        width: 600,
-        height: 312,
-      },
-      table: {
-        margin: {
-          top: 0,
-          right: 0,
-          bottom: 0,
-          left: styles.getPropertyValue("--left-margin-table"),
-        },
-        width: styles.getPropertyValue("--chart-width"),
-        barHeight: styles.getPropertyValue("--bar-height"),
-        labelMaxLength: styles.getPropertyValue("--label-max-length"),
-        statusBarWidth: 3,
-        statusBarSpacing: 5,
-      },
-    };
+  constructor() {
+    if (ConfigManager.instance) { return ConfigManager.instance; }
+    ConfigManager.instance = this;
+    this.initializeConfig();
+  }
 
+  initializeConfig() {
+    this.dateLastReport = null;
+    this.startDateChart = null;
+    this.endDateChart = null;
     this.products = [];
     this.ATCClasses = [];
     this.molecule = "";
@@ -43,37 +27,21 @@ class ConfigManager {
     this.xScale = null;
     this.yScale = null;
     this.moleculeClassMap = [];
-
-    instance = this;
   }
 
-  setStartDateChart(date) {
-    this.config.report.startDateChart = date;
-  }
-  getStartDateChart() {
-    return this.config.report.startDateChart;
-  }
+  setStartDateChart(date) { this.startDateChart = date; }
+  getStartDateChart() { return this.startDateChart; }
 
-  setDateLastReport(date) {
-    this.config.report.dateLastReport = date;
-  }
-  getDateLastReport() {
-    return this.config.report.dateLastReport;
-  }
+  setDateLastReport(date) { this.dateLastReport = date; }
+  getDateLastReport() { return this.dateLastReport; }
 
-  setEndDateChart(date) {
-    this.config.report.endDateChart = date;
-  }
-  getEndDateChart() {
-    return this.config.report.endDateChart;
-  }
+  setEndDateChart(date) { this.endDateChart = date; }
+  getEndDateChart() { return this.endDateChart; }
 
   setProducts(data) {
     this.products = Array.from(new Set(data.map((d) => d.product)));
   }
-  getProducts() {
-    return this.products;
-  }
+  getProducts() { return this.products; }
 
   setATCClasses(data) {
     this.ATCClasses = Array.from(new Set(data.map((d) => d.classe_atc)))
@@ -83,92 +51,28 @@ class ConfigManager {
         name: ATCClass.slice(4),
       }));
   }
-  getATCClasses() {
-    return this.ATCClasses;
-  }
+  getATCClasses() { return this.ATCClasses; }
 
-  setMolecule(data) {
-    this.molecule = data;
-  }
-  getMolecule() {
-    return this.molecule;
-  }
+  setMolecule(data) { this.molecule = data; }
+  getMolecule() { return this.molecule; }
 
   setMoleculeClassMap(filteredList) {
     this.moleculeClassMap = filteredList;
   }
-  getMoleculeClassMap() {
-    return this.moleculeClassMap;
-  }
+  getMoleculeClassMap() { return this.moleculeClassMap; }
 
-  setSearchTerm(word) {
-    this.searchTerm = word;
-  }
-  getSearchTerm() {
-    return this.searchTerm;
-  }
+  setSearchTerm(word) { this.searchTerm = word; }
+  getSearchTerm() { return this.searchTerm; }
 
-  setMonthsToShow(period) {
-    this.monthsToShow = period;
-  }
-  getMonthsToShow() {
-    return this.monthsToShow;
-  }
+  setMonthsToShow(period) { this.monthsToShow = period; }
+  getMonthsToShow() { return this.monthsToShow; }
 
-  setATCClass(atcCodeLetter) {
-    this.atcCode = atcCodeLetter;
-  }
-  getATCClass() {
-    return this.atcCode;
-  }
-
-  // Chart-related methods
-  getTableDimensions(productsCount) {
-    const { table } = this.config;
-    const height =
-      productsCount * table.barHeight + table.margin.top + table.margin.bottom;
-    const innerWidth = table.width - table.margin.left - table.margin.right;
-    const innerHeight = height - table.margin.top - table.margin.bottom;
-    return { height, innerWidth, innerHeight };
-  }
-
-  getSummaryChartDimensions() {
-    const { summaryChart } = this.config;
-    const innerWidth =
-      summaryChart.width - summaryChart.margin.left - summaryChart.margin.right;
-    const innerHeight =
-      summaryChart.height -
-      summaryChart.margin.top -
-      summaryChart.margin.bottom -
-      20;
-    return { innerWidth, innerHeight };
-  }
-
-  createScales(startDate, endDate, products, innerWidth, innerHeight) {
-    this.xScale = d3
-      .scaleTime()
-      .domain([startDate, endDate])
-      .range([0, innerWidth]);
-
-    this.yScale = d3
-      .scaleBand()
-      .domain(products)
-      .range([0, innerHeight])
-      .padding(0.1);
-
-    return { xScale: this.xScale, yScale: this.yScale };
-  }
-
-  getXScale() {
-    return this.xScale;
-  }
-  getYScale() {
-    return this.yScale;
-  }
+  setATCClass(atcCodeLetter) { this.atcCode = atcCodeLetter; }
+  getATCClass() { return this.atcCode; }
 
   processDataMonthlyChart(data) {
     const allMonths = d3.timeMonth
-      .range(this.config.report.startDateChart, this.config.report.endDateChart)
+      .range(this.startDateChart, this.endDateChart)
       .map((d) => new Date(d.getFullYear(), d.getMonth(), 1));
 
     return allMonths.map((monthDate) => {
@@ -190,7 +94,7 @@ class ConfigManager {
   }
 }
 
-const configManager = new ConfigManager();
-Object.preventExtensions(configManager);
+const config = new ConfigManager();
+Object.preventExtensions(config);
 
-export { configManager };
+export { config };

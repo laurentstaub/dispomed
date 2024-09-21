@@ -1,10 +1,3 @@
-:root {
-    --chart-width: 768;
-    --bar-height: 18;
-    --label-max-length: 50;
-    --left-margin-table: 310;
-}
-
 * {
     font-family: Roboto, sans-serif;
     font-weight: 400;
@@ -307,13 +300,6 @@
 }
 
 @media screen and (max-width: 768px) {
-    :root {
-        --chart-width: 580;
-        --bar-height: 14;
-        --label-max-length: 25;
-        --left-margin-table: 150;
-    }
-
     .selector {
         max-width: 100%;
     }

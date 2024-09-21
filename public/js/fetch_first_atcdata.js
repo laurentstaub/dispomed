@@ -1,3 +1,4 @@
+// This is used for the initial load of ATC lasses and molecules
 const ATCDataManager = (function () {
   let atcClasses = [];
   let allMolecules = [];

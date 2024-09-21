@@ -1,4 +1,4 @@
-import { configManager } from "./draw_config.js";
+import { config } from "./draw_config.js";
 let API_BASE_URL = "http://localhost:3000";
 
 // Parses dates from the sql query
@@ -67,14 +67,14 @@ export async function fetchTableChartData(
     .then((data) => {
       const processedData = processDates(data);
       const lastReportDate = Math.max(
-        configManager.getDateLastReport(),
+        config.getDateLastReport(),
         Math.max(...processedData.map((d) => new Date(d.calculated_end_date))),
       );
       const [startDate, endDate] = getDateRange(lastReportDate, monthsToShow);
-      configManager.setDateLastReport(lastReportDate);
-      configManager.setStartDateChart(startDate);
-      configManager.setEndDateChart(endDate);
-      configManager.setProducts(processedData);
+      config.setDateLastReport(lastReportDate);
+      config.setStartDateChart(startDate);
+      config.setEndDateChart(endDate);
+      config.setProducts(processedData);
 
       // We want to set a full map of atc/molecules from the initial fetch
       // to populate the list of classes and molecules whatever the selections are
@@ -108,7 +108,7 @@ export async function fetchTableChartData(
           return a.moleculeName.localeCompare(b.moleculeName);
         });
 
-        configManager.setMoleculeClassMap(sortedAtcMolecules);
+        config.setMoleculeClassMap(sortedAtcMolecules);
       }
 
       return processedData;
