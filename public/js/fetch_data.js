@@ -67,13 +67,13 @@ export async function fetchTableChartData(
     .then((data) => {
       const processedData = processDates(data);
       const lastReportDate = Math.max(
-        config.getDateLastReport(),
+        config.getDateReport(),
         Math.max(...processedData.map((d) => new Date(d.calculated_end_date))),
       );
       const [startDate, endDate] = getDateRange(lastReportDate, monthsToShow);
-      config.setDateLastReport(lastReportDate);
-      config.setStartDateChart(startDate);
-      config.setEndDateChart(endDate);
+      config.setDateReport(lastReportDate);
+      config.setStartDate(startDate);
+      config.setEndDate(endDate);
       config.setProducts(processedData);
 
       // We want to set a full map of atc/molecules from the initial fetch

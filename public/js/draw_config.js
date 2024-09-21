@@ -15,9 +15,9 @@ class ConfigManager {
   }
 
   initializeConfig() {
-    this.dateLastReport = null;
-    this.startDateChart = null;
-    this.endDateChart = null;
+    this.dateReport = null;
+    this.startDate = null;
+    this.endDate = null;
     this.products = [];
     this.ATCClasses = [];
     this.molecule = "";
@@ -29,14 +29,14 @@ class ConfigManager {
     this.moleculeClassMap = [];
   }
 
-  setStartDateChart(date) { this.startDateChart = date; }
-  getStartDateChart() { return this.startDateChart; }
+  setStartDate(date) { this.startDate = date; }
+  getStartDate() { return this.startDate; }
 
-  setDateLastReport(date) { this.dateLastReport = date; }
-  getDateLastReport() { return this.dateLastReport; }
+  setDateReport(date) { this.dateReport = date; }
+  getDateReport() { return this.dateReport; }
 
-  setEndDateChart(date) { this.endDateChart = date; }
-  getEndDateChart() { return this.endDateChart; }
+  setEndDate(date) { this.endDate = date; }
+  getEndDate() { return this.endDate; }
 
   setProducts(data) {
     this.products = Array.from(new Set(data.map((d) => d.product)));
@@ -56,9 +56,7 @@ class ConfigManager {
   setMolecule(data) { this.molecule = data; }
   getMolecule() { return this.molecule; }
 
-  setMoleculeClassMap(filteredList) {
-    this.moleculeClassMap = filteredList;
-  }
+  setMoleculeClassMap(filteredList) { this.moleculeClassMap = filteredList; }
   getMoleculeClassMap() { return this.moleculeClassMap; }
 
   setSearchTerm(word) { this.searchTerm = word; }
@@ -72,7 +70,7 @@ class ConfigManager {
 
   processDataMonthlyChart(data) {
     const allMonths = d3.timeMonth
-      .range(this.startDateChart, this.endDateChart)
+      .range(this.startDate, this.endDate)
       .map((d) => new Date(d.getFullYear(), d.getMonth(), 1));
 
     return allMonths.map((monthDate) => {
