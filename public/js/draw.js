@@ -22,6 +22,29 @@ const frFr = d3.timeFormatLocale({
 const formatDate = frFr.format("%e %B %Y");
 const formatDateShort = frFr.format("%b");
 
+const fontSizeScale = d3.scaleLinear()
+  .domain([400, 900])
+  .range([24, 12])
+  .clamp(true);
+
+const labelFontSizeScale = d3.scaleLinear()
+  .domain([400, 900])
+  .range([18, 10])
+  .clamp(true);
+
+
+const barHeightScale = d3.scaleLinear()
+  .domain([400, 900])
+  .range([24, 16])
+  .clamp(true);
+
+let windowWidth = getWindowWidth();
+let isDesktopLayout = windowWidth >= 700 ? true : false;
+
+function getWindowWidth() {
+  return window.innerWidth;
+}
+
 function getProductStatus(d) {
   const dateReport = config.getDateReport();
 
@@ -68,7 +91,6 @@ function debounce(func, delay) {
 }
 
 function updateChartDimensions() {
-  const containerWidth = document.getElementById("chart-container").clientWidth;
   const styles = getComputedStyle(document.documentElement);
 
 }
@@ -89,11 +111,7 @@ async function handleSearch(isInitialSetup, searchTerm) {
   const molecule = config.getMolecule();
 
   data = await fetchTableChartData(
-    isInitialSetup,
-    monthsToShow,
-    searchTerm,
-    atcClass,
-    molecule,
+    isInitialSetup, monthsToShow, searchTerm, atcClass, molecule,
   );
   monthlyData = config.processDataMonthlyChart(data);
   drawTableChart(data, false);
@@ -104,7 +122,6 @@ async function handleSearch(isInitialSetup, searchTerm) {
 function updateMoleculeDropdown(atcClass) {
   const moleculeSelect = d3.select("#molecule");
   const selectedMoleculeId = config.getMolecule();
-
   let rawMolecules = config.getMoleculeClassMap();
 
   if (atcClass !== "") {
@@ -112,14 +129,10 @@ function updateMoleculeDropdown(atcClass) {
   }
 
   const molecules = rawMolecules.map((mol) => {
-    return {
-      code: mol.moleculeId,
-      name: mol.moleculeName,
-    };
+    return { code: mol.moleculeId, name: mol.moleculeName };
   });
 
-  moleculeSelect
-    .selectAll("option")
+  moleculeSelect.selectAll("option")
     .data([{ code: "", name: "Choisir une molécule" }, ...molecules])
     .join("option")
     .attr("value", d => d.code)
@@ -128,8 +141,7 @@ function updateMoleculeDropdown(atcClass) {
     .attr("selected", null);
 
   if (selectedMoleculeId) {
-    moleculeSelect
-      .selectAll(`option[value='${selectedMoleculeId}']`)
+    moleculeSelect.selectAll(`option[value='${selectedMoleculeId}']`)
       .attr("selected", "selected");
   }
 }
@@ -140,6 +152,7 @@ function updateMoleculeDropdown(atcClass) {
 window.addEventListener(
   "resize",
   debounce(() => {
+    windowWidth = getWindowWidth();
     updateChartDimensions();
     monthlyData = config.processDataMonthlyChart(data);
     drawTableChart(data, false);
@@ -228,7 +241,7 @@ drawSummaryChart(monthlyData, true);
 /*    Draw the top summary chart   */
 /***********************************/
 function drawSummaryChart(monthlyChartData, isInitialSetup) {
-  const margin = { top: 20, right: 0, bottom: 20, left: 20 };
+  const margin = { top: 20, right: 0, bottom: 50, left: 20 };
   const height = 312;
   const width = 600;
   const innerHeight = height - margin.top - margin.bottom;
@@ -306,21 +319,23 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .data(filteredData.filter(d => d.rupture > 0))
     .enter()
     .append("text")
-    .attr("class", "rupture-label")
-    .attr("x", d => xScale(d.date))
-    .attr("y", d => y(d.rupture) - 10)
-    .attr("text-anchor", "middle")
-    .text(d => d.rupture);
+      .style("font-size", `${labelFontSizeScale(windowWidth)}px`)
+      .attr("class", "rupture-label")
+      .attr("x", d => xScale(d.date))
+      .attr("y", d => y(d.rupture) - 10)
+      .attr("text-anchor", "middle")
+      .text(d => d.rupture);
 
   g.selectAll(".tension-label")
     .data(filteredData.filter(d => d.tension > 0))
     .enter()
     .append("text")
-    .attr("class", "tension-label")
-    .attr("x", d => xScale(d.date))
-    .attr("y", d => y(d.tension) - 10)
-    .attr("text-anchor", "middle")
-    .text(d => d.tension);
+      .style("font-size", `${labelFontSizeScale(windowWidth)}px`)
+      .attr("class", "tension-label")
+      .attr("x", d => xScale(d.date))
+      .attr("y", d => y(d.tension) - 10)
+      .attr("text-anchor", "middle")
+      .text(d => d.tension);
 }
 
 
@@ -329,13 +344,13 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 /***************************/
 function drawTableChart(data, isInitialSetup) {
   const margin = { top: 0, right: 0, bottom: 0, left: 270 };
-  const width = 768;
-  const barHeight = 16;
+  const width = 900;
+  const barHeight = barHeightScale(windowWidth);
   const labelMaxLength = 37;
   const statusBarWidth = 3;
   const statusBarSpacing = 5;
   const productsCount = config.getProducts().length;
-  const height = productsCount * barHeight + margin.top + margin.bottom;
+  const height = productsCount * barHeight;
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
 
@@ -357,21 +372,18 @@ function drawTableChart(data, isInitialSetup) {
   // Création de la zone svg si elle n'existe pas
   if (isInitialSetup) {
     // Création initiale du SVG
-    outerBox = d3
-      .select("#dash")
+    outerBox = d3.select("#dash")
       .append("svg")
-      .attr("width", width)
-      .attr("height", height);
+      .attr("viewBox", `0 0 ${width} ${height}`)
+      .attr("preserveAspectRatio", "xMidYMid meet");
 
     innerChart = outerBox
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
   } else {
     // Mise à jour du SVG existant
-    outerBox = d3
-      .select("#dash svg")
-      .attr("viewBox", `0, 0, ${width}, ${height}`)
-      .attr("height", height);
+    outerBox = d3.select("#dash svg")
+      .attr("viewBox", `0, 0, ${width}, ${height}`);
 
     innerChart = d3.select("#dash svg g"); // Remove all existing elements
     innerChart.selectAll("*").remove();
@@ -386,14 +398,12 @@ function drawTableChart(data, isInitialSetup) {
     .attr("class", "y-axis")
     .call(d3.axisLeft(yScale).tickSize(-verticalTicks))
     .selectAll(".tick text")
-    .attr(
-      "x", - margin.left + statusBarWidth + statusBarSpacing,
-    )
+    .style("font-size", `${fontSizeScale(windowWidth)}px`)
+    .attr("x", - margin.left + statusBarWidth + statusBarSpacing)
     .style("text-anchor", "start")
     .text(function (d) {
       return d.length > labelMaxLength
-        ? d.substring(0, labelMaxLength) + "..."
-        : d;
+        ? d.substring(0, labelMaxLength) + "..." : d;
     })
     .on("mouseover", function (event, d) {
       const product = data.find((item) => item.product === d);
@@ -401,13 +411,9 @@ function drawTableChart(data, isInitialSetup) {
         const status = getProductStatus(product);
         const tooltip = d3.select("#tooltip");
         tooltip.transition().duration(200).style("opacity", 1);
-        tooltip
-          .html(
-            `
+        tooltip.html(`
             ${d}<br>
-            Ce produit est en <strong>${status.text}</strong>
-          `,
-          )
+            Ce produit est en <strong>${status.text}</strong>`)
           .attr("class", status.class)
           .style("left", event.pageX - 160 + "px")
           .style("top", event.pageY - 80 + "px");
@@ -426,21 +432,16 @@ function drawTableChart(data, isInitialSetup) {
     .append("rect")
     .attr("class", d => `bar ${d.status}`.toLowerCase())
     .attr("x", d =>
-      xScale(
-        d.start_date > config.getStartDate()
-          ? d.start_date : config.getStartDate(),
-      ),
-    )
+      xScale(d.start_date > config.getStartDate()
+          ? d.start_date : config.getStartDate()))
     .attr(
       "y", d => yScale(d.product) + yScale.bandwidth()/2 - barHeight/2 - 1,
     )
     .attr("width", d => {
       const startDate = d.start_date;
       const endDate = d.calculated_end_date;
-      const effectiveStartDate =
-        startDate > config.getStartDate()
-          ? startDate
-          : config.getStartDate();
+      const effectiveStartDate = startDate > config.getStartDate()
+          ? startDate : config.getStartDate();
       return Math.max(0, xScale(endDate) - xScale(effectiveStartDate));
     })
     .attr("height", barHeight)
@@ -472,15 +473,12 @@ function drawTableChart(data, isInitialSetup) {
         }
       }
 
-      tooltipHTML
-        .attr("class", statusClass)
+      tooltipHTML.attr("class", statusClass)
         .style("left", d3.pointer(event)[0] + 360 + "px")
         .style("top", d3.pointer(event)[1] + 350 + "px")
         .style("opacity", 0.9);
     })
-    .on("mouseout", function () {
-      tooltip.style("opacity", 0);
-    });
+    .on("mouseout", function () { tooltip.style("opacity", 0); });
 
   // Create tooltip div if it doesn't exist
   let tooltip = d3.select("body").select("#tooltip");
@@ -490,8 +488,7 @@ function drawTableChart(data, isInitialSetup) {
 
   // GRID
   // Add horizontal grid lines
-  innerChart
-    .selectAll(".grid-line")
+  innerChart.selectAll(".grid-line")
     .data(config.getProducts())
     .enter()
     .append("line")
@@ -503,11 +500,11 @@ function drawTableChart(data, isInitialSetup) {
 
   innerChart
     .append("line")
-    .attr("class", "grid-line")
-    .attr("x1", 0)
-    .attr("x2", innerWidth)
-    .attr("y1", 1)
-    .attr("y2", 1);
+      .attr("class", "grid-line")
+      .attr("x1", 0)
+      .attr("x2", innerWidth)
+      .attr("y1", 1)
+      .attr("y2", 1);
 
   // Add vertical grid lines for years
   const yearTicks = xScale.ticks(d3.timeYear.every(1));
@@ -518,11 +515,11 @@ function drawTableChart(data, isInitialSetup) {
     .data(yearTicks)
     .enter()
     .append("line")
-    .attr("class", "year-line")
-    .attr("x1", d => xScale(d))
-    .attr("x2", d => xScale(d))
-    .attr("y1", -height)
-    .attr("y2", innerHeight);
+      .attr("class", "year-line")
+      .attr("x1", d => xScale(d))
+      .attr("x2", d => xScale(d))
+      .attr("y1", -height)
+      .attr("y2", innerHeight);
 
   // Add status bars on the left of the chart
   const groupedData = d3.group(data, d => getProductStatus(d).text);

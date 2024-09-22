@@ -32,7 +32,8 @@
 #chart-container {
     margin: 40px auto;
     position: relative;
-    max-width: 768px;
+    max-width: 900px;
+    padding: 0px 10px;
 }
 
 #controls-and-search {
@@ -300,9 +301,17 @@
     font-weight: 600;
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 900px) {
     .selector {
         max-width: 100%;
+    }
+
+    #last-report-date {
+        margin-bottom: 5px;
+    }
+
+    #chart-container {
+        margin: 20px auto;
     }
 
     .chart-button {
