@@ -24,18 +24,17 @@ const formatDateShort = frFr.format("%b");
 
 const fontSizeScale = d3.scaleLinear()
   .domain([400, 900])
-  .range([24, 12])
+  .range([26, 14])
   .clamp(true);
 
 const labelFontSizeScale = d3.scaleLinear()
   .domain([400, 900])
-  .range([18, 10])
+  .range([18, 11])
   .clamp(true);
-
 
 const barHeightScale = d3.scaleLinear()
   .domain([400, 900])
-  .range([24, 16])
+  .range([30, 18])
   .clamp(true);
 
 let windowWidth = getWindowWidth();
@@ -232,7 +231,7 @@ let data = await fetchTableChartData(true);
 let monthlyData = config.processDataMonthlyChart(data);
 
 d3.select("#last-report-date").text(
-  `Incidents de disponibilité des médicaments (MITM) au ${formatDate(config.getDateReport())}`,
+  `Ruptures et tensions des médicaments (MITM) - ${formatDate(config.getDateReport())}`,
 );
 drawTableChart(data, true);
 drawSummaryChart(monthlyData, true);
@@ -241,8 +240,8 @@ drawSummaryChart(monthlyData, true);
 /*    Draw the top summary chart   */
 /***********************************/
 function drawSummaryChart(monthlyChartData, isInitialSetup) {
-  const margin = { top: 20, right: 0, bottom: 50, left: 20 };
-  const height = 312;
+  const margin = { top: 40, right: 0, bottom: 50, left: 10 };
+  const height = 290;
   const width = 600;
   const innerHeight = height - margin.top - margin.bottom;
   const innerWidth = width - margin.left;
@@ -295,14 +294,39 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     svg.selectAll("*").remove();
   }
 
+  svg.append("rect")
+    .attr("class", "title-background")
+    .attr("x", margin.left)
+    .attr("y", 0)
+    .attr("width", width)
+    .attr("height", margin.top)
+    .attr("fill", "white");
+
+  svg.append("text")
+    .attr("class", "chart-title")
+    .attr("x", width / 2)
+    .attr("y", margin.top / 2)
+    .attr("text-anchor", "middle")
+    .attr("fill", "grey")
+    .style("font-size", "14px")
+    .text("Nombre de Ruptures et Tensions");
+
   const g = svg
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  g.append("rect")
+      .attr("width", "100%")
+      .attr("height", `${innerHeight}`)
+      .attr("fill", "white");
 
   g.append("g")
     .attr("class", "x-axis top-axis")
     .attr("transform", `translate(0, ${innerHeight})`)
     .call(xAxis);
+
+  g.selectAll(".x-axis text")
+    .style("font-size", `${labelFontSizeScale(windowWidth)}px`);
 
   // Draw lines
   g.append("path")
@@ -338,7 +362,6 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
       .text(d => d.tension);
 }
 
-
 /***************************/
 /* Create the table chart  */
 /***************************/
@@ -346,7 +369,7 @@ function drawTableChart(data, isInitialSetup) {
   const margin = { top: 0, right: 0, bottom: 0, left: 270 };
   const width = 900;
   const barHeight = barHeightScale(windowWidth);
-  const labelMaxLength = 37;
+  const labelMaxLength = 32;
   const statusBarWidth = 3;
   const statusBarSpacing = 5;
   const productsCount = config.getProducts().length;
@@ -492,11 +515,12 @@ function drawTableChart(data, isInitialSetup) {
     .data(config.getProducts())
     .enter()
     .append("line")
-    .attr("class", "grid-line")
-    .attr("x1", 0)
-    .attr("x2", innerWidth)
-    .attr("y1", d => yScale(d) + yScale.bandwidth() + 1)
-    .attr("y2", d => yScale(d) + yScale.bandwidth() + 1);
+      .attr("class", "grid-line")
+      .attr("stroke", "var(--gristresleger")
+      .attr("x1", 0)
+      .attr("x2", innerWidth)
+      .attr("y1", d => yScale(d) + yScale.bandwidth() + 1)
+      .attr("y2", d => yScale(d) + yScale.bandwidth() + 1);
 
   innerChart
     .append("line")

@@ -2,11 +2,12 @@
     font-family: Roboto, sans-serif;
     font-weight: 400;
     --blanc: rgb(255, 255, 255);
-    --gristresfonce: rgb(50, 50, 50);
+    --gristresfonce: rgb(70, 70, 70);
     --grisfonce: rgb(110, 110, 110);
     --gris: rgb(140, 140, 140);
     --grisleger: rgb(180, 180, 180);
     --gristresleger: rgb(230, 230, 230);
+    --gristrestresleger: rgb(245, 245, 245);
     --rupture: rgb(230, 70, 100);
     --rupture-bg: rgba(230, 70, 100, 0.9);
     --tension: rgb(250, 177, 75);
@@ -20,20 +21,21 @@
 }
 
 #last-report-date {
-    background-color: var(--rupture);
-    color: var(--blanc);
+    border-bottom: solid 1px var(--gris);
+    color: var(--grisfonce);
     font-size: 18px;
     font-weight: 400;
     padding: 7px;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
     text-align: center;
 }
 
 #chart-container {
-    margin: 40px auto;
+    background-color: var(--gristrestresleger);
+    margin: 20px auto;
     position: relative;
     max-width: 900px;
-    padding: 0px 10px;
+    padding: 0px 20px;
 }
 
 #controls-and-search {
@@ -42,7 +44,7 @@
     max-height: 250px;
     justify-content: space-between;
     margin-right: 20px;
-    padding: 20px 0px;
+    padding: 10px 0px;
 }
 
 .chart-controls-container {
@@ -60,7 +62,7 @@
 .button-row {
     display: flex;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
 }
 
 #search-box {
@@ -68,7 +70,7 @@
     border-radius: 4px;
     border-width: 1px;
     border-style: solid;
-    font-size: 12px;
+    font-size: 14px;
     height: 22px;
     margin-bottom: 10px;
     padding-left: 3px;
@@ -83,9 +85,9 @@
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    color: var(--grisfonce);
+    color: var(--gristresfonce);
     flex: 1;
-    font-size: 12px;
+    font-size: 14px;
     height: 28px;
     margin-bottom: 10px;
     padding: 5px;
@@ -104,16 +106,16 @@
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    color: var(--gris);
-    font-size: 13px;
+    color: var(--gristresfonce);
+    font-size: 14px;
     height: 30px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .legende {
     color: var(--grisfonce);
     font-size: 13px;
-    padding: 10px 10px 30px 0px;
+    padding: 5px 10px 10px 0px;
 }
 
 #legende-rupture {
@@ -130,7 +132,7 @@
 
 #summary {
     flex: 1;
-    height: 312px;
+    height: 300px;
 }
 
 .termine {
@@ -161,7 +163,7 @@
 }
 
 .grid-line {
-    stroke: var(--blanc);
+    stroke: var(--gristrestresleger);
     stroke-width: 14px;
 }
 
@@ -233,7 +235,7 @@
     border-radius: 4px;
     color: var(--grisfonce);
     display: inline-block;
-    font-size: 12px;
+    font-size: 14px;
     height: 22px;
     margin-bottom: 10px;
     max-width: 240px;
@@ -307,7 +309,8 @@
     }
 
     #last-report-date {
-        margin-bottom: 5px;
+        font-size: 16px;
+        margin-bottom: 0px;
     }
 
     #chart-container {
