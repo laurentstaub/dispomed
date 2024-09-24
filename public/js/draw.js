@@ -24,7 +24,7 @@ const formatDateShort = frFr.format("%b");
 
 const fontSizeScale = d3.scaleLinear()
   .domain([400, 900])
-  .range([26, 14])
+  .range([18, 14])
   .clamp(true);
 
 const labelFontSizeScale = d3.scaleLinear()
@@ -34,11 +34,15 @@ const labelFontSizeScale = d3.scaleLinear()
 
 const barHeightScale = d3.scaleLinear()
   .domain([400, 900])
-  .range([30, 18])
+  .range([26, 18])
+  .clamp(true);
+
+const labelMaxLengthScale = d3.scaleLinear()
+  .domain([400, 900])
+  .range([24, 32])
   .clamp(true);
 
 let windowWidth = getWindowWidth();
-let isDesktopLayout = windowWidth >= 700 ? true : false;
 
 function getWindowWidth() {
   return window.innerWidth;
@@ -241,7 +245,7 @@ drawSummaryChart(monthlyData, true);
 /***********************************/
 function drawSummaryChart(monthlyChartData, isInitialSetup) {
   const margin = { top: 40, right: 0, bottom: 50, left: 10 };
-  const height = 290;
+  const height = 310;
   const width = 600;
   const innerHeight = height - margin.top - margin.bottom;
   const innerWidth = width - margin.left;
@@ -367,10 +371,10 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 /***************************/
 function drawTableChart(data, isInitialSetup) {
   const margin = { top: 0, right: 0, bottom: 0, left: 270 };
-  const width = 900;
+  const width = Math.min(900, windowWidth);
   const barHeight = barHeightScale(windowWidth);
-  const labelMaxLength = 32;
-  const statusBarWidth = 3;
+  const labelMaxLength = labelMaxLengthScale(windowWidth);
+  const statusBarWidth = 5;
   const statusBarSpacing = 5;
   const productsCount = config.getProducts().length;
   const height = productsCount * barHeight;
