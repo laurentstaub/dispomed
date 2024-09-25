@@ -122,17 +122,17 @@
     margin-bottom: 10px;
 }
 
-#legende-rupture strong {
+strong#legende-rupture {
     color: var(--rupture);
 }
 
-#legende-tension strong {
+strong#legende-tension {
     color: var(--tension);
 }
 
 #summary {
     flex: 1;
-    height: 300px;
+    height: 320px;
 }
 
 .termine {
