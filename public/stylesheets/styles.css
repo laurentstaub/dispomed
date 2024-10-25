@@ -20,9 +20,14 @@
     --vert: rgb(80, 120, 80);
 }
 
+h1 {
+    font-weight: 600;
+}
+
 #last-report-date {
-    border-bottom: solid 1px var(--gris);
-    color: var(--grisfonce);
+    background-color: var(--gristrestresleger);
+    border-bottom: solid 1px var(--gristresleger);
+    color: var(--gristresfonce);
     font-size: 18px;
     font-weight: 400;
     padding: 7px;
@@ -31,7 +36,17 @@
 }
 
 #chart-container {
+    border: 1px solid var(--gristresleger);
+    background-color: var(--blanc);
+    margin: 20px auto;
+    position: relative;
+    max-width: 900px;
+    padding: 0px 0px 20px 0px;
+}
+
+#source-info {
     background-color: var(--gristrestresleger);
+    color: var(--grisfonce);
     margin: 20px auto;
     position: relative;
     max-width: 900px;
@@ -43,14 +58,13 @@
     flex-direction: column;
     max-height: 250px;
     justify-content: space-between;
-    margin-right: 20px;
-    padding: 10px 0px;
+    margin: 10px;
 }
 
 .chart-controls-container {
     border: none;
     padding: 10px 15px 10px 5px;
-    width: 240px;
+    width: 220px;
 }
 
 #chart-controls {
@@ -67,7 +81,6 @@
 
 #search-box {
     border-color: var(--grisleger);
-    border-radius: 4px;
     border-width: 1px;
     border-style: solid;
     font-size: 14px;
@@ -163,7 +176,7 @@ strong#legende-tension {
 }
 
 .grid-line {
-    stroke: var(--gristrestresleger);
+    stroke: var(--blanc);
     stroke-width: 14px;
 }
 
@@ -232,13 +245,12 @@ strong#legende-tension {
 
 .selector {
     border-color: var(--grisleger);
-    border-radius: 4px;
     color: var(--grisfonce);
     display: inline-block;
     font-size: 14px;
     height: 22px;
     margin-bottom: 10px;
-    max-width: 240px;
+    max-width: 220px;
 }
 
 .selector[open] {
@@ -314,7 +326,7 @@ strong#legende-tension {
     }
 
     #chart-container {
-        margin: 20px auto;
+        margin: 10px;
     }
 
     .chart-button {
@@ -325,8 +337,13 @@ strong#legende-tension {
         flex-direction: column;
     }
 
-    #controls-and-search,
+    #controls-and-search {
+        margin: 0px;
+        width: 95%;
+    }
+
     #summary {
-        width: 100%;
+        padding: 0 10px;
+        width: 95%;
     }
 }
