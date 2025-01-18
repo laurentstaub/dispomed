@@ -339,9 +339,9 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("class", "chart-title")
     .attr("x", width / 2)
     .attr("y", margin.top / 2)
-    .attr("text-anchor", "right")
+    .attr("text-anchor", "start")
     .attr("fill", "var(--grisfonce)")
-    .style("font-size", `16px`)
+    .style("font-size", `18px`)
     .text("Nombre de Ruptures et Tensions");
 
   const g = svg
@@ -401,6 +401,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 /* Create the table chart  */
 /***************************/
 function drawTableChart(data, isInitialSetup) {
+  console.log(data);
   const margin = { top: 0, right: 0, bottom: 0, left: 270 };
   const width = Math.min(900, windowWidth);
   const barHeight = 20;
