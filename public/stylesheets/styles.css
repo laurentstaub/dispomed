@@ -12,6 +12,7 @@
     --rupture-bg: rgba(230, 70, 100, 0.9);
     --tension: rgb(250, 177, 75);
     --tensionleger: rgb(255, 202, 100);
+    --tensiontresleger: rgba(255, 202, 100, 0.3);
     --tension-bg: rgba(150, 135, 100, 0.9);
     --disponible: rgb(144, 238, 144);
     --disponiblefonce: rgb(100, 150, 100);
@@ -22,16 +23,21 @@
 
 h1 {
     font-weight: 600;
+    margin-bottom: 10px;
+}
+
+p {
+    margin-bottom: 5px;
 }
 
 #last-report-date {
-    background-color: var(--gristrestresleger);
-    border-bottom: solid 1px var(--gristresleger);
-    color: var(--gristresfonce);
-    font-size: 18px;
-    font-weight: 400;
-    padding: 7px;
-    margin-bottom: 10px;
+    background-color: var(--gristresleger);
+    border-bottom: solid 0px var(--gristresleger);
+    color: var(--grisfonce);
+    font-size: 20px;
+    font-weight: 600;
+    padding: 15px;
+    margin-bottom: 20px;
     text-align: center;
 }
 
@@ -47,10 +53,14 @@ h1 {
 #source-info {
     background-color: var(--gristrestresleger);
     color: var(--grisfonce);
-    margin: 20px auto;
+    margin: 40px auto;
     position: relative;
     max-width: 900px;
-    padding: 0px 20px;
+    padding: 0px 0px 20px 0px;
+}
+
+#info-container {
+    padding: 10px 20px;
 }
 
 #controls-and-search {

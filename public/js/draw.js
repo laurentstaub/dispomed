@@ -252,7 +252,7 @@ let data = await fetchTableChartData(true);
 let monthlyData = config.processDataMonthlyChart(data);
 
 d3.select("#last-report-date").text(
-  `Ruptures et tensions des médicaments (MITM) - ${formatDate(config.getDateReport())}`,
+  `Incidents de disponibilité des produits de santé (MITM) au ${formatDate(config.getDateReport())}`,
 );
 drawTableChart(data, true);
 drawSummaryChart(monthlyData, true);
