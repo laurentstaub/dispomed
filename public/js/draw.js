@@ -341,8 +341,8 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("y", margin.top / 2)
     .attr("text-anchor", "start")
     .attr("fill", "var(--grisfonce)")
-    .style("font-size", `18px`)
-    .text("Nombre de Ruptures et Tensions");
+    .style("font-size", `17px`)
+    .text("Ruptures et Tensions par mois");
 
   const g = svg
     .append("g")

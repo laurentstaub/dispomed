@@ -1,6 +1,7 @@
 * {
     font-family: Roboto, sans-serif;
     font-weight: 400;
+    --main-0: rgb(3, 95, 0);
     --blanc: rgb(255, 255, 255);
     --gristresfonce: rgb(70, 70, 70);
     --grisfonce: rgb(110, 110, 110);
@@ -24,6 +25,22 @@
 h1 {
     font-weight: 600;
     margin-bottom: 10px;
+}
+
+footer {
+    border-top: var(--main-3) solid 2px;
+    margin-top: auto;
+    margin-bottom: 0px;
+    text-align: center;
+      height: 70px;
+}
+
+footer a {
+  color: var(--main-0);
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-size: 1.5rem;
+  padding-top: 20px;
+  text-decoration: none;
 }
 
 p {
