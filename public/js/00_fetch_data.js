@@ -1,4 +1,4 @@
-import { config } from "./draw_config.js";
+import { dataManager } from "./01_store_data.js";
 let API_BASE_URL = "http://localhost:3000";
 
 // Parses dates from the sql query
@@ -20,7 +20,7 @@ function processDates(data) {
 function createTimeParse(format) {
   // This function only handles "%Y-%m-%d" format
   if (format !== "%Y-%m-%d") {
-    throw new Error("Only %Y-%m-%d format is supported in this example");
+    throw new Error("Only %Y-%m-%d format is supported");
   }
 
   return function parseTime(dateString) {
@@ -67,14 +67,15 @@ export async function fetchTableChartData(
     .then((data) => {
       const processedData = processDates(data);
       const lastReportDate = Math.max(
-        config.getDateReport(),
+        dataManager.getDateReport(),
         Math.max(...processedData.map((d) => new Date(d.calculated_end_date))),
       );
       const [startDate, endDate] = getDateRange(lastReportDate, monthsToShow);
-      config.setDateReport(lastReportDate);
-      config.setStartDate(startDate);
-      config.setEndDate(endDate);
-      config.setProducts(processedData);
+      dataManager.setDateReport(lastReportDate);
+      dataManager.setStartDate(startDate);
+      dataManager.setEndDate(endDate);
+      dataManager.setProducts(processedData);
+      dataManager.setAccentedProducts(processedData);
 
       // We want to set a full map of atc/molecules from the initial fetch
       // to populate the list of classes and molecules whatever the selections are
@@ -108,7 +109,7 @@ export async function fetchTableChartData(
           return a.moleculeName.localeCompare(b.moleculeName);
         });
 
-        config.setMoleculeClassMap(sortedAtcMolecules);
+        dataManager.setMoleculeClassMap(sortedAtcMolecules);
       }
 
       return processedData;

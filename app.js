@@ -36,64 +36,77 @@ app.get("/api/incidents", async (req, res) => {
 
   try {
     let query = `
-        WITH incidents_with_sorting AS (
-          SELECT
-            i.id,
-            p.name AS product,
-            i.status,
-            TO_CHAR(i.start_date, 'YYYY-MM-DD') AS start_date,
-            TO_CHAR(i.end_date, 'YYYY-MM-DD') AS end_date,
-            TO_CHAR(i.mise_a_jour, 'YYYY-MM-DD') AS mise_a_jour,
-            TO_CHAR(i.date_dernier_rapport, 'YYYY-MM-DD') AS date_dernier_rapport,
-            TO_CHAR(i.calculated_end_date, 'YYYY-MM-DD') AS calculated_end_date,
-            STRING_AGG(DISTINCT m.name, ', ') AS molecule,
-            STRING_AGG(DISTINCT m.id::text, ', ') AS molecule_id,
-            STRING_AGG(DISTINCT ca.code || ' - ' || ca.description, ', ') AS classe_atc,
-            STRING_AGG(DISTINCT ca.code, ', ') AS atc_code,
-            CASE
-              WHEN i.calculated_end_date = (SELECT MAX(calculated_end_date) FROM incidents) THEN 1
-              ELSE 0
-            END AS is_active,
-            CASE
-              WHEN i.status = 'Rupture' THEN 1
-              WHEN i.status = 'Tension' THEN 2
-              ELSE 3
-            END AS status_priority
-          FROM incidents i
-          JOIN produits p ON i.product_id = p.id
-          LEFT JOIN produits_molecules pm ON p.id = pm.produit_id
-          LEFT JOIN molecules m ON pm.molecule_id = m.id
-          LEFT JOIN molecules_classe_atc mca ON m.id = mca.molecule_id
-          LEFT JOIN classe_atc ca ON mca.classe_atc_id = ca.id
-          WHERE i.calculated_end_date >= ((SELECT MAX(calculated_end_date) FROM incidents) - INTERVAL '1 month' * $1)`;
+      WITH incidents_with_sorting AS (
+        SELECT
+          i.id,
+          p.name AS product,
+          p.accented_name AS accented_product,
+          i.status,
+          TO_CHAR(i.start_date, 'YYYY-MM-DD') AS start_date,
+          TO_CHAR(i.end_date, 'YYYY-MM-DD') AS end_date,
+          TO_CHAR(i.mise_a_jour, 'YYYY-MM-DD') AS mise_a_jour,
+          TO_CHAR(i.date_dernier_rapport, 'YYYY-MM-DD') AS date_dernier_rapport,
+          TO_CHAR(i.calculated_end_date, 'YYYY-MM-DD') AS calculated_end_date,
+          STRING_AGG(DISTINCT m.name, ', ') AS molecule,
+          STRING_AGG(DISTINCT m.id::text, ', ') AS molecule_id,
+          ca.code || ' - ' || ca.description AS classe_atc,
+          ca.code AS atc_code,
+          CASE
+            WHEN i.calculated_end_date = (SELECT MAX(calculated_end_date) FROM incidents) THEN 1
+            ELSE 0
+          END AS is_active,
+          CASE
+            WHEN i.status = 'Rupture' THEN 1
+            WHEN i.status = 'Tension' THEN 2
+            ELSE 3
+          END AS status_priority
+        FROM incidents i
+        JOIN produits p ON i.product_id = p.id
+        LEFT JOIN produits_molecules pm ON p.id = pm.produit_id
+        LEFT JOIN molecules m ON pm.molecule_id = m.id
+        LEFT JOIN classe_atc ca ON p.classe_atc_id = ca.id
+        WHERE i.calculated_end_date >= ((SELECT MAX(calculated_end_date) FROM incidents) - INTERVAL '1 month' * $1)
+    `;
 
     const params = [monthsToShow];
-    let paramsCounter = 1;
+    let paramIndex = 2;
 
     if (product) {
-      paramsCounter += 1;
-      query += ` AND p.name ILIKE $${paramsCounter}`;
+      query += ` AND p.name ILIKE $${paramIndex}`;
       params.push(`%${product}%`);
+      paramIndex++;
     }
 
     if (atcClass) {
-      paramsCounter += 1;
-      query += ` AND ca.code = $${paramsCounter}`;
+      query += ` AND ca.code = $${paramIndex}`;
       params.push(atcClass);
+      paramIndex++;
     }
 
     if (molecule) {
-      paramsCounter += 1;
-      query += ` AND m.id = $${paramsCounter}`;
+      query += ` AND m.id = $${paramIndex}`;
       params.push(molecule);
+      paramIndex++;
     }
 
     query += `
-          GROUP BY i.id, p.name, i.status, i.start_date, i.end_date, i.mise_a_jour, i.date_dernier_rapport, i.calculated_end_date
-        )
-        SELECT * FROM incidents_with_sorting
-        ORDER BY is_active DESC, status_priority ASC, product ASC
-        `;
+        GROUP BY
+          i.id,
+          p.name,
+          p.accented_name,
+          i.status,
+          i.start_date,
+          i.end_date,
+          i.mise_a_jour,
+          i.date_dernier_rapport,
+          i.calculated_end_date,
+          ca.code,
+          ca.description
+      )
+      SELECT * FROM incidents_with_sorting
+      ORDER BY is_active DESC, status_priority ASC, product ASC
+    `;
+
     const result = await dbQuery(query, ...params);
     res.json(result.rows);
   } catch (error) {
@@ -101,6 +114,7 @@ app.get("/api/incidents", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 app.get("/api/incidents/ATCClasses", async (req, res) => {
   const { monthsToShow } = req.query;
@@ -121,11 +135,11 @@ app.get("/api/incidents/ATCClasses", async (req, res) => {
       JOIN produits p ON i.product_id = p.id
       LEFT JOIN produits_molecules pm ON p.id = pm.produit_id
       LEFT JOIN molecules m ON pm.molecule_id = m.id
-      LEFT JOIN molecules_classe_atc mca ON m.id = mca.molecule_id
-      LEFT JOIN classe_atc ca ON mca.classe_atc_id = ca.id
+      LEFT JOIN classe_atc ca ON p.classe_atc_id = ca.id
       WHERE i.calculated_end_date >= (maxDate.max_end_date - INTERVAL '${monthsToShow} months')
           AND ca.code IS NOT NULL
       ORDER BY ca.code, m.name;
+
      `;
 
     const result = await dbQuery(query);

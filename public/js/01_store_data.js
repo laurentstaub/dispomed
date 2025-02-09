@@ -19,6 +19,7 @@ class ConfigManager {
     this.startDate = null;
     this.endDate = null;
     this.products = [];
+    this.accentedProducts = [];
     this.ATCClasses = [];
     this.molecule = "";
     this.searchTerm = "";
@@ -42,6 +43,12 @@ class ConfigManager {
     this.products = Array.from(new Set(data.map((d) => d.product)));
   }
   getProducts() { return this.products; }
+
+  setAccentedProducts(data) {
+    this.accentedProducts = Array.from(new Set(data.map((d) => d.accented_product)));
+  }
+  getAccentedProducts() { return this.accentedProducts; }
+
 
   setATCClasses(data) {
     this.ATCClasses = Array.from(new Set(data.map((d) => d.classe_atc)))
@@ -92,7 +99,7 @@ class ConfigManager {
   }
 }
 
-const config = new ConfigManager();
-Object.preventExtensions(config);
+const dataManager = new ConfigManager();
+Object.preventExtensions(dataManager);
 
-export { config };
+export { dataManager };
