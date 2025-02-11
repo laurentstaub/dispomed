@@ -7,6 +7,10 @@ const MS_IN_SEC = 1000;
 const MS_IN_DAY = HOURS_IN_DAY * MINS_IN_HOUR * SECS_IN_MIN * MS_IN_SEC;
 const ALL_TIME_START = new Date(2021, 4, 1);
 
+function removeAccents(str) {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 const frFr = d3.timeFormatLocale({
   dateTime: "%A %e %B %Y à %X",
   date: "%d/%m/%Y",
@@ -162,10 +166,11 @@ d3.select("#reinitialiser").on("click", function () {
 
 // Event listeners for search
 d3.select("#search-box").on("input", function () {
-  const searchTerm = this.value;
-  dataManager.setSearchTerm(this.value);
+  const searchTerm = removeAccents(this.value.toLowerCase());
+  dataManager.setSearchTerm(searchTerm);
   debouncedSearch(false, searchTerm);
 });
+
 
 d3.select("#atc").on("input", function () {
   dataManager.setATCClass(this.value);
@@ -491,19 +496,19 @@ function drawTableChart(rawData, isInitialSetup) {
       if (statusClass === "tooltip-arret") {
         tooltipHTML = tooltip.html(`
             <strong>${d.status}</strong>, plus disponible depuis le <strong>${formatDate(d.start_date)}</strong><br>
-            ${d.product}<br>
+            ${d.accented_product}<br>
           `);
       } else {
         if (formatDate(d.calculated_end_date) === formatDate(dateReport)) {
           tooltipHTML = tooltip.html(`
               <strong>${d.status} / En cours</strong><br>
-              ${d.product}<br>
+              ${d.accented_product}<br>
               Depuis le ${formatDate(d.start_date)} (${diffIndays(d.start_date, dateReport)} jours)
             `);
         } else {
           tooltipHTML = tooltip.html(`
               <span class="termine">${d.status} / Terminé</span><br>
-              ${d.product}<br>
+              ${d.accented_product}<br>
               ${formatDate(d.start_date)} - ${formatDate(d.calculated_end_date)} (${diffIndays(d.start_date, d.calculated_end_date)} jours)
             `);
         }
