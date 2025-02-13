@@ -72,7 +72,7 @@ app.get("/api/incidents", async (req, res) => {
     let paramIndex = 2;
 
     if (product) {
-      query += ` AND p.name ILIKE $${paramIndex}`;
+      query += ` AND (p.name ILIKE $${paramIndex} OR m.name ILIKE $${paramIndex})`;
       params.push(`%${product}%`);
       paramIndex++;
     }

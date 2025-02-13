@@ -441,6 +441,7 @@ function drawTableChart(rawData, isInitialSetup) {
     .on("mouseover", function (event, d) {
       const product = rawData.find((item) => item.product === d);
       const accentedName = accentedProducts[products.indexOf(d)];
+
       if (accentedName.length > labelMaxLength || product) {
         const status = getProductStatus(product);
         const tooltip = d3.select("#tooltip");
@@ -448,7 +449,7 @@ function drawTableChart(rawData, isInitialSetup) {
         tooltip
           .html(
             `
-            ${accentedName}<br>
+            ${accentedName} - ${product.molecule}<br>
             Ce produit est en <strong>${status.text}</strong>`,
           )
           .attr("class", status.class)
@@ -496,19 +497,19 @@ function drawTableChart(rawData, isInitialSetup) {
       if (statusClass === "tooltip-arret") {
         tooltipHTML = tooltip.html(`
             <strong>${d.status}</strong>, plus disponible depuis le <strong>${formatDate(d.start_date)}</strong><br>
-            ${d.accented_product}<br>
+            ${d.accented_product} - ${d.molecule}<br>
           `);
       } else {
         if (formatDate(d.calculated_end_date) === formatDate(dateReport)) {
           tooltipHTML = tooltip.html(`
               <strong>${d.status} / En cours</strong><br>
-              ${d.accented_product}<br>
+              ${d.accented_product} - ${d.molecule}<br>
               Depuis le ${formatDate(d.start_date)} (${diffIndays(d.start_date, dateReport)} jours)
             `);
         } else {
           tooltipHTML = tooltip.html(`
               <span class="termine">${d.status} / Terminé</span><br>
-              ${d.accented_product}<br>
+              ${d.accented_product} - ${d.molecule}<br>
               ${formatDate(d.start_date)} - ${formatDate(d.calculated_end_date)} (${diffIndays(d.start_date, d.calculated_end_date)} jours)
             `);
         }
