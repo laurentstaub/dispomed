@@ -80,6 +80,37 @@ function getUniqueProductLength(eventList) {
   return result.length;
 }
 
+function formatDuration(years, months, days) {
+  const parts = [];
+
+  const pluralize = (value, singular, plural) =>
+    value > 0 ? `${value} ${value === 1 ? singular : plural}` : '';
+
+  const yearsPart = pluralize(years, 'an', 'ans');
+  const monthsPart = pluralize(months, 'mois', 'mois');
+  const daysPart = pluralize(days, 'jour', 'jours');
+
+  if (yearsPart) parts.push(yearsPart);
+  if (monthsPart) parts.push(monthsPart);
+  if (daysPart) parts.push(daysPart);
+
+  if (parts.length === 0) return '0 jour'; // Cas par défaut
+
+  return parts.join(', ').replace(/, ([^,]*)$/, ' et $1');
+}
+
+function daysToYearsMonths(numberOfDays) {
+  if (!numberOfDays) return 'Please provide a number of days';
+  const daysInAYear = 365;
+  const daysInAMonth = 30;
+  const years = Math.floor(numberOfDays / daysInAYear);
+  const remainingDays = numberOfDays - years * daysInAYear;
+  const months = Math.floor(remainingDays / daysInAMonth);
+  const days = remainingDays - months * daysInAMonth;
+
+  return formatDuration(years, months, days);
+}
+
 function debounce(func, delay) {
   let debounceTimer;
   return function executedFunction(...args) {
@@ -449,7 +480,8 @@ function drawTableChart(rawData, isInitialSetup) {
         tooltip
           .html(
             `
-            ${accentedName} - ${product.molecule}<br>
+            ${accentedName}<br>
+            DCI: ${product.molecule}<br>
             Ce produit est en <strong>${status.text}</strong>`,
           )
           .attr("class", status.class)
@@ -497,20 +529,23 @@ function drawTableChart(rawData, isInitialSetup) {
       if (statusClass === "tooltip-arret") {
         tooltipHTML = tooltip.html(`
             <strong>${d.status}</strong>, plus disponible depuis le <strong>${formatDate(d.start_date)}</strong><br>
-            ${d.accented_product} - ${d.molecule}<br>
+            ${d.accented_product}<br>
+            DCI: ${d.molecule}<br>
           `);
       } else {
         if (formatDate(d.calculated_end_date) === formatDate(dateReport)) {
           tooltipHTML = tooltip.html(`
               <strong>${d.status} / En cours</strong><br>
-              ${d.accented_product} - ${d.molecule}<br>
-              Depuis le ${formatDate(d.start_date)} (${diffIndays(d.start_date, dateReport)} jours)
+              ${d.accented_product}<br>
+              DCI: ${d.molecule}<br>
+              Depuis le ${formatDate(d.start_date)} (${daysToYearsMonths(diffIndays(d.start_date, dateReport))})
             `);
         } else {
           tooltipHTML = tooltip.html(`
               <span class="termine">${d.status} / Terminé</span><br>
-              ${d.accented_product} - ${d.molecule}<br>
-              ${formatDate(d.start_date)} - ${formatDate(d.calculated_end_date)} (${diffIndays(d.start_date, d.calculated_end_date)} jours)
+              ${d.accented_product}<br>
+              DCI: ${d.molecule}<br>
+              ${formatDate(d.start_date)} - ${formatDate(d.calculated_end_date)} (${daysToYearsMonths(diffIndays(d.start_date, d.calculated_end_date))})
             `);
         }
       }
