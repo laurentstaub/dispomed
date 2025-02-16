@@ -24,7 +24,10 @@
 
 h1 {
     font-weight: 600;
-    margin-bottom: 10px;
+}
+
+h2 {
+    font-weight: 400;
 }
 
 footer {
@@ -47,15 +50,35 @@ p {
     margin-bottom: 5px;
 }
 
+#title-container {
+    background-color: var(--blanc);
+    border-bottom: 1px solid var(--gristresleger);
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Adjust spacing between image and text */
+    margin-bottom: 15px;
+}
+
+#capsule-icon {
+    margin-left: 15px;
+    width: 60px;
+    height: auto;
+}
+
 #last-report-date {
-    background-color: var(--gristresleger);
-    border-bottom: solid 0px var(--gristresleger);
     color: var(--grisfonce);
-    font-size: 20px;
-    font-weight: 600;
-    padding: 15px;
-    margin-bottom: 20px;
-    text-align: center;
+    font-size: 22px;
+    margin-top: 20px;
+    text-align: left;
+}
+
+#mise-a-jour {
+    color: var(--grisfonce);
+    font-size: 16px;
+    padding-bottom: 12px;
+    padding-top: 7px;
+    margin-bottom: 10px;
+    text-align: left;
 }
 
 #chart-container {
@@ -356,6 +379,36 @@ strong#legende-tension {
 }
 
 @media screen and (max-width: 900px) {
+    #title-container {
+        display: flex;
+        flex-direction: row; /* Keep elements in a row */
+        align-items: center; /* Vertically align items */
+        gap: 10px; /* Add spacing between the capsule and text */
+    }
+
+    #capsule-icon {
+        margin-left: 10px; /* Remove unnecessary margin */
+        width: 50px; /* Adjust size for smaller screens */
+        height: auto;
+    }
+
+    #title-text {
+        display: flex;
+        flex-direction: column; /* Stack title and date vertically */
+        margin-top: 10px;
+        text-align: left; /* Align text to the left */
+    }
+
+    #last-report-date {
+        font-size: 22px; /* Reduce font size for better fit */
+        margin-top: 0;
+    }
+
+    #mise-a-jour {
+        font-size: 14px; /* Adjust font size for consistency */
+        padding-bottom: 5px;
+    }
+
     .selector {
         max-width: 100%;
     }

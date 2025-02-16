@@ -14,17 +14,22 @@ html(lang="en")
         script(src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js")
     body
         header
+
         div#chart-container
-            h1#last-report-date
+            div#title-container.flex-container
+                img#capsule-icon(src="/images/gris_carre_leger.png" alt="Icône de capsule")
+                div#title-text
+                    h1#last-report-date Incidents de disponibilité des médicaments (MITM)
+                    h2#mise-a-jour
             div.flex-container
                 div#controls-and-search.chart-controls-container
                     div.atc-wrapper
                         select.selector#atc(name="atc")
-                            option(value="" selected=selectedAtcClass === "") Classe ATC
+                            option(value="" selected=selectedAtcClass === "") Choisir une classe ATC
                             each atcClass in ATCClasses
                                 option(value=atcClass.code, selected=atcClass.code === selectedAtcClass)= `${atcClass.code} - ${atcClass.description}`
                         select.selector#molecule(name="molecule")
-                            option(value="") Molécule
+                            option(value="") Choisir une molécule
                             each molecule in molecules
                                 option(value=molecule.code)=`${molecule.name}`
                     input(type="text" id="search-box" placeholder="Rechercher un produit...")

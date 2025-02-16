@@ -260,8 +260,8 @@ window.addEventListener("load", function () {
 let rawData = await fetchTableChartData(true);
 let monthlyData = dataManager.processDataMonthlyChart(rawData);
 
-d3.select("#last-report-date").text(
-  `Incidents de disponibilité des produits de santé (MITM) au ${formatDate(dataManager.getDateReport())}`,
+d3.select("#mise-a-jour").text(
+  `Mise à jour : ${formatDate(dataManager.getDateReport())}`,
 );
 drawTableChart(rawData, true);
 drawSummaryChart(monthlyData, true);
@@ -330,22 +330,28 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     svg.selectAll("*").remove();
   }
 
-  svg.append("rect")
-    .attr("class", "title-background")
-    .attr("x", margin.left)
-    .attr("y", 0)
-    .attr("width", width)
-    .attr("height", margin.top)
-    .attr("fill", "white");
+  const group = svg.append("g")
+      .attr("transform", "translate(0, 0)");
 
-  svg.append("text")
+  const titleText = svg.append("text")
     .attr("class", "chart-title")
-    .attr("x", width / 2)
+    .attr("x", 10)
     .attr("y", margin.top / 2)
     .attr("text-anchor", "start")
     .attr("fill", "var(--grisfonce)")
-    .style("font-size", `17px`)
-    .text("Ruptures et Tensions par mois");
+    .style("font-size", "15px")
+    .style("font-weight", "500")
+    .text("Évolution mensuelle des ruptures et tensions");
+
+  const bbox = titleText.node().getBBox();
+  group.insert("rect", "text")
+      .attr("x", bbox.x - 10) // Add padding
+      .attr("y", bbox.y - 5)  // Add padding
+      .attr("width", bbox.width + 20) // Adjust width with padding
+      .attr("height", bbox.height + 10) // Adjust height with padding
+      .style("fill", "var(--gristrestresleger")
+      .style("rx", 5) // Rounded corners (optional)
+      .style("ry", 5); // Rounded corners (optional)
 
   const g = svg.append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);

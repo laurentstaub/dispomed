@@ -49,7 +49,6 @@ class ConfigManager {
   }
   getAccentedProducts() { return this.accentedProducts; }
 
-
   setATCClasses(data) {
     this.ATCClasses = Array.from(new Set(data.map((d) => d.classe_atc)))
       .sort()
