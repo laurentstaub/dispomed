@@ -270,7 +270,7 @@ drawSummaryChart(monthlyData, true);
 /*    Draw the top summary chart   */
 /***********************************/
 function drawSummaryChart(monthlyChartData, isInitialSetup) {
-  const margin = { top: 60, right: 0, bottom: 50, left: 10 };
+  const margin = { top: 70, right: 0, bottom: 35, left: 10 };
   const height = 320;
   const width = 600;
   const innerHeight = height - margin.top - margin.bottom;
@@ -336,7 +336,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
   const titleText = svg.append("text")
     .attr("class", "chart-title")
     .attr("x", 10)
-    .attr("y", margin.top / 2)
+    .attr("y", 20)
     .attr("text-anchor", "start")
     .attr("fill", "var(--grisfonce)")
     .style("font-size", "15px")
@@ -345,13 +345,23 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 
   const bbox = titleText.node().getBBox();
   group.insert("rect", "text")
-      .attr("x", bbox.x - 10) // Add padding
-      .attr("y", bbox.y - 5)  // Add padding
-      .attr("width", bbox.width + 20) // Adjust width with padding
-      .attr("height", bbox.height + 10) // Adjust height with padding
+      .attr("x", bbox.x - 10)
+      .attr("y", bbox.y - 5)
+      .attr("width", bbox.width + 20)
+      .attr("height", bbox.height + 10)
       .style("fill", "var(--gristrestresleger")
-      .style("rx", 5) // Rounded corners (optional)
-      .style("ry", 5); // Rounded corners (optional)
+      .style("rx", 5) // Rounded corners
+      .style("ry", 5);
+
+  const subtitleText = group.append("text")
+      .attr("class", "chart-subtitle")
+      .attr("x", 10)
+      .attr("y", 24 + bbox.height) // Position below the title with spacing
+      .attr("text-anchor", "start")
+      .attr("fill", "var(--grisleger)")
+      .style("font-size", "11px")
+      .style("font-weight", "400")
+      .text("Nombre d'événements constatés au début de chaque mois");
 
   const g = svg.append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -388,7 +398,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .style("font-size", `${labelFontSizeScale(windowWidth)}px`)
     .attr("class", "rupture-label")
     .attr("x", (d) => xScale(d.date))
-    .attr("y", (d) => y(d.rupture) - 10)
+    .attr("y", (d) => y(d.rupture) - 8)
     .attr("text-anchor", "middle")
     .text((d) => d.rupture);
 
@@ -399,10 +409,45 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .style("font-size", `${labelFontSizeScale(windowWidth)}px`)
     .attr("class", "tension-label")
     .attr("x", (d) => xScale(d.date))
-    .attr("y", (d) => y(d.tension) - 10)
+    .attr("y", (d) => y(d.tension) - 8)
     .attr("text-anchor", "middle")
     .text((d) => d.tension);
 }
+
+const legendData = [
+    { label: "Rupture", color: "var(--rupture)" }, // Red
+    { label: "Tension", color: "var(--tension)" }, // Orange
+    { label: "Arrêt de commercialisation", color: "var(--arret-bg)" }, // Black
+    { label: "Disponible", color: "var(--disponible)" } // Green
+];
+
+function createFloatingLegend() {
+    const legendContainer = d3.select("#floating-legend");
+
+    legendContainer
+      .append("p")
+      .attr("id", "title-legend")
+      .text("Légende")
+
+    const items = legendContainer.selectAll(".legend-item")
+      .data(legendData)
+      .enter()
+      .append("div")
+      .attr("class", "legend-item");
+
+    items.append("div")
+      .style("background-color", d => d.color)
+      .style("width", "14px")
+      .style("height", "14px")
+      .style("display", "inline-block")
+      .style("margin-right", "5px");
+
+    items.append("span")
+      .text(d => d.label)
+}
+
+createFloatingLegend();
+
 
 /***************************/
 /* Create the table chart  */
@@ -602,7 +647,7 @@ function drawTableChart(rawData, isInitialSetup) {
     .attr("class", "year-line")
     .attr("x1", (d) => xScale(d))
     .attr("x2", (d) => xScale(d))
-    .attr("y1", -height)
+    .attr("y1", 0)
     .attr("y2", innerHeight);
 
   // Add status bars on the left of the chart

@@ -59,16 +59,22 @@ p {
     margin-bottom: 15px;
 }
 
+#title-text {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+    text-align: left;
+}
+
 #capsule-icon {
     margin-left: 15px;
     width: 60px;
     height: auto;
 }
 
-#last-report-date {
+#report-title {
     color: var(--grisfonce);
     font-size: 22px;
-    margin-top: 20px;
     text-align: left;
 }
 
@@ -106,14 +112,14 @@ p {
 #controls-and-search {
     display: flex;
     flex-direction: column;
-    max-height: 250px;
+    max-height: 330px;
     justify-content: space-between;
-    margin: 10px;
+    margin: 0px 5px 0px 15px;
 }
 
 .chart-controls-container {
     border: none;
-    padding: 10px 15px 10px 5px;
+    padding: 0px 15px 10px 5px;
     width: 220px;
 }
 
@@ -130,7 +136,7 @@ p {
 }
 
 #search-box {
-    border-color: var(--grisleger);
+    border-color: var(--gristresleger);
     border-width: 1px;
     border-style: solid;
     font-size: 14px;
@@ -151,7 +157,7 @@ p {
     color: var(--gristresfonce);
     flex: 1;
     font-size: 14px;
-    height: 28px;
+    height: 30px;
     margin-bottom: 10px;
     padding: 5px;
     text-align: center;
@@ -175,27 +181,20 @@ p {
     margin-bottom: 10px;
 }
 
-.legende {
-    color: var(--grisfonce);
-    font-size: 13px;
-    padding: 5px 10px 10px 0px;
-}
-
-#legende-rupture {
-    margin-bottom: 10px;
-}
-
-strong#legende-rupture {
-    color: var(--rupture);
-}
-
-strong#legende-tension {
-    color: var(--tension);
+.toggle-button {
+  background-color: var(--gristresleger);
+  border-radius: 4px;
+  color: var(--gristresfonce);
+  cursor: pointer;
+  border: none;
+  font-size: 14px;
+  height: 30px;
+  padding: 5px;
+  width: 100%;
 }
 
 #summary {
     flex: 1;
-    height: 320px;
 }
 
 .termine {
@@ -294,7 +293,7 @@ strong#legende-tension {
 }
 
 .selector {
-    border-color: var(--grisleger);
+    border-color: var(--gristresleger);
     color: var(--grisfonce);
     display: inline-block;
     font-size: 14px;
@@ -314,6 +313,31 @@ strong#legende-tension {
 
 .atc-option label {
     margin-left: 5px;
+}
+
+#legend-container {
+    display: inline-block;
+    position: relative;
+}
+
+#title-legend {
+    color: var(--grisfonce);
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+#floating-legend {
+    left: 0;
+    padding: 8px;
+}
+
+.legend-item {
+    align-items: center;
+    color: var(--grisfonce);
+    display: flex;
+    font-size: 13px;
+    margin-bottom: 9px;
 }
 
 #tooltip {
@@ -381,31 +405,23 @@ strong#legende-tension {
 @media screen and (max-width: 900px) {
     #title-container {
         display: flex;
-        flex-direction: row; /* Keep elements in a row */
-        align-items: center; /* Vertically align items */
-        gap: 10px; /* Add spacing between the capsule and text */
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
     }
 
     #capsule-icon {
-        margin-left: 10px; /* Remove unnecessary margin */
-        width: 50px; /* Adjust size for smaller screens */
+        margin-left: 10px;
+        width: 50px;
         height: auto;
     }
 
     #title-text {
-        display: flex;
-        flex-direction: column; /* Stack title and date vertically */
         margin-top: 10px;
-        text-align: left; /* Align text to the left */
-    }
-
-    #last-report-date {
-        font-size: 22px; /* Reduce font size for better fit */
-        margin-top: 0;
     }
 
     #mise-a-jour {
-        font-size: 14px; /* Adjust font size for consistency */
+        font-size: 14px;
         padding-bottom: 5px;
     }
 
@@ -413,9 +429,26 @@ strong#legende-tension {
         max-width: 100%;
     }
 
-    #last-report-date {
+    #report-title {
         font-size: 16px;
         margin-bottom: 0px;
+    }
+
+    #title-legend {
+        display: none;
+    }
+
+    #floating-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .legend-item {
+        flex: 0 0 auto;
+        font-size: 11px;
+        margin-bottom: 0;
+        white-space: nowrap;
     }
 
     #chart-container {

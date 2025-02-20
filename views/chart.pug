@@ -14,15 +14,17 @@ html(lang="en")
         script(src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js")
     body
         header
-
         div#chart-container
             div#title-container.flex-container
                 img#capsule-icon(src="/images/gris_carre_leger.png" alt="Icône de capsule")
                 div#title-text
-                    h1#last-report-date Incidents de disponibilité des médicaments (MITM)
+                    h1#report-title Incidents de disponibilité des médicaments (MITM)
                     h2#mise-a-jour
+
+
             div.flex-container
                 div#controls-and-search.chart-controls-container
+                    input(type="text" id="search-box" placeholder="Rechercher un produit...")
                     div.atc-wrapper
                         select.selector#atc(name="atc")
                             option(value="" selected=selectedAtcClass === "") Choisir une classe ATC
@@ -32,14 +34,13 @@ html(lang="en")
                             option(value="") Choisir une molécule
                             each molecule in molecules
                                 option(value=molecule.code)=`${molecule.name}`
-                    input(type="text" id="search-box" placeholder="Rechercher un produit...")
                     div.button-row
                         button#show-12-months.chart-button 12 mois
                         button#show-24-months.chart-button 24 mois
                         button#show-all-data.chart-button Tout
                     button#reinitialiser Réinitialiser
-                    div.legende
-                        p #[strong#legende-rupture -----------] Rupture&nbsp;&nbsp; #[strong#legende-tension -----------] Tension
+                    div#legend-container
+                        div#floating-legend
                 div#summary
             div#dash
                 div#tooltip
@@ -56,3 +57,4 @@ html(lang="en")
         a(href="https://www.antheosdata.com") Antheos 2023-2025
 
     script(type="module",src="/js/draw.js")
+    script(type="module",src="/js/display_legend.js")
