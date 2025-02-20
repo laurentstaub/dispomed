@@ -51,22 +51,22 @@ function getProductStatus(d) {
   const dateReport = dataManager.getDateReport();
 
   if (d.status === "arret") {
-    return { text: "Arrêt de commercialisation", class: "tooltip-arret" };
+    return { text: "Arrêt de commercialisation", class: "tooltip-arret", shorthand: "arret" };
   } else if (
     d.start_date <= dateReport &&
     d.calculated_end_date >= dateReport
   ) {
     if (d.status === "Rupture") {
-      return { text: "Rupture de stock", class: "tooltip-rupture" };
+      return { text: "Rupture de stock", class: "tooltip-rupture", shorthand: "rupture" };
     } else if (d.status === "Tension") {
-      return { text: "Tension d'approvisionnement", class: "tooltip-tension" };
+      return { text: "Tension d'approvisionnement", class: "tooltip-tension", shorthand: "tension" };
     } else if (d.status === "Arret") {
-      return { text: "Arrêt de commercialisation", class: "tooltip-arret" };
+      return { text: "Arrêt de commercialisation", class: "tooltip-arret", shorthand: "arret" };
     }
   } else if (!d.calculated_end_date || d.calculated_end_date < dateReport) {
-    return { text: "Disponible", class: "tooltip-disponible" };
+    return { text: "Disponible", class: "tooltip-disponible", shorthand: "disponible"  };
   }
-  return { text: "Statut inconnu", class: "" };
+  return { text: "Statut inconnu", class: "", shorthand: "inconnu" };
 }
 
 // Used to get the unique product list from the SQL query
@@ -635,6 +635,28 @@ function drawTableChart(rawData, isInitialSetup) {
     .attr("x2", innerWidth)
     .attr("y1", 1)
     .attr("y2", 1);
+
+  // Add a single status circle for each product at the report date
+  innerChart.selectAll("circle.status-circle")
+    .data(dataManager.getProducts()) // Loop through all products
+    .enter()
+    .append("circle")
+    .attr("cx", xScale(dataManager.getDateReport())) // Position at report date
+    .attr("cy", (product) => yScale(product) + yScale.bandwidth() / 2) // Center vertically
+    .attr("r", 4) // Circle radius
+    .attr("class", (product) => {
+      const dateReport = dataManager.getDateReport();
+      const productIncidents = rawData.filter((d) => d.product === product);
+
+      const matchingIncident = productIncidents.find(
+        (incident) => formatDate(incident.calculated_end_date) === formatDate(dateReport)
+      );
+
+      if (matchingIncident) {
+        return matchingIncident.status.toLowerCase();
+      }
+      return "disponible";
+    })
 
   // Add vertical grid lines for years
   const yearTicks = xScale.ticks(d3.timeYear.every(1));

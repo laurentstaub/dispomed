@@ -22,6 +22,11 @@
     --vert: rgb(80, 120, 80);
 }
 
+.rupture { fill: var(--rupture) }
+.tension { fill: var(--tension) }
+.arret { fill: var(--arret-bg) }
+.disponible { fill: var(--disponible) }
+
 h1 {
     font-weight: 600;
 }
