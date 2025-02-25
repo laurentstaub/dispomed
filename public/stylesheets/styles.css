@@ -246,17 +246,17 @@ p {
     fill: var(--gris);
 }
 
-.top-axis text {
+.x-axis-summary text {
     fill: var(--gris);
     font-weight: 400;
     font-size: 12px;
 }
 
-.top-axis line {
-    stroke: none;
+.x-axis-summary line {
+    stroke: var(--grisleger);
 }
 
-.top-axis .domain {
+.x-axis-summary .domain {
     stroke: var(--gris);
     stroke-width: 1px;
 }
@@ -287,7 +287,7 @@ p {
 }
 
 .summary-chart-xline {
-    stroke-width: 1;
+    stroke-width: 1px;
     stroke: var(--gris);
 }
 

@@ -23,7 +23,7 @@ const frFr = d3.timeFormatLocale({
   months: [ "janvier", "février", "mars", "avril", "mai", "juin",
     "juillet", "août", "septembre", "octobre", "novembre", "décembre",
   ],
-  shortMonths: ["Q1", "", "", "Q2", "", "", "Q3", "", "", "Q4", "", ""],
+  shortMonths: ["Janv.", "Fév.", "Mars", "Avr.", "Mai", "Juin", "Juil.", "Août", "Sept.", "Oct.", "Nov.", "Déc."],
 });
 
 const formatDate = frFr.format("%e %B %Y");
@@ -270,11 +270,11 @@ drawSummaryChart(monthlyData, true);
 /*    Draw the top summary chart   */
 /***********************************/
 function drawSummaryChart(monthlyChartData, isInitialSetup) {
-  const margin = { top: 70, right: 0, bottom: 35, left: 10 };
+  const margin = { top: 70, right: 15, bottom: 35, left: 20 };
   const height = 320;
   const width = 600;
   const innerHeight = height - margin.top - margin.bottom;
-  const innerWidth = width - margin.left;
+  const innerWidth = width - margin.left - margin.right;
 
   const startDate = dataManager.getStartDate();
   const endDate = dataManager.getEndDate();
@@ -288,6 +288,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 
   if (monthlyChartData.length === 0) {
     d3.select("#summary").style("display", "none");
+    return;
   }
 
   // Create scales
@@ -301,11 +302,14 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .range([innerHeight, 0]);
 
   const xAxis = d3.axisBottom(xScale)
-    .ticks(d3.timeMonth.every(1))
-    .tickFormat((d) =>
-      d.getMonth() === 0 ? d3.timeFormat("%Y")(d) : formatDateShort(d),
-    )
-    .tickSize(3);
+    .ticks(dataManager.getMonthsToShow() >= 24 ? d3.timeMonth.every(3) : d3.timeMonth.every(1))
+    .tickFormat((d) => {
+      if (d.getMonth() === 0) {
+        return d3.timeFormat("%Y")(d);
+      }
+      return formatDateShort(d);
+    })
+    .tickSize(4);
 
   // Create line generators
   const lineTension = d3.line()
@@ -353,7 +357,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
       .style("rx", 5) // Rounded corners
       .style("ry", 5);
 
-  const subtitleText = group.append("text")
+  group.append("text")
       .attr("class", "chart-subtitle")
       .attr("x", 10)
       .attr("y", 24 + bbox.height) // Position below the title with spacing
@@ -372,9 +376,22 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("fill", "white");
 
   g.append("g")
-    .attr("class", "x-axis top-axis")
+    .attr("class", "x-axis-summary")
     .attr("transform", `translate(0, ${innerHeight})`)
     .call(xAxis);
+
+  // Style yearly tick
+  g.selectAll(".x-axis-summary .tick text")
+    .filter((d) => d.getMonth() === 0)
+    .style("font-weight", "bold")
+    .style("font-size", "11px")
+    .style("fill", "var(--grisfonce)");
+
+  // Style month labels differently
+  g.selectAll(".x-axis-summary .tick text")
+    .filter((d) => d.getMonth() !== 0)
+    .style("font-size", "10px")
+    .style("fill", "var(--grisleger)");
 
   g.selectAll(".x-axis text")
     .style("font-size", `${labelFontSizeScale(windowWidth)}px`,
@@ -453,7 +470,7 @@ createFloatingLegend();
 /* Create the table chart  */
 /***************************/
 function drawTableChart(rawData, isInitialSetup) {
-  const margin = { top: 0, right: 0, bottom: 0, left: 270 };
+  const margin = { top: 0, right: 15, bottom: 0, left: 270 };
   const width = Math.min(900, windowWidth);
   const barHeight = 20;
   const labelMaxLength = 29;
