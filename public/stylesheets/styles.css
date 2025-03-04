@@ -104,7 +104,7 @@ p {
 #source-info {
     background-color: var(--gristrestresleger);
     color: var(--grisfonce);
-    margin: 40px auto;
+    margin: 70px auto;
     position: relative;
     max-width: 900px;
     padding: 0px 0px 20px 0px;
@@ -210,13 +210,13 @@ p {
 .tension-line {
     fill: none;
     stroke: var(--tension);
-    stroke-width: 3px;
+    stroke-width: 2px;
 }
 
 .rupture-line {
     fill: none;
     stroke: var(--rupture);
-    stroke-width: 3px;
+    stroke-width: 2px;
 }
 
 .rupture-label {
@@ -227,6 +227,10 @@ p {
 .tension-label {
     fill: var(--tension);
     font-size: 10px;
+}
+
+.current-label {
+    font-size: 9px;
 }
 
 .grid-line {

@@ -69,7 +69,7 @@ function getProductStatus(d) {
   return { text: "Statut inconnu", class: "", shorthand: "inconnu" };
 }
 
-// Used to get the unique product list from the SQL query
+// Get unique products count
 function getUniqueProductLength(eventList) {
   let result = [];
 
@@ -138,7 +138,7 @@ async function handleSearch(isInitialSetup, searchTerm) {
   const atcClass = dataManager.getATCClass();
   const molecule = dataManager.getMolecule();
 
-  rawData = await fetchTableChartData(isInitialSetup,monthsToShow,
+  rawData = await fetchTableChartData(isInitialSetup, monthsToShow,
     searchTerm, atcClass, molecule);
   monthlyData = dataManager.processDataMonthlyChart(rawData);
   drawTableChart(rawData, false);
@@ -159,15 +159,24 @@ function updateMoleculeDropdown(atcClass) {
     return { code: mol.moleculeId, name: mol.moleculeName };
   });
 
-  moleculeSelect
-    .selectAll("option")
-    .data([{ code: "", name: "Choisir une molécule" }, ...molecules])
-    .join("option")
-    .attr("value", (d) => d.code)
-    .text((d) => d.name)
-    .selectAll("option")
-    .attr("selected", null);
+  // Update dropdown options
+  const options = moleculeSelect.selectAll("option")
+    .data([{ code: "", name: "Choisir une molécule" }, ...molecules]);
 
+  // Remove old options
+  options.exit().remove();
+
+  // Update existing options
+  options.text((d) => d.name)
+    .attr("value", (d) => d.code);
+
+  // Add new options
+  options.enter()
+    .append("option")
+    .text((d) => d.name)
+    .attr("value", (d) => d.code);
+
+  // Set selected option
   if (selectedMoleculeId) {
     moleculeSelect
       .selectAll(`option[value='${selectedMoleculeId}']`)
@@ -247,7 +256,7 @@ document.getElementById("show-all-data").addEventListener("click", function () {
   const monthsDiff = yearsFromStart * 12 + monthsFromStart + 1;
 
   dataManager.setMonthsToShow(monthsDiff);
-  handleSearch(dataManager.getSearchTerm());
+  handleSearch(true, dataManager.getSearchTerm());
   selectButton(this);
 });
 
@@ -280,6 +289,8 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
   const endDate = dataManager.getEndDate();
   const parseDate = d3.timeParse("%Y-%m-%d");
   monthlyChartData.forEach((d) => (d.date = parseDate(d.date)));
+
+  const dateReport = dataManager.getDateReport();
 
   // Filter out months with no data
   const filteredData = monthlyChartData.filter(
@@ -408,6 +419,32 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("class", "rupture-line")
     .attr("d", lineRupture);
 
+  // Add marks (circles) for rupture data points
+  g.selectAll(".rupture-mark")
+    .data(filteredData.filter((d) => d.rupture > 0))
+    .enter()
+    .append("circle")
+    .attr("class", "rupture-mark")
+    .attr("cx", (d) => xScale(d.date))
+    .attr("cy", (d) => y(d.rupture))
+    .attr("r", 3)
+    .style("fill", "var(--rupture)")
+    .style("stroke", "white")
+    .style("stroke-width", 0.5);
+
+  // Add marks (circles) for tension data points
+  g.selectAll(".tension-mark")
+    .data(filteredData.filter((d) => d.tension > 0))
+    .enter()
+    .append("circle")
+    .attr("class", "tension-mark")
+    .attr("cx", (d) => xScale(d.date))
+    .attr("cy", (d) => y(d.tension))
+    .attr("r", 3)
+    .style("fill", "var(--tension)")
+    .style("stroke", "white")
+    .style("stroke-width", 0.5);
+
   g.selectAll(".rupture-label")
     .data(filteredData.filter((d) => d.rupture > 0))
     .enter()
@@ -415,7 +452,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .style("font-size", `${labelFontSizeScale(windowWidth)}px`)
     .attr("class", "rupture-label")
     .attr("x", (d) => xScale(d.date))
-    .attr("y", (d) => y(d.rupture) - 8)
+    .attr("y", (d) => y(d.rupture) - 10)
     .attr("text-anchor", "middle")
     .text((d) => d.rupture);
 
@@ -426,9 +463,74 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .style("font-size", `${labelFontSizeScale(windowWidth)}px`)
     .attr("class", "tension-label")
     .attr("x", (d) => xScale(d.date))
-    .attr("y", (d) => y(d.tension) - 8)
+    .attr("y", (d) => y(d.tension) - 10)
     .attr("text-anchor", "middle")
     .text((d) => d.tension);
+
+
+      let currentRupture = 0;
+      let currentTension = 0;
+
+      rawData.forEach((product) => {
+        if (product.start_date <= dateReport && product.calculated_end_date >= dateReport) {
+          if (product.status === "Rupture") currentRupture++;
+          else if (product.status === "Tension") currentTension++;
+        }
+      });
+
+      let currentMonthData = {
+        date: dateReport,
+        rupture: currentRupture,
+        tension: currentTension
+      };
+
+    if (currentMonthData) {
+      // Add rupture point if there are ruptures
+      if (currentMonthData.rupture > 0) {
+        // Add larger circle for current rupture total
+        g.append("circle")
+          .attr("class", "current-point rupture-current")
+          .attr("cx", xScale(dateReport))
+          .attr("cy", y(currentMonthData.rupture))
+          .attr("r", 2) // Larger than regular points
+          .style("fill", "var(--rupture)")
+          .style("stroke", "white")
+          .style("stroke-width", 1);
+
+        // Add special label for current rupture
+        g.append("text")
+          .attr("class", "current-label")
+          .attr("x", xScale(dateReport) + 12)
+          .attr("y", y(currentMonthData.rupture))
+          .attr("text-anchor", "middle")
+          .attr("font-weight", "bold")
+          .style("fill", "var(--rupture)")
+          .text(currentMonthData.rupture);
+      }
+
+      // Add tension point if there are tensions
+      if (currentMonthData.tension > 0) {
+        // Add larger circle for current tension total
+        g.append("circle")
+          .attr("class", "current-point tension-current")
+          .attr("cx", xScale(dateReport))
+          .attr("cy", y(currentMonthData.tension))
+          .attr("r", 2) // Larger than regular points
+          .style("fill", "var(--tension)")
+          .style("stroke", "white")
+          .style("stroke-width", 1);
+
+        // Add special label for current tension
+        g.append("text")
+          .attr("class", "current-label")
+          .attr("x", xScale(dateReport) + 12)
+          .attr("y", y(currentMonthData.tension))
+          .attr("text-anchor", "middle")
+          .attr("font-weight", "bold")
+          .style("fill", "var(--tension)")
+          .text(currentMonthData.tension);
+      }
+    }
 }
 
 const legendData = [
@@ -465,7 +567,6 @@ function createFloatingLegend() {
 
 createFloatingLegend();
 
-
 /***************************/
 /* Create the table chart  */
 /***************************/
@@ -488,6 +589,7 @@ function drawTableChart(rawData, isInitialSetup) {
 
   if (rawData.length === 0) {
     console.log("No data");
+    return;
   }
 
   const xScale = d3.scaleTime()
@@ -501,7 +603,13 @@ function drawTableChart(rawData, isInitialSetup) {
 
   let outerBox, innerChart;
 
-  // Création de la zone svg si elle n'existe pas
+  // Create tooltip if it doesn't exist
+  let tooltip = d3.select("body").select("#tooltip");
+  if (tooltip.empty()) {
+    tooltip = d3.select("body").append("div").attr("id", "tooltip");
+  }
+
+  // Create or update SVG
   if (isInitialSetup) {
     outerBox = d3.select("#dash")
       .append("svg")
@@ -511,7 +619,7 @@ function drawTableChart(rawData, isInitialSetup) {
     innerChart = outerBox.append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
   } else {
-    // Mise à jour du SVG existant
+    // Update existing SVG
     outerBox = d3.select("#dash svg")
       .attr("viewBox", `0, 0, ${width}, ${height}`);
 
@@ -520,7 +628,7 @@ function drawTableChart(rawData, isInitialSetup) {
   }
 
   // Y-AXIS
-  // Add Produits to the left of the chart
+  // Add product names to the left of the chart
   let verticalTicks = width - margin.left;
 
   innerChart.append("g")
@@ -543,7 +651,6 @@ function drawTableChart(rawData, isInitialSetup) {
 
       if (accentedName.length > labelMaxLength || product) {
         const status = getProductStatus(product);
-        const tooltip = d3.select("#tooltip");
         tooltip.transition().duration(200).style("opacity", 1);
         tooltip
           .html(
@@ -558,11 +665,11 @@ function drawTableChart(rawData, isInitialSetup) {
       }
     })
     .on("mouseout", function () {
-      d3.select("#tooltip").transition().duration(500).style("opacity", 0);
+      tooltip.transition().duration(500).style("opacity", 0);
     });
 
   // EVENTS
-  // Ajout des barres de chaque événement
+  // Add bars for each event
   innerChart.selectAll("rect.bar")
     .data(rawData)
     .enter()
@@ -627,12 +734,6 @@ function drawTableChart(rawData, isInitialSetup) {
       tooltip.style("opacity", 0);
     });
 
-  // Create tooltip div if it doesn't exist
-  let tooltip = d3.select("body").select("#tooltip");
-  if (tooltip.empty()) {
-    tooltip = d3.select("body").append("div").attr("id", "tooltip");
-  }
-
   // GRID
   // Add horizontal grid lines
   innerChart.selectAll(".grid-line")
@@ -673,7 +774,7 @@ function drawTableChart(rawData, isInitialSetup) {
         return matchingIncident.status.toLowerCase();
       }
       return "disponible";
-    })
+    });
 
   // Add vertical grid lines for years
   const yearTicks = xScale.ticks(d3.timeYear.every(1));

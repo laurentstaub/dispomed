@@ -10,7 +10,6 @@ const ATCDataManager = (function () {
       monthsToShow: monthsToShow,
     }).toString();
     const url = `${API_BASE_URL}/api/incidents/ATCClasses${queryString ? "?" + queryString : ""}`;
-    console.log(url);
 
     const response = await fetch(url);
     if (!response.ok) {
@@ -22,6 +21,7 @@ const ATCDataManager = (function () {
     const moleculesSet = new Set();
     const tempAtcMoleculeMap = new Map();
 
+    console.log(data);
     data.forEach((row) => {
       atcClassesMap.set(row.atc_code, row.atc_description);
 
