@@ -161,7 +161,7 @@ function formatDuration(years, months, days) {
 }
 
 function daysToYearsMonths(numberOfDays) {
-  if (!numberOfDays) return 'Please provide a number of days';
+  if (!numberOfDays) return '0 jour';
   const daysInAYear = 365;
   const daysInAMonth = 30;
   const years = Math.floor(numberOfDays / daysInAYear);
