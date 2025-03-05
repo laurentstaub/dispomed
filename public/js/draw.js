@@ -33,6 +33,68 @@ function getWindowWidth() {
   return window.innerWidth;
 }
 
+function shouldShowMarkForMonth(date, monthsToShow) {
+  // Always show the current month
+  const dateReport = dataManager.getDateReport();
+  if (date.getTime() === new Date(dateReport).setDate(1)) {
+    return true;
+  }
+
+  // For views of 24 months or more, only show quarterly (Jan, Apr, Jul, Oct)
+  if (monthsToShow >= 24) {
+    return date.getMonth() % 3 === 0; // Show only for months 0 (Jan), 3 (Apr), 6 (Jul), 9 (Oct)
+  }
+
+  // Otherwise show all monthly marks
+  return true;
+}
+
+function identifyRecentStatusChanges(data, recentDays = 7) {
+  const dateReport = dataManager.getDateReport();
+  const recentDate = new Date(dateReport);
+  recentDate.setDate(recentDate.getDate() - recentDays);
+
+  // Products with recently started incidents
+  const recentlyStarted = data.filter(d => {
+    return d.start_date >= recentDate && d.start_date <= dateReport;
+  });
+
+  // Products with recently ended incidents
+  const recentlyEnded = data.filter(d => {
+    return d.calculated_end_date >= recentDate && d.end_date;
+  });
+
+  // Combine both types of changes
+  const allRecentChanges = [...recentlyStarted, ...recentlyEnded];
+
+  // Create a map with products as keys and their change type as values
+  const productChanges = new Map();
+
+  recentlyStarted.forEach(d => {
+    productChanges.set(d.product, {
+      type: 'started',
+      status: d.status,
+      date: d.start_date,
+      incident: d
+    });
+  });
+
+  recentlyEnded.forEach(d => {
+    // Only add if not already in the map, or if this end date is more recent
+    if (!productChanges.has(d.product) ||
+        productChanges.get(d.product).date < d.calculated_end_date) {
+      productChanges.set(d.product, {
+        type: 'ended',
+        status: d.status,
+        date: d.calculated_end_date,
+        incident: d
+      });
+    }
+  });
+
+  return productChanges;
+}
+
 let windowWidth = getWindowWidth();
 
 const fontSizeScale = d3
@@ -50,20 +112,19 @@ const labelFontSizeScale = d3
 function getProductStatus(d) {
   const dateReport = dataManager.getDateReport();
 
-  if (d.status === "arret") {
+  if (d.status === "Arret") {
     return { text: "Arrêt de commercialisation", class: "tooltip-arret", shorthand: "arret" };
   } else if (
     d.start_date <= dateReport &&
-    d.calculated_end_date >= dateReport
+    d.calculated_end_date >= dateReport &&
+    d.end_date === null
   ) {
     if (d.status === "Rupture") {
       return { text: "Rupture de stock", class: "tooltip-rupture", shorthand: "rupture" };
     } else if (d.status === "Tension") {
       return { text: "Tension d'approvisionnement", class: "tooltip-tension", shorthand: "tension" };
-    } else if (d.status === "Arret") {
-      return { text: "Arrêt de commercialisation", class: "tooltip-arret", shorthand: "arret" };
     }
-  } else if (!d.calculated_end_date || d.calculated_end_date < dateReport) {
+  } else if (!d.calculated_end_date || d.calculated_end_date < dateReport || d.end_date) {
     return { text: "Disponible", class: "tooltip-disponible", shorthand: "disponible"  };
   }
   return { text: "Statut inconnu", class: "", shorthand: "inconnu" };
@@ -275,6 +336,7 @@ d3.select("#mise-a-jour").text(
 drawTableChart(rawData, true);
 drawSummaryChart(monthlyData, true);
 
+
 /***********************************/
 /*    Draw the top summary chart   */
 /***********************************/
@@ -419,9 +481,9 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("class", "rupture-line")
     .attr("d", lineRupture);
 
-  // Add marks (circles) for rupture data points
+  // Add marks (circles) for rupture data points - WITH FILTERING
   g.selectAll(".rupture-mark")
-    .data(filteredData.filter((d) => d.rupture > 0))
+    .data(filteredData.filter((d) => d.rupture > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
     .enter()
     .append("circle")
     .attr("class", "rupture-mark")
@@ -432,9 +494,9 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .style("stroke", "white")
     .style("stroke-width", 0.5);
 
-  // Add marks (circles) for tension data points
+  // Add marks (circles) for tension data points - WITH FILTERING
   g.selectAll(".tension-mark")
-    .data(filteredData.filter((d) => d.tension > 0))
+    .data(filteredData.filter((d) => d.tension > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
     .enter()
     .append("circle")
     .attr("class", "tension-mark")
@@ -445,8 +507,9 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .style("stroke", "white")
     .style("stroke-width", 0.5);
 
+  // Add labels for rupture data points - WITH FILTERING
   g.selectAll(".rupture-label")
-    .data(filteredData.filter((d) => d.rupture > 0))
+    .data(filteredData.filter((d) => d.rupture > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
     .enter()
     .append("text")
     .style("font-size", `${labelFontSizeScale(windowWidth)}px`)
@@ -456,8 +519,9 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("text-anchor", "middle")
     .text((d) => d.rupture);
 
+  // Add labels for tension data points - WITH FILTERING
   g.selectAll(".tension-label")
-    .data(filteredData.filter((d) => d.tension > 0))
+    .data(filteredData.filter((d) => d.tension > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
     .enter()
     .append("text")
     .style("font-size", `${labelFontSizeScale(windowWidth)}px`)
@@ -466,7 +530,6 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("y", (d) => y(d.tension) - 10)
     .attr("text-anchor", "middle")
     .text((d) => d.tension);
-
 
       let currentRupture = 0;
       let currentTension = 0;
@@ -570,7 +633,7 @@ createFloatingLegend();
 /***************************/
 /* Create the table chart  */
 /***************************/
-function drawTableChart(rawData, isInitialSetup) {
+function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
   const margin = { top: 0, right: 15, bottom: 0, left: 270 };
   const width = Math.min(900, windowWidth);
   const barHeight = 20;
@@ -648,17 +711,27 @@ function drawTableChart(rawData, isInitialSetup) {
     .on("mouseover", function (event, d) {
       const product = rawData.find((item) => item.product === d);
       const accentedName = accentedProducts[products.indexOf(d)];
+      const dateReport = dataManager.getDateReport();
 
       if (accentedName.length > labelMaxLength || product) {
         const status = getProductStatus(product);
+        let tooltipContent = ``;
+
+        if (status.shorthand === "rupture" || status.shorthand === "tension") {
+          if (product.start_date <= dateReport && product.calculated_end_date >= dateReport) {
+            const diffInDays = Math.round((dateReport - product.start_date) / MS_IN_DAY);
+            tooltipContent += `Ce produit est en <strong>${status.text}</strong> depuis ${daysToYearsMonths(diffInDays)}`;
+          }
+        } else {
+          tooltipContent += `Ce produit est en <strong>${status.text}</strong>`;
+        }
+
+        tooltipContent += `<br>${accentedName}<br>
+          DCI: ${product.molecule}<br>`
+
         tooltip.transition().duration(200).style("opacity", 1);
         tooltip
-          .html(
-            `
-            ${accentedName}<br>
-            DCI: ${product.molecule}<br>
-            Ce produit est en <strong>${status.text}</strong>`,
-          )
+          .html(tooltipContent)
           .attr("class", status.class)
           .style("left", 23 + "px")
           .style("top", event.pageY - 5 + "px");
@@ -667,6 +740,16 @@ function drawTableChart(rawData, isInitialSetup) {
     .on("mouseout", function () {
       tooltip.transition().duration(500).style("opacity", 0);
     });
+
+  // After adding product names to the chart, add highlight for recently changed products
+    if (highlightedProducts && highlightedProducts.length > 0) {
+      innerChart.selectAll(".y-axis .tick")
+        .filter(d => highlightedProducts.includes(d))
+        .classed("highlighted-product", true)
+        .selectAll("text")
+        .style("font-weight", "bold")
+        .style("fill", "var(--grisfonce)");
+    }
 
   // EVENTS
   // Add bars for each event
@@ -761,20 +844,39 @@ function drawTableChart(rawData, isInitialSetup) {
     .append("circle")
     .attr("cx", xScale(dataManager.getDateReport())) // Position at report date
     .attr("cy", (product) => yScale(product) + yScale.bandwidth() / 2) // Center vertically
-    .attr("r", 4) // Circle radius
+    .attr("r", 4)
     .attr("class", (product) => {
-      const dateReport = dataManager.getDateReport();
       const productIncidents = rawData.filter((d) => d.product === product);
-
-      const matchingIncident = productIncidents.find(
-        (incident) => formatDate(incident.calculated_end_date) === formatDate(dateReport)
-      );
-
-      if (matchingIncident) {
-        return matchingIncident.status.toLowerCase();
-      }
-      return "disponible";
+          // If there are incidents for this product, use the first one to get status
+          if (productIncidents.length > 0) {
+            const status = getProductStatus(productIncidents[0]);
+            return status.shorthand;
+          }
+          return "disponible";
     });
+
+  const recentDays = 7;
+    const dateReport = dataManager.getDateReport();
+    const recentDate = new Date(dateReport);
+    recentDate.setDate(recentDate.getDate() - recentDays);
+
+    // Get recent status changes
+    const productChanges = identifyRecentStatusChanges(rawData, recentDays);
+
+    // Add visual indication for recently started incidents
+    innerChart.selectAll(".start-indicator")
+      .data(rawData.filter(d => d.start_date >= recentDate || d.end_date >= recentDate))
+      .enter()
+      .append("circle")
+      .attr("class", "start-indicator recent-change")
+      .attr("cx", d => xScale(d.calculated_end_date))
+      .attr("cy", d => yScale(d.product) + yScale.bandwidth() / 2)
+      .attr("r", 7)
+      .attr("fill", "none")
+      .attr("stroke", d => d.end_date ? "var(--disponible)" : d.status === "Rupture" ? "var(--rupture)" :
+                         d.status === "Tension" ? "var(--tension)" : "var(--gris)")
+      .attr("stroke-width", 2);
+
 
   // Add vertical grid lines for years
   const yearTicks = xScale.ticks(d3.timeYear.every(1));

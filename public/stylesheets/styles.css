@@ -198,6 +198,63 @@ p {
   width: 100%;
 }
 
+/* Recent changes panel */
+#recent-changes-panel {
+  border-radius: 4px;
+  position: relative;
+}
+
+#recent-changes-panel h3 {
+  color: var(--grisfonce);
+  margin-top: 0;
+}
+
+.recent-change-item {
+  transition: background-color 0.2s;
+}
+
+.recent-change-item:hover {
+  background-color: var(--blanc);
+  border-radius: 4px;
+}
+
+/* Visual indicators */
+.recent-change {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.5; r: 4; }
+  50% { opacity: 1; r: 6; }
+  100% { opacity: 0.5; r: 4; }
+}
+
+/* Highlighted products */
+.highlighted-product text {
+  font-weight: bold !important;
+}
+
+/* Recent changes button */
+#show-recent-changes {
+  position: relative;
+}
+
+#show-recent-changes::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--rupture);
+  border-radius: 50%;
+  display: none;
+}
+
+#show-recent-changes.has-changes::after {
+  display: block;
+}
+
 #summary {
     flex: 1;
 }

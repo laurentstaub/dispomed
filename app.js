@@ -52,14 +52,35 @@ app.get("/api/incidents", async (req, res) => {
           ca.code || ' - ' || ca.description AS classe_atc,
           ca.code AS atc_code,
           CASE
-            WHEN i.calculated_end_date = (SELECT MAX(calculated_end_date) FROM incidents) THEN 1
+            WHEN i.calculated_end_date = (SELECT MAX(calculated_end_date) FROM incidents)
+              AND i.end_date IS NULL THEN 1
             ELSE 0
           END AS is_active,
           CASE
             WHEN i.status = 'Rupture' THEN 1
             WHEN i.status = 'Tension' THEN 2
             ELSE 3
-          END AS status_priority
+          END AS status_priority,
+          -- Recent change detection - highest priority for recent changes
+          CASE
+            -- Recent start (within the last 7 days)
+            WHEN i.start_date >= ((SELECT MAX(calculated_end_date) FROM incidents) - INTERVAL '7 days') THEN 1
+            -- Recent end (within the last 7 days, and actually ended)
+            WHEN i.calculated_end_date >= ((SELECT MAX(calculated_end_date) FROM incidents) - INTERVAL '7 days')
+                 AND i.calculated_end_date < (SELECT MAX(calculated_end_date) FROM incidents) THEN 2
+            -- Not a recent change
+            ELSE 3
+          END AS recent_change_priority,
+          -- For sorting by recency within recent changes
+          CASE
+            -- For recent starts, use start_date
+            WHEN i.start_date >= ((SELECT MAX(calculated_end_date) FROM incidents) - INTERVAL '7 days') THEN i.start_date
+            -- For recent ends, use calculated_end_date
+            WHEN i.calculated_end_date >= ((SELECT MAX(calculated_end_date) FROM incidents) - INTERVAL '7 days')
+                 AND i.calculated_end_date < (SELECT MAX(calculated_end_date) FROM incidents) THEN i.calculated_end_date
+            -- Default to a date far in the past for non-recent changes
+            ELSE '1900-01-01'::date
+          END AS recent_change_date
         FROM incidents i
         JOIN produits p ON i.product_id = p.id
         LEFT JOIN produits_molecules pm ON p.id = pm.produit_id
@@ -104,7 +125,12 @@ app.get("/api/incidents", async (req, res) => {
           ca.description
       )
       SELECT * FROM incidents_with_sorting
-      ORDER BY is_active DESC, status_priority ASC, product ASC
+      ORDER BY
+        recent_change_priority ASC,               -- Recent changes first
+        recent_change_date DESC,                  -- Most recent changes at the top
+        is_active DESC,                           -- Then active incidents
+        status_priority ASC,                      -- Then by status (Rupture, Tension, others)
+        product ASC                               -- Finally alphabetically by product name
     `;
 
     const result = await dbQuery(query, ...params);
@@ -114,7 +140,6 @@ app.get("/api/incidents", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 app.get("/api/incidents/ATCClasses", async (req, res) => {
   const { monthsToShow } = req.query;
