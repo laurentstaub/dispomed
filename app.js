@@ -25,12 +25,6 @@ app.get("/", async (req, res) => {
   });
 });
 
-app.get("/api/config", (req, res) => {
-  res.json({
-    API_BASE_URL: process.env.API_BASE_URL || "http://localhost:3000",
-  });
-});
-
 app.get("/api/incidents", async (req, res) => {
   const { monthsToShow, product, atcClass, molecule } = req.query;
 
@@ -65,9 +59,9 @@ app.get("/api/incidents", async (req, res) => {
           CASE
             -- Recent start (within the last 7 days)
             WHEN i.start_date >= ((SELECT MAX(calculated_end_date) FROM incidents) - INTERVAL '7 days') THEN 1
-            -- Recent end (within the last 7 days, and actually ended)
-            WHEN i.calculated_end_date >= ((SELECT MAX(calculated_end_date) FROM incidents) - INTERVAL '7 days')
-                 AND i.calculated_end_date < (SELECT MAX(calculated_end_date) FROM incidents) THEN 2
+            -- Recent end (within the last 7 days) - using end_date for completed incidents
+            WHEN i.end_date IS NOT NULL
+                 AND i.end_date >= ((SELECT MAX(calculated_end_date) FROM incidents) - INTERVAL '7 days') THEN 2
             -- Not a recent change
             ELSE 3
           END AS recent_change_priority,
@@ -75,9 +69,9 @@ app.get("/api/incidents", async (req, res) => {
           CASE
             -- For recent starts, use start_date
             WHEN i.start_date >= ((SELECT MAX(calculated_end_date) FROM incidents) - INTERVAL '7 days') THEN i.start_date
-            -- For recent ends, use calculated_end_date
-            WHEN i.calculated_end_date >= ((SELECT MAX(calculated_end_date) FROM incidents) - INTERVAL '7 days')
-                 AND i.calculated_end_date < (SELECT MAX(calculated_end_date) FROM incidents) THEN i.calculated_end_date
+            -- For recent ends, use end_date
+            WHEN i.end_date IS NOT NULL
+                 AND i.end_date >= ((SELECT MAX(calculated_end_date) FROM incidents) - INTERVAL '7 days') THEN i.end_date
             -- Default to a date far in the past for non-recent changes
             ELSE '1900-01-01'::date
           END AS recent_change_date

@@ -741,16 +741,6 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
       tooltip.transition().duration(500).style("opacity", 0);
     });
 
-  // After adding product names to the chart, add highlight for recently changed products
-    if (highlightedProducts && highlightedProducts.length > 0) {
-      innerChart.selectAll(".y-axis .tick")
-        .filter(d => highlightedProducts.includes(d))
-        .classed("highlighted-product", true)
-        .selectAll("text")
-        .style("font-weight", "bold")
-        .style("fill", "var(--grisfonce)");
-    }
-
   // EVENTS
   // Add bars for each event
   innerChart.selectAll("rect.bar")
@@ -847,35 +837,88 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
     .attr("r", 4)
     .attr("class", (product) => {
       const productIncidents = rawData.filter((d) => d.product === product);
-          // If there are incidents for this product, use the first one to get status
-          if (productIncidents.length > 0) {
-            const status = getProductStatus(productIncidents[0]);
-            return status.shorthand;
-          }
-          return "disponible";
+      if (productIncidents.length > 0) {
+        const status = getProductStatus(productIncidents[0]);
+        return status.shorthand;
+      }
+      return "disponible";
+    });
+
+  // Add a status bar for each individual product
+  innerChart.selectAll(".status-bar")
+    .data(products)
+    .enter()
+    .append("rect")
+    .attr("class", "status-bar")
+    .attr("x", -margin.left)
+    .attr("y", d => yScale(d))
+    .attr("width", statusBarWidth)
+    .attr("height", yScale.bandwidth() + 2)
+    .attr("class", (product) => {
+      const productIncidents = rawData.filter((d) => d.product === product);
+      if (productIncidents.length > 0) {
+        const status = getProductStatus(productIncidents[0]);
+        return status.shorthand;
+      }
+      return "disponible";
     });
 
   const recentDays = 7;
-    const dateReport = dataManager.getDateReport();
-    const recentDate = new Date(dateReport);
-    recentDate.setDate(recentDate.getDate() - recentDays);
+  const dateReport = dataManager.getDateReport();
 
-    // Get recent status changes
-    const productChanges = identifyRecentStatusChanges(rawData, recentDays);
+  // Find all incidents that started or ended recently
+  const recentChanges = rawData.filter(d =>
+    // Started recently
+    (d.start_date >= new Date(dateReport - (recentDays * MS_IN_DAY)) &&
+     d.start_date <= dateReport) ||
+    // Or ended recently
+    (d.end_date &&
+     d.end_date >= new Date(dateReport - (recentDays * MS_IN_DAY)) &&
+     d.end_date <= dateReport)
+  );
 
-    // Add visual indication for recently started incidents
-    innerChart.selectAll(".start-indicator")
-      .data(rawData.filter(d => d.start_date >= recentDate || d.end_date >= recentDate))
-      .enter()
-      .append("circle")
-      .attr("class", "start-indicator recent-change")
-      .attr("cx", d => xScale(d.calculated_end_date))
-      .attr("cy", d => yScale(d.product) + yScale.bandwidth() / 2)
-      .attr("r", 7)
-      .attr("fill", "none")
-      .attr("stroke", d => d.end_date ? "var(--disponible)" : d.status === "Rupture" ? "var(--rupture)" :
-                         d.status === "Tension" ? "var(--tension)" : "var(--gris)")
+  // Add indicators for each recent change
+  recentChanges.forEach(incident => {
+    // Determine if this is a start or end event
+    const isStart = incident.start_date >= new Date(dateReport - (recentDays * MS_IN_DAY)) &&
+                   incident.start_date <= dateReport;
+
+    const date = isStart ? incident.start_date : incident.end_date;
+
+    // For each incident, determine the current status and use its color
+    const currentProduct = rawData.find(d =>
+      d.product === incident.product &&
+      d.start_date <= dateReport &&
+      d.calculated_end_date >= dateReport
+    );
+
+    // If we found the current status, use its color, otherwise default to availability color
+    let statusColor = "var(--disponible)"; // Default to available
+    let statusName = "Disponible";
+
+    if (currentProduct) {
+      if (currentProduct.status === "Rupture") {
+        statusColor = "var(--rupture)";
+        statusName = "Rupture";
+      } else if (currentProduct.status === "Tension") {
+        statusColor = "var(--tension)";
+        statusName = "Tension";
+      } else {
+        statusColor = "var(--gris)";
+        statusName = currentProduct.status;
+      }
+    }
+
+    // Add the indicator circle
+    innerChart.append("circle")
+      .attr("class", "recent-change")
+      .attr("cx", xScale(dateReport))
+      .attr("cy", yScale(incident.product) + yScale.bandwidth() / 2)
+      .attr("r", 4)
+      .attr("fill", statusColor)
+      .attr("stroke", statusColor)
       .attr("stroke-width", 2);
+  });
 
 
   // Add vertical grid lines for years
@@ -892,39 +935,4 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
     .attr("y1", 0)
     .attr("y2", innerHeight);
 
-  // Add status bars on the left of the chart
-  const groupedData = d3.group(rawData, (d) => getProductStatus(d).text);
-  const statusColors = {
-    "Rupture de stock": "var(--rupture)",
-    "Tension d'approvisionnement": "var(--tension)",
-    "Arrêt de commercialisation": "var(--gris)",
-    Disponible: "var(--disponible)",
-  };
-
-  // Used to get the height of the chart (variable to products)
-  const totalProductLength = getUniqueProductLength(rawData);
-  let accumulatedHeight = 0;
-  let productLeft = totalProductLength;
-
-  groupedData.forEach((group, status) => {
-    const productLength = getUniqueProductLength(group);
-    let groupHeight;
-
-    if (status === "Disponible") {
-      groupHeight = productLeft * barHeight;
-    } else {
-      groupHeight = productLength * barHeight;
-    }
-
-    innerChart.append("rect")
-      .attr("class", "status-bar")
-      .attr("x", -margin.left)
-      .attr("y", accumulatedHeight)
-      .attr("width", statusBarWidth)
-      .attr("height", groupHeight)
-      .attr("fill", statusColors[status]);
-
-    accumulatedHeight += groupHeight;
-    productLeft -= productLength;
-  });
 }
