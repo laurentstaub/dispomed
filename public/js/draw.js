@@ -889,7 +889,7 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
     const currentProduct = rawData.find(d =>
       d.product === incident.product &&
       d.start_date <= dateReport &&
-      d.calculated_end_date >= dateReport
+      !d.end_date
     );
 
     // If we found the current status, use its color, otherwise default to availability color
@@ -920,7 +920,6 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
       .attr("stroke-width", 2);
   });
 
-
   // Add vertical grid lines for years
   const yearTicks = xScale.ticks(d3.timeYear.every(1));
 
@@ -934,5 +933,4 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
     .attr("x2", (d) => xScale(d))
     .attr("y1", 0)
     .attr("y2", innerHeight);
-
 }
