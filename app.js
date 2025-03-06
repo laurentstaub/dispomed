@@ -25,6 +25,12 @@ app.get("/", async (req, res) => {
   });
 });
 
+app.get("/api/config", (req, res) => {
+  res.json({
+    API_BASE_URL: process.env.API_BASE_URL || "http://localhost:3000",
+  });
+});
+
 app.get("/api/incidents", async (req, res) => {
   const { monthsToShow, product, atcClass, molecule } = req.query;
 

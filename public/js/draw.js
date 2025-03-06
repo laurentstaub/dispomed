@@ -129,7 +129,6 @@ function getProductStatus(d) {
   }
   return { text: "Statut inconnu", class: "", shorthand: "inconnu" };
 }
-
 // Get unique products count
 function getUniqueProductLength(eventList) {
   let result = [];
