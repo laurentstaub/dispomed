@@ -292,7 +292,7 @@ p {
 
 .grid-line {
     stroke: var(--blanc);
-    stroke-width: 14px;
+    stroke-width: 12px;
 }
 
 .rupture {

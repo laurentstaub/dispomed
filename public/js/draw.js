@@ -113,6 +113,7 @@ function getProductStatus(d) {
   const dateReport = dataManager.getDateReport();
 
   if (d.status === "Arret") {
+    // Arret status should be treated as ongoing until the report date unless it has an explicit end_date
     return { text: "Arrêt de commercialisation", class: "tooltip-arret", shorthand: "arret" };
   } else if (
     d.start_date <= dateReport &&
@@ -129,6 +130,7 @@ function getProductStatus(d) {
   }
   return { text: "Statut inconnu", class: "", shorthand: "inconnu" };
 }
+
 // Get unique products count
 function getUniqueProductLength(eventList) {
   let result = [];
@@ -637,7 +639,7 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
   const width = Math.min(900, windowWidth);
   const barHeight = 20;
   const labelMaxLength = 29;
-  const statusBarWidth = 5;
+  const statusBarWidth = 7;
   const statusBarSpacing = 5;
   const productsCount = dataManager.getProducts().length;
   const height = productsCount * barHeight;
@@ -743,68 +745,83 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
   // EVENTS
   // Add bars for each event
   innerChart.selectAll("rect.bar")
-    .data(rawData)
-    .enter()
-    .append("rect")
-    .attr("class", (d) => `bar ${d.status}`.toLowerCase())
-    .attr("x", (d) =>
-      xScale(
-        d.start_date > dataManager.getStartDate()
-          ? d.start_date
-          : dataManager.getStartDate(),
-      ),
-    )
-    .attr(
-      "y",
-      (d) => yScale(d.product) + yScale.bandwidth() / 2 - barHeight / 2 - 1,
-    )
-    .attr("width", (d) => {
-      const startDate = d.start_date;
-      const endDate = d.calculated_end_date;
-      const effectiveStartDate =
-        startDate > dataManager.getStartDate() ? startDate : dataManager.getStartDate();
-      return Math.max(0, xScale(endDate) - xScale(effectiveStartDate));
-    })
-    .attr("height", barHeight)
-    .on("mousemove", function (event, d) {
-      let statusClass = `tooltip-${d.status.toLowerCase()}`;
-      let tooltipHTML;
-      const dateReport = dataManager.getDateReport();
-      const diffIndays = (startDate, endDate) =>
-        Math.round((endDate - startDate) / MS_IN_DAY);
+      .data(rawData)
+      .enter()
+      .append("rect")
+      .attr("class", (d) => `bar ${d.status}`.toLowerCase())
+      .attr("x", (d) =>
+        xScale(
+          d.start_date > dataManager.getStartDate()
+            ? d.start_date
+            : dataManager.getStartDate(),
+        ),
+      )
+      .attr(
+        "y",
+        (d) => yScale(d.product) + yScale.bandwidth() / 2 - barHeight / 2 - 1,
+      )
+      .attr("width", (d) => {
+        const startDate = d.start_date;
+        // Special handling for Arret status
+        const endDate = d.status === "Arret" && !d.end_date
+                      ? dataManager.getDateReport() // If Arret with no end_date, use report date
+                      : d.calculated_end_date;
 
-      if (statusClass === "tooltip-arret") {
-        tooltipHTML = tooltip.html(`
-            <strong>${d.status}</strong>, plus disponible depuis le <strong>${formatDate(d.start_date)}</strong><br>
-            ${d.accented_product}<br>
-            DCI: ${d.molecule}<br>
-          `);
-      } else {
-        if (formatDate(d.calculated_end_date) === formatDate(dateReport)) {
-          tooltipHTML = tooltip.html(`
-              <strong>${d.status} / En cours</strong><br>
+        const effectiveStartDate =
+          startDate > dataManager.getStartDate() ? startDate : dataManager.getStartDate();
+        return Math.max(0, xScale(endDate) - xScale(effectiveStartDate));
+      })
+      .attr("height", barHeight)
+      .on("mousemove", function (event, d) {
+        let statusClass = `tooltip-${d.status.toLowerCase()}`;
+        let tooltipHTML;
+        const dateReport = dataManager.getDateReport();
+        const diffIndays = (startDate, endDate) =>
+          Math.round((endDate - startDate) / MS_IN_DAY);
+
+        // Special handling for Arret in tooltip
+        if (d.status === "Arret") {
+          if (d.end_date) {
+            // Rare case: if Arret has an end_date
+            tooltipHTML = tooltip.html(`
+              <strong>${d.status}</strong>, plus disponible de <strong>${formatDate(d.start_date)}</strong> jusqu'à <strong>${formatDate(d.end_date)}</strong><br>
               ${d.accented_product}<br>
               DCI: ${d.molecule}<br>
-              Depuis le ${formatDate(d.start_date)} (${daysToYearsMonths(diffIndays(d.start_date, dateReport))})
             `);
+          } else {
+            // Normal case: Arret without end_date
+            tooltipHTML = tooltip.html(`
+              <strong>${d.status}</strong>, plus disponible depuis le <strong>${formatDate(d.start_date)}</strong><br>
+              ${d.accented_product}<br>
+              DCI: ${d.molecule}<br>
+            `);
+          }
         } else {
-          tooltipHTML = tooltip.html(`
-              <span class="termine">${d.status} / Terminé</span><br>
-              ${d.accented_product}<br>
-              DCI: ${d.molecule}<br>
-              ${formatDate(d.start_date)} - ${formatDate(d.calculated_end_date)} (${daysToYearsMonths(diffIndays(d.start_date, d.calculated_end_date))})
-            `);
+          if (formatDate(d.calculated_end_date) === formatDate(dateReport)) {
+            tooltipHTML = tooltip.html(`
+                <strong>${d.status} / En cours</strong><br>
+                ${d.accented_product}<br>
+                DCI: ${d.molecule}<br>
+                Depuis le ${formatDate(d.start_date)} (${daysToYearsMonths(diffIndays(d.start_date, dateReport))})
+              `);
+          } else {
+            tooltipHTML = tooltip.html(`
+                <span class="termine">${d.status} / Terminé</span><br>
+                ${d.accented_product}<br>
+                DCI: ${d.molecule}<br>
+                ${formatDate(d.start_date)} - ${formatDate(d.calculated_end_date)} (${daysToYearsMonths(diffIndays(d.start_date, d.calculated_end_date))})
+              `);
+          }
         }
-      }
 
-      tooltipHTML.attr("class", statusClass)
-        .style("left", 23 + "px")
-        .style("top", event.pageY - 45 + "px")
-        .style("opacity", 1);
-    })
-    .on("mouseout", function () {
-      tooltip.style("opacity", 0);
-    });
+        tooltipHTML.attr("class", statusClass)
+          .style("left", 23 + "px")
+          .style("top", event.pageY - 45 + "px")
+          .style("opacity", 1);
+      })
+      .on("mouseout", function () {
+        tooltip.style("opacity", 0);
+      });
 
   // GRID
   // Add horizontal grid lines
@@ -828,39 +845,61 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
 
   // Add a single status circle for each product at the report date
   innerChart.selectAll("circle.status-circle")
-    .data(dataManager.getProducts()) // Loop through all products
-    .enter()
-    .append("circle")
-    .attr("cx", xScale(dataManager.getDateReport())) // Position at report date
-    .attr("cy", (product) => yScale(product) + yScale.bandwidth() / 2) // Center vertically
-    .attr("r", 4)
-    .attr("class", (product) => {
-      const productIncidents = rawData.filter((d) => d.product === product);
-      if (productIncidents.length > 0) {
-        const status = getProductStatus(productIncidents[0]);
-        return status.shorthand;
-      }
-      return "disponible";
-    });
+      .data(dataManager.getProducts()) // Loop through all products
+      .enter()
+      .append("circle")
+      .attr("cx", xScale(dataManager.getDateReport())) // Position at report date
+      .attr("cy", (product) => yScale(product) + yScale.bandwidth() / 2) // Center vertically
+      .attr("r", 5)
+      .attr("class", (product) => {
+        const productIncidents = rawData.filter((d) => d.product === product);
+        if (productIncidents.length > 0) {
+          // Check if there's an active Arret incident at the report date
+          const arretIncident = productIncidents.find(d =>
+            d.status === "Arret" &&
+            d.start_date <= dataManager.getDateReport() &&
+            (!d.end_date || d.end_date >= dataManager.getDateReport())
+          );
+
+          if (arretIncident) {
+            return "arret";
+          }
+
+          const status = getProductStatus(productIncidents[0]);
+          return status.shorthand;
+        }
+        return "disponible";
+      });
 
   // Add a status bar for each individual product
   innerChart.selectAll(".status-bar")
-    .data(products)
-    .enter()
-    .append("rect")
-    .attr("class", "status-bar")
-    .attr("x", -margin.left)
-    .attr("y", d => yScale(d))
-    .attr("width", statusBarWidth)
-    .attr("height", yScale.bandwidth() + 2)
-    .attr("class", (product) => {
-      const productIncidents = rawData.filter((d) => d.product === product);
-      if (productIncidents.length > 0) {
-        const status = getProductStatus(productIncidents[0]);
-        return status.shorthand;
-      }
-      return "disponible";
-    });
+     .data(products)
+     .enter()
+     .append("rect")
+     .attr("class", "status-bar")
+     .attr("x", -margin.left)
+     .attr("y", d => yScale(d))
+     .attr("width", statusBarWidth)
+     .attr("height", yScale.bandwidth() + 2)
+     .attr("class", (product) => {
+       const productIncidents = rawData.filter((d) => d.product === product);
+       if (productIncidents.length > 0) {
+         // Check if there's an active Arret incident at the report date
+         const arretIncident = productIncidents.find(d =>
+           d.status === "Arret" &&
+           d.start_date <= dataManager.getDateReport() &&
+           (!d.end_date || d.end_date >= dataManager.getDateReport())
+         );
+
+         if (arretIncident) {
+           return "arret";
+         }
+
+         const status = getProductStatus(productIncidents[0]);
+         return status.shorthand;
+       }
+       return "disponible";
+     });
 
   const recentDays = 7;
   const dateReport = dataManager.getDateReport();
