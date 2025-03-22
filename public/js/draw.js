@@ -7,6 +7,9 @@ const MS_IN_SEC = 1000;
 const MS_IN_DAY = HOURS_IN_DAY * MINS_IN_HOUR * SECS_IN_MIN * MS_IN_SEC;
 const ALL_TIME_START = new Date(2021, 4, 1);
 
+let rawData = [];
+let monthlyData = [];
+
 function removeAccents(str) {
   return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
@@ -328,15 +331,18 @@ window.addEventListener("load", function () {
   selectButton(defaultButton);
 });
 
-let rawData = await fetchTableChartData(true);
-let monthlyData = dataManager.processDataMonthlyChart(rawData);
+async function initializeData() {
+  rawData = await fetchTableChartData(true);
+  monthlyData = dataManager.processDataMonthlyChart(rawData);
 
-d3.select("#mise-a-jour").text(
-  `Mise à jour : ${formatDate(dataManager.getDateReport())}`,
-);
-drawTableChart(rawData, true);
-drawSummaryChart(monthlyData, true);
+  d3.select("#mise-a-jour").text(
+    `Mise à jour : ${formatDate(dataManager.getDateReport())}`,
+  );
+  drawTableChart(rawData, true);
+  drawSummaryChart(monthlyData, true);
+}
 
+initializeData();
 
 /***********************************/
 /*    Draw the top summary chart   */
