@@ -55,7 +55,7 @@ app.get("/api/incidents", async (req, res) => {
               ca.code || ' - ' || ca.description AS classe_atc,
               ca.code AS atc_code,
               CASE
-                  -- Un incident est actif s'il est Arret sans end_date
+                  -- Un incident est actif s'il est en Arret sans end_date
                   WHEN i.status = 'Arret' AND i.end_date IS NULL THEN 1
                   -- Ou s'il est en rupture/tension et actif à la date de rapport
                   WHEN i.status IN ('Rupture', 'Tension')
@@ -113,6 +113,10 @@ app.get("/api/incidents", async (req, res) => {
       query += ` AND (p.name ILIKE $${paramIndex} OR m.name ILIKE $${paramIndex})`;
       params.push(`%${product}%`);
       paramIndex++;
+    }
+
+    if (req.query.vaccinesOnly === 'true') {
+      query += ` AND p.atc_code LIKE 'J07%'`;
     }
 
     if (atcClass) {

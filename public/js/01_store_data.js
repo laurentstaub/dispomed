@@ -28,6 +28,7 @@ class ConfigManager {
     this.xScale = null;
     this.yScale = null;
     this.moleculeClassMap = [];
+    this.vaccinesOnly = false;
   }
 
   setStartDate(date) { this.startDate = date; }
@@ -73,6 +74,9 @@ class ConfigManager {
 
   setATCClass(atcCodeLetter) { this.atcCode = atcCodeLetter; }
   getATCClass() { return this.atcCode; }
+
+  setVaccinesOnly(value) { this.vaccinesOnly = value; }
+  getVaccinesOnly() { return this.vaccinesOnly; }
 
   processDataMonthlyChart(data) {
     const allMonths = d3.timeMonth

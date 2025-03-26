@@ -117,14 +117,14 @@ p {
 #controls-and-search {
     display: flex;
     flex-direction: column;
-    max-height: 330px;
+    max-height: 350px;
     justify-content: space-between;
     margin: 0px 5px 0px 15px;
 }
 
 .chart-controls-container {
     border: none;
-    padding: 0px 15px 10px 5px;
+    padding: 0px 15px 0px 5px;
     width: 220px;
 }
 
@@ -379,6 +379,22 @@ p {
 
 .atc-option label {
     margin-left: 5px;
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.checkbox-wrapper label {
+  color: var(--grisfonce);
+  font-size: 14px;
+  margin-left: 5px;
+}
+
+#vaccines-filter {
+  cursor: pointer;
 }
 
 #legend-container {

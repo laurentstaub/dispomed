@@ -291,6 +291,11 @@ d3.select("#molecule").on("input", function () {
   handleSearch(false, dataManager.getSearchTerm());
 });
 
+d3.select("#vaccines-filter").on("change", function() {
+  dataManager.setVaccinesOnly(this.checked);
+  handleSearch(false, dataManager.getSearchTerm());
+});
+
 // Get all period buttons
 const periodButtons = document.querySelectorAll(".chart-button");
 

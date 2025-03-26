@@ -57,7 +57,8 @@ export async function fetchTableChartData(
     monthsToShow: monthsToShow,
     product: searchTerm,
     atcClass: atcClass,
-    ...(molecule ? { molecule: molecule } : {})
+    ...(molecule ? { molecule: molecule } : {}),
+    ...(dataManager.getVaccinesOnly() ? { vaccinesOnly: 'true' } : {})
   }).toString();
 
   const url = `${API_BASE_URL}/api/incidents${queryString ? "?" + queryString : ""}`;

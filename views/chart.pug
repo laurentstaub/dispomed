@@ -34,6 +34,9 @@ html(lang="en")
                             option(value="") Choisir une molécule
                             each molecule in molecules
                                 option(value=molecule.code)=`${molecule.name}`
+                        div.checkbox-wrapper
+                            input(type="checkbox" id="vaccines-filter")
+                            label(for="vaccines-filter") Vaccins uniquement (ATC J07)
                     div.button-row
                         button#show-12-months.chart-button 12 mois
                         button#show-24-months.chart-button 24 mois
