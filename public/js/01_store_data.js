@@ -9,7 +9,9 @@ class ConfigManager {
   }
 
   constructor() {
-    if (ConfigManager.instance) { return ConfigManager.instance; }
+    if (ConfigManager.instance) {
+      return ConfigManager.instance;
+    }
     ConfigManager.instance = this;
     this.initializeConfig();
   }
@@ -29,6 +31,7 @@ class ConfigManager {
     this.yScale = null;
     this.moleculeClassMap = [];
     this.vaccinesOnly = false;
+    this.displayState = 'initial'; // 'initial', 'filtered', or 'no_results'
   }
 
   setStartDate(date) { this.startDate = date; }
@@ -77,6 +80,13 @@ class ConfigManager {
 
   setVaccinesOnly(value) { this.vaccinesOnly = value; }
   getVaccinesOnly() { return this.vaccinesOnly; }
+
+  setDisplayState(state) { 
+    this.displayState = state; 
+  }
+  getDisplayState() { 
+    return this.displayState; 
+  }
 
   processDataMonthlyChart(data) {
     const allMonths = d3.timeMonth
