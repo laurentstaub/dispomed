@@ -93,6 +93,14 @@ class ConfigManager {
       .range(this.startDate, this.endDate)
       .map((d) => new Date(d.getFullYear(), d.getMonth(), 1));
 
+    // Utility to count spécialités
+    const getSpecialiteCount = function(product) {
+      if (Array.isArray(product.cis_codes) && product.cis_codes.length > 0) {
+        return product.cis_codes.length;
+      }
+      return 1;
+    };
+
     return allMonths.map((monthDate) => {
       let rupture = 0;
       let tension = 0;
@@ -102,8 +110,9 @@ class ConfigManager {
           product.start_date <= monthDate &&
           product.calculated_end_date >= monthDate
         ) {
-          if (product.status === "Rupture") rupture++;
-          else if (product.status === "Tension") tension++;
+          const count = getSpecialiteCount(product);
+          if (product.status === "Rupture") rupture += count;
+          else if (product.status === "Tension") tension += count;
         }
       });
 

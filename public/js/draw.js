@@ -112,6 +112,19 @@ const labelFontSizeScale = d3
   .range([18, 11])
   .clamp(true);
 
+/**
+ * Returns the number of spécialités (CIS codes) for a product.
+ * @param {object} product - The product object
+ * @returns {number} The number of spécialités
+ */
+function getSpecialiteCount(product) {
+  if (Array.isArray(product.cis_codes) && product.cis_codes.length > 0) {
+    return product.cis_codes.length;
+  }
+  return 1;
+};
+
+
 function getProductStatus(d) {
   const dateReport = dataManager.getDateReport();
 
@@ -208,7 +221,12 @@ async function handleSearch(isInitialSetup, searchTerm) {
   monthlyData = dataManager.processDataMonthlyChart(rawData);
   drawTableChart(rawData, false);
   drawSummaryChart(monthlyData, false);
-  updateMoleculeDropdown(atcClass);
+  
+  // Only update the molecule dropdown when ATC class changes or on initial setup
+  // This prevents the dropdown from disappearing when a molecule is selected
+  if (isInitialSetup || molecule === "") {
+    updateMoleculeDropdown(atcClass);
+  }
 }
 
 function updateMoleculeDropdown(atcClass) {
@@ -273,26 +291,7 @@ d3.select("#reinitialiser").on("click", function () {
 d3.select("#search-box").on("input", function () {
   const searchTerm = removeAccents(this.value.toLowerCase());
   dataManager.setSearchTerm(searchTerm);
-  
-  if (searchTerm === "") {
-    // Reset the search term
-    dataManager.setSearchTerm("");
-    dataManager.setDisplayState('initial');
-    
-    // Fetch fresh data
-    handleSearch(true, "");
-    
-    // Update the UI to reflect the current state
-    const currentATC = dataManager.getATCClass();
-    const currentMolecule = dataManager.getMolecule();
-    const currentVaccinesOnly = dataManager.getVaccinesOnly();
-    
-    d3.select("#atc").property("value", currentATC);
-    d3.select("#molecule").property("value", currentMolecule);
-    d3.select("#vaccines-filter").property("checked", currentVaccinesOnly);
-  } else {
-    debouncedSearch(false, searchTerm);
-  }
+  debouncedSearch(false, searchTerm);
 });
 
 
@@ -307,6 +306,14 @@ d3.select("#atc").on("input", function () {
 d3.select("#molecule").on("input", function () {
   const molecule = this.value;
   dataManager.setMolecule(molecule);
+  
+  // Don't rebuild the dropdown, just keep the current value
+  const select = d3.select(this);
+  
+  // Set the correct option as selected
+  select.selectAll("option")
+    .property("selected", d => d && d.code === molecule);
+  
   handleSearch(false, dataManager.getSearchTerm());
 });
 
@@ -469,7 +476,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
       .attr("fill", "var(--grisleger)")
       .style("font-size", "11px")
       .style("font-weight", "400")
-      .text("Nombre d'événements constatés au début de chaque mois");
+      .text("En nombre de spécialités (Codes CIS) manquantes le 1er de chaque mois");
 
   const g = svg.append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -567,8 +574,12 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 
       rawData.forEach((product) => {
         if (product.start_date <= dateReport && product.calculated_end_date >= dateReport) {
-          if (product.status === "Rupture") currentRupture++;
-          else if (product.status === "Tension") currentTension++;
+          const count = getSpecialiteCount(product);
+          if (product.status === "Rupture") {
+            currentRupture += count;
+          } else if (product.status === "Tension") {
+            currentTension += count;
+          }
         }
       });
 
@@ -681,53 +692,9 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
   const products = dataManager.getProducts();
   const accentedProducts = dataManager.getAccentedProducts();
 
-  // Clear existing content
-  d3.select("#dash").selectAll("*").remove();
-
-  // Handle empty data case
   if (rawData.length === 0) {
-    dataManager.setDisplayState('no_results');
-    
-    // Create a container for the no results message
-    const noResultsContainer = d3.select("#dash")
-      .append("div")
-      .attr("class", "no-results-container")
-      .style("display", "flex")
-      .style("justify-content", "center")
-      .style("align-items", "center")
-      .style("height", "200px")
-      .style("width", "100%")
-      .style("font-size", "1.2em")
-      .style("color", "#666");
-    
-    // Add the message
-    noResultsContainer.append("p")
-      .text("Aucun résultat trouvé");
-    
+    console.log("No data");
     return;
-  }
-
-  // Set appropriate state for non-empty data
-  dataManager.setDisplayState(dataManager.getSearchTerm() ? 'filtered' : 'initial');
-
-  // Create or update SVG
-  let outerBox, innerChart;
-  if (isInitialSetup) {
-    outerBox = d3.select("#dash")
-      .append("svg")
-      .attr("viewBox", `0 0 ${width} ${height}`)
-      .attr("preserveAspectRatio", "xMidYMid meet");
-
-    innerChart = outerBox.append("g")
-      .attr("transform", `translate(${margin.left}, ${margin.top})`);
-  } else {
-    outerBox = d3.select("#dash")
-      .append("svg")
-      .attr("viewBox", `0 0 ${width} ${height}`)
-      .attr("preserveAspectRatio", "xMidYMid meet");
-
-    innerChart = outerBox.append("g")
-      .attr("transform", `translate(${margin.left}, ${margin.top})`);
   }
 
   const xScale = d3.scaleTime()
@@ -738,6 +705,32 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
     .domain(products)
     .range([0, innerHeight])
     .padding(0.1);
+
+  let outerBox, innerChart;
+
+  // Create tooltip if it doesn't exist
+  let tooltip = d3.select("body").select("#tooltip");
+  if (tooltip.empty()) {
+    tooltip = d3.select("body").append("div").attr("id", "tooltip");
+  }
+
+  // Create or update SVG
+  if (isInitialSetup) {
+    outerBox = d3.select("#dash")
+      .append("svg")
+      .attr("viewBox", `0 0 ${width} ${height}`)
+      .attr("preserveAspectRatio", "xMidYMid meet");
+
+    innerChart = outerBox.append("g")
+      .attr("transform", `translate(${margin.left}, ${margin.top})`);
+  } else {
+    // Update existing SVG
+    outerBox = d3.select("#dash svg")
+      .attr("viewBox", `0, 0, ${width}, ${height}`);
+
+    innerChart = d3.select("#dash svg g"); // Remove all existing elements
+    innerChart.selectAll("*").remove();
+  }
 
   // Y-AXIS
   // Add product names to the left of the chart
@@ -1019,3 +1012,4 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
     .attr("y1", 0)
     .attr("y2", innerHeight);
 }
+
