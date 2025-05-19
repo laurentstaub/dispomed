@@ -428,12 +428,12 @@ p {
   pointer-events: none;
   position: absolute;
   min-width: 220px;
-  max-width: 320px;
+  max-width: 340px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(4px);
   border-radius: 8px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.10);
-  padding: 16px 20px;
+  padding: 12px 14px;
   color: var(--grisfonce);
   font-size: 15px;
   font-weight: 400;

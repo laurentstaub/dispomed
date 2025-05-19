@@ -786,11 +786,22 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
         }
 
         tooltip.transition().duration(200).style("opacity", 1);
-        tooltip
-          .html(tooltipContent)
-          .attr("class", status.class)
-          .style("left", 23 + "px")
-          .style("top", event.pageY - 5 + "px");
+        tooltip.html(tooltipContent).attr("class", status.class);
+
+        // Anchor tooltip to the left of the chart area, top-aligned with the hovered label
+        const labelBox = this.getBoundingClientRect();
+        const tooltipNode = tooltip.node();
+        let tooltipHeight = tooltipNode ? tooltipNode.offsetHeight : 120;
+        let top = labelBox.top + window.scrollY;
+
+        // Prevent top overflow
+        if (top < 8) top = 8;
+        // Prevent bottom overflow
+        if (top + tooltipHeight + 8 > window.innerHeight + window.scrollY) {
+          top = window.innerHeight + window.scrollY - tooltipHeight - 8;
+        }
+
+        tooltip.style('left', 0 + 'px').style('top', top + 'px');
       }
     })
     .on("mouseout", function () {
