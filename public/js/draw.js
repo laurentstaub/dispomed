@@ -397,6 +397,12 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     (d) => d.rupture > 0 || d.tension > 0,
   );
 
+  // For 24+ months, only keep one point per quarter (Jan, Apr, Jul, Oct)
+  let lineData = filteredData;
+  if (dataManager.getMonthsToShow() >= 24) {
+    lineData = filteredData.filter(d => [0, 3, 6, 9].includes(d.date.getMonth()));
+  }
+
   if (monthlyChartData.length === 0) {
     d3.select("#summary").style("display", "none");
     return;
@@ -408,7 +414,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .range([0, innerWidth]);
 
   const y = d3.scaleLinear()
-    .domain([0, d3.max(filteredData, (d) => Math.max(d.rupture, d.tension))])
+    .domain([0, d3.max(lineData, (d) => Math.max(d.rupture, d.tension))])
     .nice()
     .range([innerHeight, 0]);
 
@@ -510,18 +516,18 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 
   // Draw lines
   g.append("path")
-    .datum(filteredData)
+    .datum(lineData)
     .attr("class", "tension-line")
     .attr("d", lineTension);
 
   g.append("path")
-    .datum(filteredData)
+    .datum(lineData)
     .attr("class", "rupture-line")
     .attr("d", lineRupture);
 
   // Add marks (circles) for rupture data points - WITH FILTERING
   g.selectAll(".rupture-mark")
-    .data(filteredData.filter((d) => d.rupture > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
+    .data(lineData.filter((d) => d.rupture > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
     .enter()
     .append("circle")
     .attr("class", "rupture-mark")
@@ -534,7 +540,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 
   // Add marks (circles) for tension data points - WITH FILTERING
   g.selectAll(".tension-mark")
-    .data(filteredData.filter((d) => d.tension > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
+    .data(lineData.filter((d) => d.tension > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
     .enter()
     .append("circle")
     .attr("class", "tension-mark")
@@ -547,7 +553,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 
   // Add labels for rupture data points - WITH FILTERING
   g.selectAll(".rupture-label")
-    .data(filteredData.filter((d) => d.rupture > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
+    .data(lineData.filter((d) => d.rupture > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
     .enter()
     .append("text")
     .style("font-size", `${labelFontSizeScale(windowWidth)}px`)
@@ -559,7 +565,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 
   // Add labels for tension data points - WITH FILTERING
   g.selectAll(".tension-label")
-    .data(filteredData.filter((d) => d.tension > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
+    .data(lineData.filter((d) => d.tension > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
     .enter()
     .append("text")
     .style("font-size", `${labelFontSizeScale(windowWidth)}px`)
