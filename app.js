@@ -158,7 +158,31 @@ app.get("/api/incidents", async (req, res) => {
     `;
 
     const result = await dbQuery(query, ...params);
-    res.json(result.rows);
+    const incidents = result.rows;
+
+    // 1. Récupérer tous les codes CIS uniques
+    const allCisCodes = [ ...new Set (incidents.flatMap(incident => incident.cis_codes || []))];
+
+    // 2. Aller chercher les noms correspondants dans dbpm.cis_bdpm
+    let cisNamesMap = {};
+    if (allCisCodes.length > 0) {
+      const { rows: cisNamesRows } = await dbQuery(
+        'SELECT code_cis, denomination_medicament FROM dbpm.cis_bdpm WHERE code_cis = ANY($1)', [allCisCodes]
+      );
+      cisNamesRows.forEach(row => {
+        cisNamesMap[row.code_cis] = row.denomination_medicament;
+      });
+    }
+
+    // 3. Associer à chaque incident le mapping code_cis -> nom
+    incidents.forEach(incident => {
+      incident.cis_names = {};
+      (incident.cis_codes || []).forEach(code => {
+        incident.cis_names[code] = cisNamesMap[code] || '';
+      });
+    });
+
+    res.json(incidents);
   } catch (error) {
     console.error("Error fetching incidents:", error);
     res.status(500).json({ error: "Internal server error" });

@@ -221,7 +221,7 @@ async function handleSearch(isInitialSetup, searchTerm) {
   monthlyData = dataManager.processDataMonthlyChart(rawData);
   drawTableChart(rawData, false);
   drawSummaryChart(monthlyData, false);
-  
+
   // Only update the molecule dropdown when ATC class changes or on initial setup
   // This prevents the dropdown from disappearing when a molecule is selected
   if (isInitialSetup || molecule === "") {
@@ -306,14 +306,14 @@ d3.select("#atc").on("input", function () {
 d3.select("#molecule").on("input", function () {
   const molecule = this.value;
   dataManager.setMolecule(molecule);
-  
+
   // Don't rebuild the dropdown, just keep the current value
   const select = d3.select(this);
-  
+
   // Set the correct option as selected
   select.selectAll("option")
     .property("selected", d => d && d.code === molecule);
-  
+
   handleSearch(false, dataManager.getSearchTerm());
 });
 
@@ -757,19 +757,33 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
 
       if (accentedName.length > labelMaxLength || product) {
         const status = getProductStatus(product);
-        let tooltipContent = ``;
+        let tooltipContent = `<div class="tooltip-title">${accentedName}</div>`;
+        tooltipContent += `<div class="tooltip-dci">DCI: ${product.molecule}</div>`;
+
+        let statusColor =
+          status.shorthand === "rupture" ? 'var(--rupture)' :
+          status.shorthand === "tension" ? 'var(--tension)' :
+          status.shorthand === "arret" ? 'var(--arret-bg)' :
+          'var(--disponiblefonce)';
 
         if (status.shorthand === "rupture" || status.shorthand === "tension") {
           if (product.start_date <= dateReport && product.calculated_end_date >= dateReport) {
             const diffInDays = Math.round((dateReport - product.start_date) / MS_IN_DAY);
-            tooltipContent += `Ce produit est en <strong>${status.text}</strong> depuis ${daysToYearsMonths(diffInDays)}`;
+            tooltipContent += `<div class="tooltip-status" style="color:${statusColor}">${status.text} depuis ${daysToYearsMonths(diffInDays)}</div>`;
           }
         } else {
-          tooltipContent += `Ce produit est en <strong>${status.text}</strong>`;
+          tooltipContent += `<div class="tooltip-status" style="color:${statusColor}">${status.text}</div>`;
         }
 
-        tooltipContent += `<br>${accentedName}<br>
-          DCI: ${product.molecule}<br>`
+        // Afficher la liste des codes CIS
+        if (Array.isArray(product.cis_codes) && product.cis_codes.length > 0) {
+          tooltipContent += `<div class="tooltip-codesCIS">Codes CIS concernés :</div><ul>`;
+          product.cis_codes.forEach(code => {
+            const name = product.cis_names && product.cis_names[code] ? product.cis_names[code] : '';
+            tooltipContent += `<li><strong>${code}</strong> : ${name}</li>`;
+          });
+          tooltipContent += `</ul>`;
+        }
 
         tooltip.transition().duration(200).style("opacity", 1);
         tooltip
@@ -1012,4 +1026,3 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
     .attr("y1", 0)
     .attr("y2", innerHeight);
 }
-
