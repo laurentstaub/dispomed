@@ -462,7 +462,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("fill", "var(--grisfonce)")
     .style("font-size", "15px")
     .style("font-weight", "500")
-    .text("Évolution mensuelle des ruptures et tensions");
+    .text("Évolution des ruptures et tensions");
 
   const bbox = titleText.node().getBBox();
   group.insert("rect", "text")
@@ -470,7 +470,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
       .attr("y", bbox.y - 5)
       .attr("width", bbox.width + 20)
       .attr("height", bbox.height + 10)
-      .style("fill", "var(--gristrestresleger")
+      .style("fill", "var(--blanc")
       .style("rx", 5) // Rounded corners
       .style("ry", 5);
 
@@ -482,7 +482,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
       .attr("fill", "var(--grisleger)")
       .style("font-size", "11px")
       .style("font-weight", "400")
-      .text("En nombre de spécialités (Codes CIS) manquantes le 1er de chaque mois");
+      .text("En nombre de spécialités (Codes CIS) manquantes le 1er de chaque période");
 
   const g = svg.append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);

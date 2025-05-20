@@ -37,11 +37,13 @@ html(lang="fr")
                         div.checkbox-wrapper
                             input(type="checkbox" id="vaccines-filter")
                             label(for="vaccines-filter") Vaccins uniquement (ATC J07)
+                    div.sidebar-divider
                     div.button-row
                         button#show-12-months.chart-button 12 mois
                         button#show-24-months.chart-button 24 mois
                         button#show-all-data.chart-button Tout
                     button#reinitialiser Réinitialiser
+                    div.sidebar-divider
                     div#legend-container
                         div#floating-legend
                 div#summary
@@ -52,9 +54,14 @@ html(lang="fr")
         div#source-info
             div#info-container
                 h2 Avertissement
-                p Les données présentées sur ce site proviennent de sources gouvernementales publiques. Bien que nous nous efforcions de garantir l'exactitude et la fiabilité des informations affichées, ce site ne saurait être tenu responsable des erreurs, omissions ou interprétations des données. Ce site est une représentation visuelle des données et ne constitue pas une source officielle ou faisant autorité. Pour des informations certifiées, veuillez consulter directement les sources gouvernementales référencées sur le lien suivant:
-                - var url = 'https://ansm.sante.fr/disponibilites-des-produits-de-sante/medicaments';
-                a(href=url) Disponibilité des produits de santé
+                p Les données présentées sur ce site proviennent de sources gouvernementales publiques. Bien que nous nous efforcions de garantir l'exactitude et la fiabilité des informations affichées, ce site ne saurait être tenu responsable des erreurs, omissions ou interprétations des données. Ce site est une représentation visuelle des données et ne constitue pas une source officielle ou faisant autorité. Pour des informations certifiées, veuillez consulter directement les sources gouvernementales référencées sur #[a(href='https://ansm.sante.fr/disponibilites-des-produits-de-sante/medicaments') Disponibilité des produits de santé].
                 p En utilisant ce site, vous acceptez ces conditions.
 
     script(type="module",src="/js/draw.js")
+
+    footer
+      span
+        | © 2025 Antheos Data —
+        a(href="https://github.com/laurentstaub/dispomed" target="_blank" rel="noopener") Code source
+        |  | 
+        a(href="mailto:contact@antheosdata.com") Contact
