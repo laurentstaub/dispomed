@@ -129,22 +129,21 @@ function getProductStatus(d) {
   const dateReport = dataManager.getDateReport();
 
   if (d.status === "Arret") {
-    // Arret status should be treated as ongoing until the report date unless it has an explicit end_date
-    return { text: "Arrêt de commercialisation", class: "tooltip-arret", shorthand: "arret" };
+    return { text: "Arrêt de commercialisation", class: "tooltip-arret", shorthand: "arret", color: "var(--arret-bg)", icon: "fa-solid fa-circle-xmark" };
   } else if (
     d.start_date <= dateReport &&
     d.calculated_end_date >= dateReport &&
     d.end_date === null
   ) {
     if (d.status === "Rupture") {
-      return { text: "Rupture de stock", class: "tooltip-rupture", shorthand: "rupture" };
+      return { text: "Rupture de stock", class: "tooltip-rupture", shorthand: "rupture", color: "var(--rupture)", icon: "fa-solid fa-circle-xmark" };
     } else if (d.status === "Tension") {
-      return { text: "Tension d'approvisionnement", class: "tooltip-tension", shorthand: "tension" };
+      return { text: "Tension d'approvisionnement", class: "tooltip-tension", shorthand: "tension", color: "var(--tension)", icon: "fa-solid fa-circle-exclamation" };
     }
   } else if (!d.calculated_end_date || d.calculated_end_date < dateReport || d.end_date) {
-    return { text: "Disponible", class: "tooltip-disponible", shorthand: "disponible"  };
+    return { text: "Disponible", class: "tooltip-disponible", shorthand: "disponible", color: "var(--disponiblefonce)", icon: "fa-solid fa-circle-check" };
   }
-  return { text: "Statut inconnu", class: "", shorthand: "inconnu" };
+  return { text: "Statut inconnu", class: "", shorthand: "inconnu", color: "var(--grisleger)", icon: "fa-solid fa-circle-question" };
 }
 
 // Get unique products count
@@ -379,8 +378,8 @@ initializeData();
 /*    Draw the top summary chart   */
 /***********************************/
 function drawSummaryChart(monthlyChartData, isInitialSetup) {
-  const margin = { top: 70, right: 15, bottom: 35, left: 20 };
-  const height = 320;
+  const margin = { top: 70, right: 15, bottom: 35, left: 10 };
+  const height = 380;
   const width = 600;
   const innerHeight = height - margin.top - margin.bottom;
   const innerWidth = width - margin.left - margin.right;
@@ -756,6 +755,7 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
         ? accentedName.substring(0, labelMaxLength) + "..."
         : accentedName;
     })
+    .attr('class', 'product-label')
     .on("mouseover", function (event, d) {
       const product = rawData.find((item) => item.product === d);
       const accentedName = accentedProducts[products.indexOf(d)];
@@ -766,19 +766,16 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
         let tooltipContent = `<div class="tooltip-title">${accentedName}</div>`;
         tooltipContent += `<div class="tooltip-dci">DCI: ${product.molecule}</div>`;
 
-        let statusColor =
-          status.shorthand === "rupture" ? 'var(--rupture)' :
-          status.shorthand === "tension" ? 'var(--tension)' :
-          status.shorthand === "arret" ? 'var(--arret-bg)' :
-          'var(--disponiblefonce)';
+        // Font Awesome icon for status
+        const statusSymbol = `<span class=\"status-symbol\" aria-label=\"${status.text}\"><i class=\"${status.icon}\"></i></span>`;
 
         if (status.shorthand === "rupture" || status.shorthand === "tension") {
           if (product.start_date <= dateReport && product.calculated_end_date >= dateReport) {
             const diffInDays = Math.round((dateReport - product.start_date) / MS_IN_DAY);
-            tooltipContent += `<div class="tooltip-status" style="color:${statusColor}">${status.text} depuis ${daysToYearsMonths(diffInDays)}</div>`;
+            tooltipContent += `<div class=\"tooltip-status\" style=\"color:${status.color}; font-weight:600;\">${statusSymbol} ${status.text} depuis ${daysToYearsMonths(diffInDays)}</div>`;
           }
         } else {
-          tooltipContent += `<div class="tooltip-status" style="color:${statusColor}">${status.text}</div>`;
+          tooltipContent += `<div class=\"tooltip-status\" style=\"color:${status.color}; font-weight:600;\">${statusSymbol} ${status.text}</div>`;
         }
 
         // Afficher la liste des codes CIS
