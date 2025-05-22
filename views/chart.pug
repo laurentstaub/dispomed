@@ -12,6 +12,7 @@ html(lang="fr")
         link(href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Work+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&display=swap" rel="stylesheet")
         link(href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap", rel="stylesheet")
         link(href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap", rel="stylesheet")
+        link(href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet")
         script(src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js")
         link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css")
     body
@@ -25,6 +26,8 @@ html(lang="fr")
 
             div.flex-container
                 div#controls-and-search.chart-controls-container
+                    h2 Filtres
+                    div.sidebar-divider
                     input(type="text" id="search-box" placeholder="Rechercher un produit...")
                     div.atc-wrapper
                         select.selector#atc(name="atc")
@@ -49,6 +52,8 @@ html(lang="fr")
                         div#floating-legend
                 div#summary
             div#recent-changes
+            div.table-section-header
+              h2 Détail des incidents: produits concernés, statut et durée de chaque incident
             div#dash
                 div#tooltip
 

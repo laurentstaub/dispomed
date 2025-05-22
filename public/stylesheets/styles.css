@@ -8,7 +8,7 @@
     --gris: rgb(110, 110, 110);
     --grisleger: rgb(170, 170, 170);
     --gristresleger: rgb(230, 230, 230);
-    --gristrestresleger: rgb(240, 240, 240);
+    --gristrestresleger: rgb(235, 235, 235);
     --rupture: rgb(230, 70, 100);
     --rupture-bg: rgba(230, 70, 100, 0.9);
     --tension: rgb(250, 177, 75);
@@ -28,11 +28,13 @@
 .disponible { fill: var(--disponible) }
 
 h1 {
-    font-weight: 600;
+  font-family: 'Inter', 'Roboto', Arial, sans-serif;
+  font-weight: 600;
 }
 
 h2 {
-    font-weight: 400;
+  font-family: 'Inter', 'Roboto', Arial, sans-serif;
+  font-weight: 600;
 }
 
 footer {
@@ -103,7 +105,7 @@ p {
 }
 
 #chart-container {
-    border: 1px solid var(--gristresleger);
+    border: 1px solid var(--gristrestresleger);
     background-color: var(--blanc);
     margin: 20px auto;
     position: relative;
@@ -206,7 +208,7 @@ p {
 
 .sidebar-divider {
   width: 100%;              /* Half the width of the container */
-  margin: 14px auto;       /* Center horizontally, add vertical spacing */
+  margin: 8px auto;       /* Center horizontally, add vertical spacing */
   border-bottom: 1px solid var(--gristresleger);
 }
 
@@ -651,4 +653,31 @@ li {
         padding: 0 10px;
         width: 95%;
     }
+}
+
+/* Section headings */
+#controls-and-search h2 {
+  font-size: 1em;
+  margin-bottom: 0em;
+  color: var(--grisfonce);
+  letter-spacing: 0.01em;
+}
+
+#chart-container > h2:not(#report-title) {
+  font-size: 1em;
+  margin-left: 0.5em;
+  color: var(--grisfonce);
+  letter-spacing: 0.01em;
+}
+
+.table-section-header {
+  background: var(--gristrestresleger);
+  padding: 5px 0 5px 0.8em;
+  margin: 20px 0 10px 0;
+}
+#chart-container > .table-section-header h2 {
+  margin: 0;
+  font-size: 1em;
+  color: var(--grisfonce);
+  letter-spacing: 0.01em;
 }

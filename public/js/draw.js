@@ -853,31 +853,31 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
           if (d.end_date) {
             // Rare case: if Arret has an end_date
             tooltipHTML = tooltip.html(`
-              <strong>${d.status}</strong>, plus disponible de <strong>${formatDate(d.start_date)}</strong> jusqu'à <strong>${formatDate(d.end_date)}</strong><br>
-              ${d.accented_product}<br>
-              DCI: ${d.molecule}<br>
+              <strong>${d.accented_product}</strong><br>
+              <div class="tooltip-dci" style="margin-bottom: 8px;">DCI: ${d.molecule}</div>
+              <strong>${d.status}</strong>, plus disponible de <strong>${formatDate(d.start_date)}</strong> jusqu'à <strong>${formatDate(d.end_date)}</strong>
             `);
           } else {
             // Normal case: Arret without end_date
             tooltipHTML = tooltip.html(`
-              <strong>${d.status}</strong>, plus disponible depuis le <strong>${formatDate(d.start_date)}</strong><br>
-              ${d.accented_product}<br>
-              DCI: ${d.molecule}<br>
+              <strong>${d.accented_product}</strong><br>
+              <div class="tooltip-dci" style="margin-bottom: 8px;">DCI: ${d.molecule}</div>
+              <strong>${d.status}</strong>, plus disponible depuis le <strong>${formatDate(d.start_date)}</strong>
             `);
           }
         } else {
           if (formatDate(d.calculated_end_date) === formatDate(dateReport)) {
             tooltipHTML = tooltip.html(`
+                <strong>${d.accented_product}</strong><br>
+                <div class="tooltip-dci" style="margin-bottom: 8px;">DCI: ${d.molecule}</div>
                 <strong>${d.status} / En cours</strong><br>
-                ${d.accented_product}<br>
-                DCI: ${d.molecule}<br>
                 Depuis le ${formatDate(d.start_date)} (${daysToYearsMonths(diffIndays(d.start_date, dateReport))})
               `);
           } else {
             tooltipHTML = tooltip.html(`
+                <strong>${d.accented_product}</strong><br>
+                <div class="tooltip-dci" style="margin-bottom: 8px;">DCI: ${d.molecule}</div>
                 <span class="termine">${d.status} / Terminé</span><br>
-                ${d.accented_product}<br>
-                DCI: ${d.molecule}<br>
                 ${formatDate(d.start_date)} - ${formatDate(d.calculated_end_date)} (${daysToYearsMonths(diffIndays(d.start_date, d.calculated_end_date))})
               `);
           }
