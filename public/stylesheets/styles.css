@@ -671,13 +671,15 @@ li {
 }
 
 .table-section-header {
-  background: var(--gristrestresleger);
-  padding: 5px 0 5px 0.8em;
+  background: var(--blanc);
+  border-bottom: 1px solid var(--gristresleger);
+  padding: 5px 0 3px 0.5em;
   margin: 20px 0 10px 0;
 }
 #chart-container > .table-section-header h2 {
   margin: 0;
   font-size: 1em;
+  font-weight: 500;
   color: var(--grisfonce);
   letter-spacing: 0.01em;
 }
