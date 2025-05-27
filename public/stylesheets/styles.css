@@ -1,25 +1,26 @@
 * {
-    font-family: Roboto, sans-serif;
-    font-weight: 400;
-    --main-0: rgb(3, 95, 0);
+    --arret-bg: rgba(150, 150, 150, 0.9);
     --blanc: rgb(255, 255, 255);
+    --disponible: rgb(154, 224, 147);
+    --disponiblefonce: rgb(191, 251, 191);
     --gristresfonce: rgb(50, 50, 50);
-    --grisfonce: rgb(90, 90, 90);
-    --gris: rgb(110, 110, 110);
-    --grisleger: rgb(170, 170, 170);
     --gristresleger: rgb(230, 230, 230);
     --gristrestresleger: rgb(235, 235, 235);
+    --gris: rgb(110, 110, 110);
+    --grisfonce: rgb(90, 90, 90);
+    --grisleger: rgb(170, 170, 170);
+    --main-0: rgb(3, 95, 0);
     --rupture: rgb(230, 70, 100);
     --rupture-bg: rgba(230, 70, 100, 0.9);
     --tension: rgb(250, 177, 75);
+    --tension-bg: rgba(150, 135, 100, 0.9);
     --tensionleger: rgb(255, 202, 100);
     --tensiontresleger: rgba(255, 202, 100, 0.3);
-    --tension-bg: rgba(150, 135, 100, 0.9);
-    --disponible: rgb(144, 238, 144);
-    --disponiblefonce: rgb(100, 150, 100);
-    --arret-bg: rgba(150, 150, 150, 0.9);
-    --vertleger: rgb(235, 250, 235);
     --vert: rgb(80, 120, 80);
+    --vertleger: rgb(235, 250, 235);
+    --jaunasse: #fbfaec;
+    font-family: Roboto, sans-serif;
+    font-weight: 400;
 }
 
 .rupture { fill: var(--rupture) }
@@ -106,7 +107,7 @@ p {
 
 #chart-container {
     border: 1px solid var(--gristrestresleger);
-    background-color: var(--blanc);
+    background: var(--blanc);
     margin: 20px auto;
     position: relative;
     max-width: 900px;
@@ -511,10 +512,10 @@ p {
   pointer-events: none;
   position: absolute;
   min-width: 220px;
-  max-width: 340px;
-  background: rgba(255, 255, 255, 0.95);
+  width: 450px;
+  max-width: 100vw;
+  background: var(--blanc);
   backdrop-filter: blur(4px);
-  border-radius: 8px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.10);
   padding: 12px 14px;
   color: var(--grisfonce);
@@ -524,7 +525,7 @@ p {
   z-index: 1000;
   opacity: 0;
   transition: opacity 0.2s;
-  border-left: 5px solid var(--rupture); /* Default, override with JS */
+  border-left: 4px solid var(--rupture); /* Default, override with JS */
 }
 
 #tooltip.tooltip-rupture { border-left-color: var(--rupture); }
@@ -682,4 +683,115 @@ li {
   font-weight: 500;
   color: var(--grisfonce);
   letter-spacing: 0.01em;
+}
+
+/* Modernized Table Row Styles */
+.table-row-modern {
+  border-bottom: 1px solid var(--blanc);
+  border-top: 1px solid var(--blanc);
+  display: flex;
+  align-items: center;
+  min-height: 23px;
+  position: relative;
+  transition: border 0.18s, box-shadow 0.18s, transform 0.18s;
+}
+
+.table-row-modern:nth-child(even) {
+  background: #ffffff;
+}
+
+.table-row-modern:hover,
+.table-row-modern:focus-within {
+  border-bottom: 1px solid var(--blanc);
+  border-top: 1px solid var(--blanc);
+  font-weight: 400;
+  transform: scale(1.05, 1.05) !important;
+  z-index: 100 !important;
+  box-shadow: 0 8px 32px rgba(90,90,90,0.18) !important;
+}
+
+.table-row-status-icon {
+  width: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1em;
+  margin-right: 3px;
+}
+
+.table-row-label {
+  flex: 2;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--grisfonce);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table-row-label:hover {
+  font-weight: 500;
+}
+
+.table-row-bar {
+  flex: 3;
+  position: relative;
+  z-index: 1;
+}
+
+.table-row-status-dot {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  z-index: 2;
+  display: block;
+}
+
+.status-dot-rupture { background: var(--rupture); }
+.status-dot-tension { background: var(--tension); }
+.status-dot-arret { background: var(--arret-bg); }
+.status-dot-disponible { background: var(--disponible); }
+
+.table-row-status-box {
+  align-items: center;
+  border: 1px solid var(--gristrestresleger);
+  border-radius: 2px;
+  color: #fff;
+  display: flex;
+  font-size: 1.1em;
+  font-weight: bold;
+  height: 19px;
+  justify-content: center;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  z-index: 2;
+}
+
+.status-box-rupture { background: var(--rupture); }
+.status-box-tension { background: var(--tension); }
+.status-box-arret { background: var(--arret-bg); }
+.status-box-disponible { background: var(--disponible); }
+
+.table-row-modern.hover-rupture:hover {
+  border-color: var(--rupture);
+}
+.table-row-modern.hover-tension:hover {
+  border-color: var(--tension);
+}
+.table-row-modern.hover-arret:hover {
+  border-color: var(--arret-bg);
+}
+.table-row-modern.hover-disponible:hover {
+  border-color: var(--disponible);
+}
+
+#dash {
+  overflow: visible;
 }

@@ -141,7 +141,7 @@ function getProductStatus(d) {
       return { text: "Tension d'approvisionnement", class: "tooltip-tension", shorthand: "tension", color: "var(--tension)", icon: "fa-solid fa-circle-exclamation" };
     }
   } else if (!d.calculated_end_date || d.calculated_end_date < dateReport || d.end_date) {
-    return { text: "Disponible", class: "tooltip-disponible", shorthand: "disponible", color: "var(--disponiblefonce)", icon: "fa-solid fa-circle-check" };
+    return { text: "Disponible", class: "tooltip-disponible", shorthand: "disponible", color: "var(--disponible)", icon: "fa-solid fa-circle-check" };
   }
   return { text: "Statut inconnu", class: "", shorthand: "inconnu", color: "var(--grisleger)", icon: "fa-solid fa-circle-question" };
 }
@@ -681,95 +681,60 @@ createFloatingLegend();
 /* Create the table chart  */
 /***************************/
 function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
-  const margin = { top: 0, right: 15, bottom: 0, left: 270 };
-  const width = Math.min(900, windowWidth);
-  const barHeight = 20;
-  const labelMaxLength = 29;
-  const statusBarWidth = 7;
-  const statusBarSpacing = 5;
-  const productsCount = dataManager.getProducts().length;
-  const height = productsCount * barHeight;
-  const innerWidth = width - margin.left - margin.right;
-  const innerHeight = height - margin.top - margin.bottom;
+  const dash = d3.select('#dash');
+  dash.html(''); // Clear previous
 
-  const startDate = dataManager.getStartDate();
-  const endDate = dataManager.getEndDate();
   const products = dataManager.getProducts();
   const accentedProducts = dataManager.getAccentedProducts();
+  const dateReport = dataManager.getDateReport();
+  const startDate = dataManager.getStartDate();
+  const endDate = dataManager.getEndDate();
+  const width = Math.min(900, windowWidth) - 270 - 15; // innerWidth for bars
+  const barHeight = 17; // Slimmer bar
+  const rowHeight = 23; // Should match min-height in CSS
+  // No barRightPadding, SVG should fill the row
 
-  if (rawData.length === 0) {
-    console.log("No data");
-    return;
-  }
-
-  const xScale = d3.scaleTime()
-    .domain([startDate, endDate])
-    .range([0, innerWidth]);
-
-  const yScale = d3.scaleBand()
-    .domain(products)
-    .range([0, innerHeight])
-    .padding(0.1);
-
-  let outerBox, innerChart;
-
-  // Create tooltip if it doesn't exist
-  let tooltip = d3.select("body").select("#tooltip");
+  // Tooltip (reuse or create)
+  let tooltip = d3.select('body').select('#tooltip');
   if (tooltip.empty()) {
-    tooltip = d3.select("body").append("div").attr("id", "tooltip");
+    tooltip = d3.select('body').append('div').attr('id', 'tooltip');
   }
 
-  // Create or update SVG
-  if (isInitialSetup) {
-    outerBox = d3.select("#dash")
-      .append("svg")
-      .attr("viewBox", `0 0 ${width} ${height}`)
-      .attr("preserveAspectRatio", "xMidYMid meet");
+  products.forEach((product, i) => {
+    const productIncidents = rawData.filter(d => d.product === product);
+    const mainIncident = productIncidents[0] || {};
+    const status = getProductStatus(mainIncident);
 
-    innerChart = outerBox.append("g")
-      .attr("transform", `translate(${margin.left}, ${margin.top})`);
-  } else {
-    // Update existing SVG
-    outerBox = d3.select("#dash svg")
-      .attr("viewBox", `0, 0, ${width}, ${height}`);
+    // Row container
+    const row = dash.append('div')
+      .attr('class', 'table-row-modern')
+      .on('mouseenter', function () {
+        d3.select(this)
+          .classed(`hover-${status.shorthand}`, true);
+      })
+      .on('mouseleave', function () {
+        d3.select(this)
+          .classed(`hover-${status.shorthand}`, false);
+      });
 
-    innerChart = d3.select("#dash svg g"); // Remove all existing elements
-    innerChart.selectAll("*").remove();
-  }
+    // Status icon
+    row.append('span')
+      .attr('class', 'table-row-status-icon')
+      .html(`<i class="${status.icon}" style="color:${status.color};"></i>`);
 
-  // Y-AXIS
-  // Add product names to the left of the chart
-  let verticalTicks = width - margin.left;
-
-  innerChart.append("g")
-    .attr("class", "y-axis")
-    .call(d3.axisLeft(yScale).tickSize(-verticalTicks))
-    .selectAll(".tick text")
-    .style("font-size", `${fontSizeScale(windowWidth)}px`)
-    .attr("x", -margin.left + statusBarWidth + statusBarSpacing)
-    .style("text-anchor", "start")
-    .text(function (d) {
-      // Find the accented name corresponding to the product
-      const accentedName = accentedProducts[products.indexOf(d)];
-      return accentedName.length > labelMaxLength
-        ? accentedName.substring(0, labelMaxLength) + "..."
-        : accentedName;
-    })
-    .attr('class', 'product-label')
-    .on("mouseover", function (event, d) {
-      const product = rawData.find((item) => item.product === d);
-      const accentedName = accentedProducts[products.indexOf(d)];
-      const dateReport = dataManager.getDateReport();
-
-      if (accentedName.length > labelMaxLength || product) {
+    // Product label (with tooltip)
+    row.append('span')
+      .attr('class', 'table-row-label')
+      .text(accentedProducts[i].length > 32
+        ? accentedProducts[i].slice(0, 32) + '…'
+        : accentedProducts[i])
+      .on('mouseover', function () {
+        const product = mainIncident;
         const status = getProductStatus(product);
-        let tooltipContent = `<div class="tooltip-title">${accentedName}</div>`;
-        tooltipContent += `<div class="tooltip-dci">DCI: ${product.molecule}</div>`;
-
-        // Font Awesome icon for status
-        const statusSymbol = `<span class=\"status-symbol\" aria-label=\"${status.text}\"><i class=\"${status.icon}\"></i></span>`;
-
-        if (status.shorthand === "rupture" || status.shorthand === "tension") {
+        let tooltipContent = `<div class=\"tooltip-title\">${accentedProducts[i]}</div>`;
+        tooltipContent += `<div class=\"tooltip-dci\">DCI: ${product.molecule || ''}</div>`;
+        const statusSymbol = `<span class=\\\"status-symbol\\\" aria-label=\\\"${status.text}\\\"><i class=\\\"${status.icon}\\\"></i></span>`;
+        if (status.shorthand === 'rupture' || status.shorthand === 'tension') {
           if (product.start_date <= dateReport && product.calculated_end_date >= dateReport) {
             const diffInDays = Math.round((dateReport - product.start_date) / MS_IN_DAY);
             tooltipContent += `<div class=\"tooltip-status\" style=\"color:${status.color}; font-weight:600;\">${statusSymbol} ${status.text} depuis ${daysToYearsMonths(diffInDays)}</div>`;
@@ -777,266 +742,128 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
         } else {
           tooltipContent += `<div class=\"tooltip-status\" style=\"color:${status.color}; font-weight:600;\">${statusSymbol} ${status.text}</div>`;
         }
-
-        // Afficher la liste des codes CIS
         if (Array.isArray(product.cis_codes) && product.cis_codes.length > 0) {
-          tooltipContent += `<div class="tooltip-codesCIS">Codes CIS concernés :</div><ul>`;
+          tooltipContent += `<div class=\"tooltip-codesCIS\">Codes CIS concernés :</div><ul>`;
           product.cis_codes.forEach(code => {
             const name = product.cis_names && product.cis_names[code] ? product.cis_names[code] : '';
             tooltipContent += `<li><strong>${code}</strong> : ${name}</li>`;
           });
           tooltipContent += `</ul>`;
         }
-
-        tooltip.transition().duration(200).style("opacity", 1);
-        tooltip.html(tooltipContent).attr("class", status.class);
-
-        // Anchor tooltip to the left of the chart area, top-aligned with the hovered label
+        tooltip.transition().duration(200).style('opacity', 1);
+        tooltip.html(tooltipContent).attr('class', status.class);
         const labelBox = this.getBoundingClientRect();
         const tooltipNode = tooltip.node();
         let tooltipHeight = tooltipNode ? tooltipNode.offsetHeight : 120;
-        let top = labelBox.top + window.scrollY;
-
-        // Prevent top overflow
-        if (top < 8) top = 8;
-        // Prevent bottom overflow
-        if (top + tooltipHeight + 8 > window.innerHeight + window.scrollY) {
-          top = window.innerHeight + window.scrollY - tooltipHeight - 8;
+        let top = labelBox.bottom + window.scrollY + 5; // 4px gap below the row
+        const tableBox = document.getElementById('dash').getBoundingClientRect();
+        let left = tableBox.left + window.scrollX;
+        // Prevent tooltip from going off the right edge
+        const tooltipWidth = tooltipNode ? tooltipNode.offsetWidth : 300;
+        if (left + tooltipWidth > window.innerWidth) {
+          left = window.innerWidth - tooltipWidth - 8;
         }
+        tooltip.style('left', left + 'px').style('top', top + 'px');
+      })
+      .on('mouseout', function () {
+        tooltip.transition().duration(500).style('opacity', 0);
+      });
 
-        tooltip.style('left', 0 + 'px').style('top', top + 'px');
-      }
-    })
-    .on("mouseout", function () {
-      tooltip.transition().duration(500).style("opacity", 0);
+    // Status bar (SVG for incident durations)
+    const barSpan = row.append('span').attr('class', 'table-row-bar').style('flex', '3');
+    const svgWidth = width; // SVG fills the row
+    const svg = barSpan.append('svg')
+      .attr('width', svgWidth)
+      .attr('height', rowHeight)
+      .style('vertical-align', 'middle');
+    // Draw the timeline line (before bars)
+    svg.append('line')
+      .attr('x1', 0)
+      .attr('x2', svgWidth)
+      .attr('y1', rowHeight / 2)
+      .attr('y2', rowHeight / 2)
+      .attr('stroke', "var(--grisleger)")
+      .attr('stroke-width', 1);
+
+    // Draw bars for each incident
+    productIncidents.forEach(d => {
+      const barStart = d.start_date > startDate ? d.start_date : startDate;
+      const barEnd = d.status === 'Arret' && !d.end_date ? dateReport : d.calculated_end_date;
+      const xScale = d3.scaleTime().domain([startDate, endDate]).range([0, svgWidth]);
+      svg.append('rect')
+        .attr('x', xScale(barStart))
+        .attr('y', (rowHeight - barHeight) / 2)
+        .attr('width', Math.max(0, xScale(barEnd) - xScale(barStart)))
+        .attr('height', barHeight)
+        .attr('class', `bar ${d.status}`.toLowerCase())
+        .style('cursor', 'pointer')
+        .on('mousemove', function (event) {
+          let statusClass = `tooltip-${d.status.toLowerCase()}`;
+          let tooltipHTML;
+          const diffIndays = (startDate, endDate) => Math.round((endDate - startDate) / MS_IN_DAY);
+          if (d.status === 'Arret') {
+            if (d.end_date) {
+              tooltipHTML = tooltip.html(`
+                <strong>${d.accented_product}</strong><br>
+                <div class=\"tooltip-dci\" style=\"margin-bottom: 8px;\">DCI: ${d.molecule}</div>
+                <strong>${d.status}</strong>, plus disponible de <strong>${formatDate(d.start_date)}</strong> jusqu'à <strong>${formatDate(d.end_date)}</strong>
+              `);
+            } else {
+              tooltipHTML = tooltip.html(`
+                <strong>${d.accented_product}</strong><br>
+                <div class=\"tooltip-dci\" style=\"margin-bottom: 8px;\">DCI: ${d.molecule}</div>
+                <strong>${d.status}</strong>, plus disponible depuis le <strong>${formatDate(d.start_date)}</strong>
+              `);
+            }
+          } else {
+            if (formatDate(d.calculated_end_date) === formatDate(dateReport)) {
+              tooltipHTML = tooltip.html(`
+                  <strong>${d.accented_product}</strong><br>
+                  <div class=\"tooltip-dci\" style=\"margin-bottom: 8px;\">DCI: ${d.molecule}</div>
+                  <strong>${d.status} / En cours</strong><br>
+                  Depuis le ${formatDate(d.start_date)} (${daysToYearsMonths(diffIndays(d.start_date, dateReport))})
+                `);
+            } else {
+              tooltipHTML = tooltip.html(`
+                  <strong>${d.accented_product}</strong><br>
+                  <div class=\"tooltip-dci\" style=\"margin-bottom: 8px;\">DCI: ${d.molecule}</div>
+                  <span class=\"termine\">${d.status} / Terminé</span><br>
+                  ${formatDate(d.start_date)} - ${formatDate(d.calculated_end_date)} (${daysToYearsMonths(diffIndays(d.start_date, d.calculated_end_date))})
+                `);
+            }
+          }
+          tooltipHTML.attr('class', statusClass);
+
+          // Tooltip positioning for status bar
+          const barBox = this.getBoundingClientRect();
+          const tableBox = document.getElementById('dash').getBoundingClientRect();
+          const tooltipNode = tooltip.node();
+          const tooltipWidth = tooltipNode ? tooltipNode.offsetWidth : 300;
+          const tooltipHeight = tooltipNode ? tooltipNode.offsetHeight : 120;
+
+          // Position tooltip at the left edge of the bar, just below the bar
+          let left = barBox.left + window.scrollX;
+          let top = barBox.bottom + window.scrollY + 4;
+
+          // If the tooltip would overflow the right edge of the table, shift it left
+          const tableRight = tableBox.right + window.scrollX;
+          if (left + tooltipWidth > tableRight) {
+            left = tableRight - tooltipWidth - 8; // 8px padding from the edge
+            if (left < tableBox.left + window.scrollX) {
+              left = tableBox.left + window.scrollX; // Don't go past the left edge
+            }
+          }
+
+          tooltip.style('left', left + 'px').style('top', top + 'px').style('opacity', 1);
+        })
+        .on('mouseout', function () {
+          tooltip.style('opacity', 0);
+        });
     });
 
-  // EVENTS
-  // Add bars for each event
-  innerChart.selectAll("rect.bar")
-      .data(rawData)
-      .enter()
-      .append("rect")
-      .attr("class", (d) => `bar ${d.status}`.toLowerCase())
-      .attr("x", (d) =>
-        xScale(
-          d.start_date > dataManager.getStartDate()
-            ? d.start_date
-            : dataManager.getStartDate(),
-        ),
-      )
-      .attr(
-        "y",
-        (d) => yScale(d.product) + yScale.bandwidth() / 2 - barHeight / 2 - 1,
-      )
-      .attr("width", (d) => {
-        const startDate = d.start_date;
-        // Special handling for Arret status
-        const endDate = d.status === "Arret" && !d.end_date
-                      ? dataManager.getDateReport() // If Arret with no end_date, use report date
-                      : d.calculated_end_date;
-
-        const effectiveStartDate =
-          startDate > dataManager.getStartDate() ? startDate : dataManager.getStartDate();
-        return Math.max(0, xScale(endDate) - xScale(effectiveStartDate));
-      })
-      .attr("height", barHeight)
-      .on("mousemove", function (event, d) {
-        let statusClass = `tooltip-${d.status.toLowerCase()}`;
-        let tooltipHTML;
-        const dateReport = dataManager.getDateReport();
-        const diffIndays = (startDate, endDate) =>
-          Math.round((endDate - startDate) / MS_IN_DAY);
-
-        // Special handling for Arret in tooltip
-        if (d.status === "Arret") {
-          if (d.end_date) {
-            // Rare case: if Arret has an end_date
-            tooltipHTML = tooltip.html(`
-              <strong>${d.accented_product}</strong><br>
-              <div class="tooltip-dci" style="margin-bottom: 8px;">DCI: ${d.molecule}</div>
-              <strong>${d.status}</strong>, plus disponible de <strong>${formatDate(d.start_date)}</strong> jusqu'à <strong>${formatDate(d.end_date)}</strong>
-            `);
-          } else {
-            // Normal case: Arret without end_date
-            tooltipHTML = tooltip.html(`
-              <strong>${d.accented_product}</strong><br>
-              <div class="tooltip-dci" style="margin-bottom: 8px;">DCI: ${d.molecule}</div>
-              <strong>${d.status}</strong>, plus disponible depuis le <strong>${formatDate(d.start_date)}</strong>
-            `);
-          }
-        } else {
-          if (formatDate(d.calculated_end_date) === formatDate(dateReport)) {
-            tooltipHTML = tooltip.html(`
-                <strong>${d.accented_product}</strong><br>
-                <div class="tooltip-dci" style="margin-bottom: 8px;">DCI: ${d.molecule}</div>
-                <strong>${d.status} / En cours</strong><br>
-                Depuis le ${formatDate(d.start_date)} (${daysToYearsMonths(diffIndays(d.start_date, dateReport))})
-              `);
-          } else {
-            tooltipHTML = tooltip.html(`
-                <strong>${d.accented_product}</strong><br>
-                <div class="tooltip-dci" style="margin-bottom: 8px;">DCI: ${d.molecule}</div>
-                <span class="termine">${d.status} / Terminé</span><br>
-                ${formatDate(d.start_date)} - ${formatDate(d.calculated_end_date)} (${daysToYearsMonths(diffIndays(d.start_date, d.calculated_end_date))})
-              `);
-          }
-        }
-
-        tooltipHTML.attr("class", statusClass)
-          .style("left", 23 + "px")
-          .style("top", event.pageY - 45 + "px")
-          .style("opacity", 1);
-      })
-      .on("mouseout", function () {
-        tooltip.style("opacity", 0);
-      });
-
-  // GRID
-  // Add horizontal grid lines
-  innerChart.selectAll(".grid-line")
-    .data(dataManager.getProducts())
-    .enter()
-    .append("line")
-    .attr("class", "grid-line")
-    .attr("stroke", "var(--gristresleger")
-    .attr("x1", 0)
-    .attr("x2", innerWidth)
-    .attr("y1", (d) => yScale(d) + yScale.bandwidth() + 1)
-    .attr("y2", (d) => yScale(d) + yScale.bandwidth() + 1);
-
-  innerChart.append("line")
-    .attr("class", "grid-line")
-    .attr("x1", 0)
-    .attr("x2", innerWidth)
-    .attr("y1", 1)
-    .attr("y2", 1);
-
-  // Add a single status circle for each product at the report date
-  innerChart.selectAll("circle.status-circle")
-      .data(dataManager.getProducts()) // Loop through all products
-      .enter()
-      .append("circle")
-      .attr("cx", xScale(dataManager.getDateReport())) // Position at report date
-      .attr("cy", (product) => yScale(product) + yScale.bandwidth() / 2) // Center vertically
-      .attr("r", 5)
-      .attr("class", (product) => {
-        const productIncidents = rawData.filter((d) => d.product === product);
-        if (productIncidents.length > 0) {
-          const arretIncident = productIncidents.find(d =>
-            d.status === "Arret" &&
-            d.start_date <= dataManager.getDateReport() &&
-            (!d.end_date || d.end_date >= dataManager.getDateReport())
-          );
-
-          if (arretIncident) {
-            return "arret";
-          }
-
-          const status = getProductStatus(productIncidents[0]);
-          return status.shorthand;
-        }
-        return "disponible";
-      });
-
-  // Add a status bar for each individual product
-  innerChart.selectAll(".status-bar")
-     .data(products)
-     .enter()
-     .append("rect")
-     .attr("class", "status-bar")
-     .attr("x", -margin.left)
-     .attr("y", d => yScale(d))
-     .attr("width", statusBarWidth)
-     .attr("height", yScale.bandwidth() + 2)
-     .attr("class", (product) => {
-       const productIncidents = rawData.filter((d) => d.product === product);
-       if (productIncidents.length > 0) {
-         // Check if there's an active Arret incident at the report date
-         const arretIncident = productIncidents.find(d =>
-           d.status === "Arret" &&
-           d.start_date <= dataManager.getDateReport() &&
-           (!d.end_date || d.end_date >= dataManager.getDateReport())
-         );
-
-         if (arretIncident) {
-           return "arret";
-         }
-
-         const status = getProductStatus(productIncidents[0]);
-         return status.shorthand;
-       }
-       return "disponible";
-     });
-
-  const recentDays = 7;
-  const dateReport = dataManager.getDateReport();
-
-  // Find all incidents that started or ended recently
-  const recentChanges = rawData.filter(d =>
-    // Started recently
-    (d.start_date >= new Date(dateReport - (recentDays * MS_IN_DAY)) &&
-     d.start_date <= dateReport) ||
-    // Or ended recently
-    (d.end_date &&
-     d.end_date >= new Date(dateReport - (recentDays * MS_IN_DAY)) &&
-     d.end_date <= dateReport)
-  );
-
-  // Add indicators for each recent change
-  recentChanges.forEach(incident => {
-    // Determine if this is a start or end event
-    const isStart = incident.start_date >= new Date(dateReport - (recentDays * MS_IN_DAY)) &&
-                   incident.start_date <= dateReport;
-
-    const date = isStart ? incident.start_date : incident.end_date;
-
-    // For each incident, determine the current status and use its color
-    const currentProduct = rawData.find(d =>
-      d.product === incident.product &&
-      d.start_date <= dateReport &&
-      !d.end_date
-    );
-
-    // If we found the current status, use its color, otherwise default to availability color
-    let statusColor = "var(--disponible)"; // Default to available
-    let statusName = "Disponible";
-
-    if (currentProduct) {
-      if (currentProduct.status === "Rupture") {
-        statusColor = "var(--rupture)";
-        statusName = "Rupture";
-      } else if (currentProduct.status === "Tension") {
-        statusColor = "var(--tension)";
-        statusName = "Tension";
-      } else {
-        statusColor = "var(--gris)";
-        statusName = currentProduct.status;
-      }
-    }
-
-    // Add the indicator circle
-    innerChart.append("circle")
-      .attr("class", "recent-change")
-      .attr("cx", xScale(dateReport))
-      .attr("cy", yScale(incident.product) + yScale.bandwidth() / 2)
-      .attr("r", 4)
-      .attr("fill", statusColor)
-      .attr("stroke", statusColor)
-      .attr("stroke-width", 2);
+    // Status box (replaces dot)
+    row.append('span')
+      .attr('class', `table-row-status-box status-box-${status.shorthand}`)
+      .attr('title', status.text);
   });
-
-  // Add vertical grid lines for years
-  const yearTicks = xScale.ticks(d3.timeYear.every(1));
-
-  // Add vertical lines for each year beginning
-  innerChart.selectAll(".year-line")
-    .data(yearTicks)
-    .enter()
-    .append("line")
-    .attr("class", "year-line")
-    .attr("x1", (d) => xScale(d))
-    .attr("x2", (d) => xScale(d))
-    .attr("y1", 0)
-    .attr("y2", innerHeight);
 }
