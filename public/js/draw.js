@@ -129,21 +129,21 @@ function getProductStatus(d) {
   const dateReport = dataManager.getDateReport();
 
   if (d.status === "Arret") {
-    return { text: "Arrêt de commercialisation", class: "tooltip-arret", shorthand: "arret", color: "var(--arret-bg)", icon: "fa-solid fa-circle-xmark" };
+    return { text: "Arrêt de commercialisation", class: "tooltip-arret", shorthand: "arret", color: "var(--arret-bg)", icon: "fa-solid fa-square-xmark" };
   } else if (
     d.start_date <= dateReport &&
     d.calculated_end_date >= dateReport &&
     d.end_date === null
   ) {
     if (d.status === "Rupture") {
-      return { text: "Rupture de stock", class: "tooltip-rupture", shorthand: "rupture", color: "var(--rupture)", icon: "fa-solid fa-circle-xmark" };
+      return { text: "Rupture de stock", class: "tooltip-rupture", shorthand: "rupture", color: "var(--rupture)", icon: "fa-solid fa-square-xmark" };
     } else if (d.status === "Tension") {
-      return { text: "Tension d'approvisionnement", class: "tooltip-tension", shorthand: "tension", color: "var(--tension)", icon: "fa-solid fa-circle-exclamation" };
+      return { text: "Tension d'approvisionnement", class: "tooltip-tension", shorthand: "tension", color: "var(--tension)", icon: "fa-solid fa-square-minus" };
     }
   } else if (!d.calculated_end_date || d.calculated_end_date < dateReport || d.end_date) {
-    return { text: "Disponible", class: "tooltip-disponible", shorthand: "disponible", color: "var(--disponible)", icon: "fa-solid fa-circle-check" };
+    return { text: "Disponible", class: "tooltip-disponible", shorthand: "disponible", color: "var(--disponible)", icon: "fa-solid fa-square-check" };
   }
-  return { text: "Statut inconnu", class: "", shorthand: "inconnu", color: "var(--grisleger)", icon: "fa-solid fa-circle-question" };
+  return { text: "Statut inconnu", class: "", shorthand: "inconnu", color: "var(--grisleger)", icon: "fa-solid fa-square-question" };
 }
 
 // Get unique products count
@@ -680,25 +680,56 @@ createFloatingLegend();
 /***************************/
 /* Create the table chart  */
 /***************************/
+function getLabelWidth() {
+  const root = document.documentElement;
+  const isMobile = window.innerWidth <= 700;
+  const varName = isMobile ? '--label-width-mobile' : '--label-width';
+  const value = getComputedStyle(root).getPropertyValue(varName);
+  return parseInt(value, 10) || (isMobile ? 70 : 180); // fallback
+}
+
 function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
   const dash = d3.select('#dash');
-  dash.html(''); // Clear previous
+  dash.html('');
+
+  // Dynamically measure container width after clearing
+  let containerWidth = 900;
+  const dashNode = dash.node();
+  if (dashNode) {
+    const measured = dashNode.getBoundingClientRect().width;
+    if (measured && measured > 0) {
+      containerWidth = measured;
+    } else {
+      containerWidth = Math.min(900, window.innerWidth);
+    }
+  }
 
   const products = dataManager.getProducts();
   const accentedProducts = dataManager.getAccentedProducts();
   const dateReport = dataManager.getDateReport();
   const startDate = dataManager.getStartDate();
   const endDate = dataManager.getEndDate();
-  const width = Math.min(900, windowWidth) - 270 - 15; // innerWidth for bars
-  const barHeight = 17; // Slimmer bar
-  const rowHeight = 23; // Should match min-height in CSS
-  // No barRightPadding, SVG should fill the row
+  const rowHeight = 23;
+  const barHeight = 15;
 
   // Tooltip (reuse or create)
   let tooltip = d3.select('body').select('#tooltip');
   if (tooltip.empty()) {
     tooltip = d3.select('body').append('div').attr('id', 'tooltip');
   }
+
+  const isMobile = window.innerWidth <= 700;
+
+  // Responsive layout values
+  const iconWidth = isMobile ? 16 : 20;
+  const labelWidth = getLabelWidth();
+  const statusBoxWidth = isMobile ? 8 : 12;
+  const gap = isMobile ? 6 : 12;
+  const padding = 8;
+  const svgWidth = Math.max(
+    50,
+    containerWidth - iconWidth - labelWidth - statusBoxWidth - gap - padding
+  );
 
   products.forEach((product, i) => {
     const productIncidents = rawData.filter(d => d.product === product);
@@ -707,93 +738,107 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
 
     // Row container
     const row = dash.append('div')
-      .attr('class', 'table-row-modern')
+      .attr('class', `table-row-modern table-row-status-${status.shorthand}`)
+      .style('display', 'flex')
+      .style('align-items', 'center')
+      .style('min-height', rowHeight + 'px')
+      .style('border-bottom', '1px solid var(--gristresleger)')
+      .style('position', 'relative')
       .on('mouseenter', function () {
         d3.select(this)
-          .classed(`hover-${status.shorthand}`, true);
+          .classed('table-row-hover', true);
       })
       .on('mouseleave', function () {
         d3.select(this)
-          .classed(`hover-${status.shorthand}`, false);
+          .classed('table-row-hover', false);
       });
 
     // Status icon
     row.append('span')
-      .attr('class', 'table-row-status-icon')
-      .html(`<i class="${status.icon}" style="color:${status.color};"></i>`);
+      .style('width', iconWidth + 'px')
+      .style('text-align', 'center')
+      .style('flex-shrink', '0')
+      .html(`<i class="${status.icon}" style="color:${status.color}; font-size: 14px;"></i>`);
 
-    // Product label (with tooltip)
+    // Product label - improved truncation
+    const label = accentedProducts[i];
+    let shortLabel = label;
+    const commaCount = (label.match(/,/g) || []).length;
+    if (commaCount === 1) {
+      shortLabel = label.split(',')[0];
+    }
+    const MAX_LABEL_LENGTH = isMobile ? 12 : 30;
+    if (shortLabel.length > MAX_LABEL_LENGTH) {
+      shortLabel = shortLabel.slice(0, MAX_LABEL_LENGTH) + '…';
+    }
+
     row.append('span')
       .attr('class', 'table-row-label')
-      .text(accentedProducts[i].length > 32
-        ? accentedProducts[i].slice(0, 32) + '…'
-        : accentedProducts[i])
+      .style('width', labelWidth + 'px')
+      .style('flex-shrink', '0')
+      .style('font-size', isMobile ? '12px' : '14px')
+      .style('color', 'var(--grisfonce)')
+      .style('overflow', 'hidden')
+      .style('text-overflow', 'ellipsis')
+      .style('white-space', 'nowrap')
+      .style('margin-right', gap + 'px')
+      .style('cursor', 'pointer')
+      .text(shortLabel)
       .on('mouseover', function () {
-        const product = mainIncident;
-        const status = getProductStatus(product);
-        let tooltipContent = `<div class=\"tooltip-title\">${accentedProducts[i]}</div>`;
-        tooltipContent += `<div class=\"tooltip-dci\">DCI: ${product.molecule || ''}</div>`;
-        const statusSymbol = `<span class=\\\"status-symbol\\\" aria-label=\\\"${status.text}\\\"><i class=\\\"${status.icon}\\\"></i></span>`;
+        let tooltipContent = `<div style="font-weight: 600; margin-bottom: 5px;">${accentedProducts[i]}</div>`;
+        tooltipContent += `<div style="color: var(--gris); margin-bottom: 8px;">DCI: ${mainIncident.molecule || ''}</div>`;
         if (status.shorthand === 'rupture' || status.shorthand === 'tension') {
-          if (product.start_date <= dateReport && product.calculated_end_date >= dateReport) {
-            const diffInDays = Math.round((dateReport - product.start_date) / MS_IN_DAY);
-            tooltipContent += `<div class=\"tooltip-status\" style=\"color:${status.color}; font-weight:600;\">${statusSymbol} ${status.text} depuis ${daysToYearsMonths(diffInDays)}</div>`;
+          if (mainIncident.start_date <= dateReport && mainIncident.calculated_end_date >= dateReport) {
+            const diffInDays = Math.round((dateReport - mainIncident.start_date) / MS_IN_DAY);
+            tooltipContent += `<div style="color:${status.color}; font-weight:600;"><i class="${status.icon}"></i> ${status.text} depuis ${daysToYearsMonths(diffInDays)}</div>`;
           }
         } else {
-          tooltipContent += `<div class=\"tooltip-status\" style=\"color:${status.color}; font-weight:600;\">${statusSymbol} ${status.text}</div>`;
-        }
-        if (Array.isArray(product.cis_codes) && product.cis_codes.length > 0) {
-          tooltipContent += `<div class=\"tooltip-codesCIS\">Codes CIS concernés :</div><ul>`;
-          product.cis_codes.forEach(code => {
-            const name = product.cis_names && product.cis_names[code] ? product.cis_names[code] : '';
-            tooltipContent += `<li><strong>${code}</strong> : ${name}</li>`;
-          });
-          tooltipContent += `</ul>`;
+          tooltipContent += `<div style="color:${status.color}; font-weight:600;"><i class="${status.icon}"></i> ${status.text}</div>`;
         }
         tooltip.transition().duration(200).style('opacity', 1);
         tooltip.html(tooltipContent).attr('class', status.class);
         const labelBox = this.getBoundingClientRect();
-        const tooltipNode = tooltip.node();
-        let tooltipHeight = tooltipNode ? tooltipNode.offsetHeight : 120;
-        let top = labelBox.bottom + window.scrollY + 5; // 4px gap below the row
-        const tableBox = document.getElementById('dash').getBoundingClientRect();
-        let left = tableBox.left + window.scrollX;
-        // Prevent tooltip from going off the right edge
-        const tooltipWidth = tooltipNode ? tooltipNode.offsetWidth : 300;
-        if (left + tooltipWidth > window.innerWidth) {
-          left = window.innerWidth - tooltipWidth - 8;
-        }
+        let top = labelBox.bottom + window.scrollY + 5;
+        let left = labelBox.left + window.scrollX;
         tooltip.style('left', left + 'px').style('top', top + 'px');
       })
       .on('mouseout', function () {
         tooltip.transition().duration(500).style('opacity', 0);
       });
 
-    // Status bar (SVG for incident durations)
-    const barSpan = row.append('span').attr('class', 'table-row-bar').style('flex', '3');
-    const svgWidth = width; // SVG fills the row
-    const svg = barSpan.append('svg')
+    // Bar area
+    const barContainer = row.append('span')
+      .style('flex', '1')
+      .style('position', 'relative')
+      .style('height', rowHeight + 'px')
+      .style('margin-right', (statusBoxWidth + 2) + 'px')
+      .style('min-width', '0');
+
+    // SVG
+    const svg = barContainer.append('svg')
       .attr('width', svgWidth)
-      .attr('height', rowHeight)
-      .style('vertical-align', 'middle');
-    // Draw the timeline line (before bars)
+      .attr('height', rowHeight);
+
+    // Timeline background
     svg.append('line')
       .attr('x1', 0)
       .attr('x2', svgWidth)
       .attr('y1', rowHeight / 2)
       .attr('y2', rowHeight / 2)
-      .attr('stroke', "var(--grisleger)")
-      .attr('stroke-width', 1);
+      .attr('stroke', 'var(--vertleger)')
+      .attr('stroke-width', 15);
 
-    // Draw bars for each incident
+    // Scale
+    const xScale = d3.scaleTime().domain([startDate, endDate]).range([0, svgWidth]);
+
+    // Bars
     productIncidents.forEach(d => {
       const barStart = d.start_date > startDate ? d.start_date : startDate;
       const barEnd = d.status === 'Arret' && !d.end_date ? dateReport : d.calculated_end_date;
-      const xScale = d3.scaleTime().domain([startDate, endDate]).range([0, svgWidth]);
       svg.append('rect')
         .attr('x', xScale(barStart))
         .attr('y', (rowHeight - barHeight) / 2)
-        .attr('width', Math.max(0, xScale(barEnd) - xScale(barStart)))
+        .attr('width', Math.max(2, xScale(barEnd) - xScale(barStart)))
         .attr('height', barHeight)
         .attr('class', `bar ${d.status}`.toLowerCase())
         .style('cursor', 'pointer')
@@ -803,54 +848,57 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
           const diffIndays = (startDate, endDate) => Math.round((endDate - startDate) / MS_IN_DAY);
           if (d.status === 'Arret') {
             if (d.end_date) {
-              tooltipHTML = tooltip.html(`
+              tooltipHTML = `
                 <strong>${d.accented_product}</strong><br>
-                <div class=\"tooltip-dci\" style=\"margin-bottom: 8px;\">DCI: ${d.molecule}</div>
+                <div style="color: var(--gris); margin: 5px 0;">DCI: ${d.molecule}</div>
                 <strong>${d.status}</strong>, plus disponible de <strong>${formatDate(d.start_date)}</strong> jusqu'à <strong>${formatDate(d.end_date)}</strong>
-              `);
+              `;
             } else {
-              tooltipHTML = tooltip.html(`
+              tooltipHTML = `
                 <strong>${d.accented_product}</strong><br>
-                <div class=\"tooltip-dci\" style=\"margin-bottom: 8px;\">DCI: ${d.molecule}</div>
+                <div style="color: var(--gris); margin: 5px 0;">DCI: ${d.molecule}</div>
                 <strong>${d.status}</strong>, plus disponible depuis le <strong>${formatDate(d.start_date)}</strong>
-              `);
+              `;
             }
           } else {
             if (formatDate(d.calculated_end_date) === formatDate(dateReport)) {
-              tooltipHTML = tooltip.html(`
-                  <strong>${d.accented_product}</strong><br>
-                  <div class=\"tooltip-dci\" style=\"margin-bottom: 8px;\">DCI: ${d.molecule}</div>
-                  <strong>${d.status} / En cours</strong><br>
-                  Depuis le ${formatDate(d.start_date)} (${daysToYearsMonths(diffIndays(d.start_date, dateReport))})
-                `);
+              tooltipHTML = `
+                <strong>${d.accented_product}</strong><br>
+                <div style="color: var(--gris); margin: 5px 0;">DCI: ${d.molecule}</div>
+                <strong>${d.status} / En cours</strong><br>
+                Depuis le ${formatDate(d.start_date)} (${daysToYearsMonths(diffIndays(d.start_date, dateReport))})
+              `;
             } else {
-              tooltipHTML = tooltip.html(`
-                  <strong>${d.accented_product}</strong><br>
-                  <div class=\"tooltip-dci\" style=\"margin-bottom: 8px;\">DCI: ${d.molecule}</div>
-                  <span class=\"termine\">${d.status} / Terminé</span><br>
-                  ${formatDate(d.start_date)} - ${formatDate(d.calculated_end_date)} (${daysToYearsMonths(diffIndays(d.start_date, d.calculated_end_date))})
-                `);
+              tooltipHTML = `
+                <strong>${d.accented_product}</strong><br>
+                <div style="color: var(--gris); margin: 5px 0;">DCI: ${d.molecule}</div>
+                <span style="color: var(--gris); font-weight: 600;">${d.status} / Terminé</span><br>
+                ${formatDate(d.start_date)} - ${formatDate(d.calculated_end_date)} (${daysToYearsMonths(diffIndays(d.start_date, d.calculated_end_date))})
+              `;
             }
           }
-          tooltipHTML.attr('class', statusClass);
+          tooltip.html(tooltipHTML).attr('class', statusClass);
 
-          // Tooltip positioning for status bar
-          const barBox = this.getBoundingClientRect();
-          const tableBox = document.getElementById('dash').getBoundingClientRect();
+          // Tooltip positioning: below the bar, left-aligned with bar, or right-aligned if not enough space
+          const svgRect = svg.node().getBoundingClientRect();
+          const barX = xScale(barStart);
+          const barW = Math.max(2, xScale(barEnd) - xScale(barStart));
+          const barY = (rowHeight - barHeight) / 2;
+          // Get the bar's left edge in page coordinates
+          const leftEdge = svgRect.left + barX + window.scrollX;
+          const topEdge = svgRect.top + barY + barHeight + window.scrollY;
+
+          // Default: tooltip left edge at bar left
+          let left = leftEdge;
+          let top = topEdge + 2; // 2px gap below bar
+
+          // If tooltip would overflow right, align with bar's right edge
           const tooltipNode = tooltip.node();
-          const tooltipWidth = tooltipNode ? tooltipNode.offsetWidth : 300;
-          const tooltipHeight = tooltipNode ? tooltipNode.offsetHeight : 120;
-
-          // Position tooltip at the left edge of the bar, just below the bar
-          let left = barBox.left + window.scrollX;
-          let top = barBox.bottom + window.scrollY + 4;
-
-          // If the tooltip would overflow the right edge of the table, shift it left
-          const tableRight = tableBox.right + window.scrollX;
-          if (left + tooltipWidth > tableRight) {
-            left = tableRight - tooltipWidth - 8; // 8px padding from the edge
-            if (left < tableBox.left + window.scrollX) {
-              left = tableBox.left + window.scrollX; // Don't go past the left edge
+          if (tooltipNode) {
+            const tooltipWidth = tooltipNode.offsetWidth;
+            const barRight = leftEdge + barW;
+            if (left + tooltipWidth > window.innerWidth - 8) { // 8px margin
+              left = Math.max(8, barRight - tooltipWidth);
             }
           }
 
@@ -861,9 +909,15 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
         });
     });
 
-    // Status box (replaces dot)
-    row.append('span')
-      .attr('class', `table-row-status-box status-box-${status.shorthand}`)
-      .attr('title', status.text);
+    // Status box at report date
+    svg.append('rect')
+      .attr('x', xScale(dateReport) - statusBoxWidth / 2)
+      .attr('y', (rowHeight - (isMobile ? 12 : 15)) / 2)
+      .attr('width', statusBoxWidth)
+      .attr('height', isMobile ? 12 : 15)
+      .attr('rx', 2)
+      .attr('ry', 2)
+      .style('fill', status.color)
+      .style('cursor', 'pointer');
   });
 }
