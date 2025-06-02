@@ -100,12 +100,6 @@ function identifyRecentStatusChanges(data, recentDays = 7) {
 
 let windowWidth = getWindowWidth();
 
-const fontSizeScale = d3
-  .scaleLinear()
-  .domain([400, 900])
-  .range([15, 15])
-  .clamp(true);
-
 const labelFontSizeScale = d3
   .scaleLinear()
   .domain([400, 900])
@@ -723,7 +717,7 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
   // Responsive layout values
   const iconWidth = isMobile ? 16 : 20;
   const labelWidth = getLabelWidth();
-  const statusBoxWidth = isMobile ? 8 : 12;
+  const statusBoxWidth = isMobile ? 6 : 8;
   const gap = isMobile ? 6 : 12;
   const padding = 8;
   const svgWidth = Math.max(
@@ -738,11 +732,10 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
 
     // Row container
     const row = dash.append('div')
-      .attr('class', `table-row-modern table-row-status-${status.shorthand}`)
+      .attr('class', `table-row-modern hover-${status.shorthand}`)
       .style('display', 'flex')
       .style('align-items', 'center')
       .style('min-height', rowHeight + 'px')
-      .style('border-bottom', '1px solid var(--gristresleger)')
       .style('position', 'relative')
       .on('mouseenter', function () {
         d3.select(this)
@@ -819,17 +812,17 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
       .attr('width', svgWidth)
       .attr('height', rowHeight);
 
+    // Scale
+    const xScale = d3.scaleTime().domain([startDate, endDate]).range([0, svgWidth]);
+
     // Timeline background
     svg.append('line')
       .attr('x1', 0)
-      .attr('x2', svgWidth)
+      .attr('x2', xScale(dateReport))
       .attr('y1', rowHeight / 2)
       .attr('y2', rowHeight / 2)
       .attr('stroke', 'var(--vertleger)')
       .attr('stroke-width', 15);
-
-    // Scale
-    const xScale = d3.scaleTime().domain([startDate, endDate]).range([0, svgWidth]);
 
     // Bars
     productIncidents.forEach(d => {
@@ -912,12 +905,9 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
     // Status box at report date
     svg.append('rect')
       .attr('x', xScale(dateReport) - statusBoxWidth / 2)
-      .attr('y', (rowHeight - (isMobile ? 12 : 15)) / 2)
+      .attr('y', (rowHeight - (isMobile ? 15 : 17)) / 2)
       .attr('width', statusBoxWidth)
-      .attr('height', isMobile ? 12 : 15)
-      .attr('rx', 2)
-      .attr('ry', 2)
-      .style('fill', status.color)
-      .style('cursor', 'pointer');
+      .attr('height', isMobile ? 15 : 17)
+      .style('fill', status.color);
   });
 }

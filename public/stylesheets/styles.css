@@ -517,7 +517,7 @@ p {
   position: absolute;
   min-width: 220px;
   width: 350px;
-  max-width: 100vw;
+  max-width: 100%;
   background: var(--blanc);
   backdrop-filter: blur(4px);
   box-shadow: 0 4px 24px rgba(0,0,0,0.10);
@@ -679,7 +679,7 @@ li {
   background: var(--blanc);
   border-bottom: 1px solid var(--gristresleger);
   padding: 5px 0 3px 0.5em;
-  margin: 20px 0 10px 0;
+  margin-top: 5px;
 }
 #chart-container > .table-section-header h2 {
   margin: 0;
@@ -728,8 +728,6 @@ li {
 .table-row-modern:hover,
 .table-row-modern:focus-within {
   background: var(--blanc);
-  border-bottom: 1px solid var(--blanc);
-  border-top: 1px solid var(--blanc);
   font-weight: 400;
   transform: scale(1.05, 1.05) !important;
   z-index: 100 !important;
@@ -795,14 +793,14 @@ li {
 
 @media (max-width: 700px) {
   #chart-container {
-    width: 100vw;
-    max-width: 100vw;
+    width: 100%;
+    max-width: 100%;
     margin: 0;
     padding: 0;
   }
   #dash {
-    width: 100vw;
-    max-width: 100vw;
+    width: 100%;
+    max-width: 100%;
   }
   .table-row-status-box {
     right: 2px;
