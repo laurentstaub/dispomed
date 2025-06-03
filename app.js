@@ -25,6 +25,26 @@ app.get("/", async (req, res) => {
   });
 });
 
+app.get("/product/:productName", async (req, res) => {
+  console.log("productName");
+  const { productName } = req.params;
+  console.log(productName);
+  try {
+    const apiUrl = `${req.protocol}://${req.get('host')}/api/product/${encodeURIComponent(productName)}`;
+    const response = await fetch(apiUrl);
+    console.log(response);
+    if (!response.ok) {
+      return res.status(404).render('404', { title: 'Produit non trouvé' });
+    }
+    const product = await response.json();
+    console.log(product);
+    res.render('product', { title: product.name, product });
+  } catch (error) {
+    console.error('Error rendering product page:', error);
+    res.status(500).render('error', { title: 'Erreur serveur', error });
+  }
+});
+
 app.get("/api/config", (req, res) => {
   res.json({
     API_BASE_URL: process.env.API_BASE_URL || "http://localhost:3000",
@@ -220,6 +240,41 @@ app.get("/api/incidents/ATCClasses", async (req, res) => {
   } catch (error) {
     console.error("Error fetching incidents:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Product detail API route (by product name)
+app.get('/api/product/:productName', async (req, res) => {
+  const { productName } = req.params;
+  try {
+    // 1. Find the product by name
+    const productResult = await dbQuery(
+      `SELECT p.id, p.name, p.accented_name, p.cis_codes
+       FROM produits p
+       WHERE unaccent(lower(p.name)) = unaccent(lower($1))`,
+      ...[productName.toLowerCase()]
+    );
+    if (productResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    const product = productResult.rows[0];
+
+    // 2. Get all incidents for this product (by product_id)
+    const incidentsResult = await dbQuery(
+      `SELECT i.status, i.start_date, i.end_date, i.calculated_end_date, i.mise_a_jour
+       FROM incidents i
+       WHERE i.product_id = $1
+       ORDER BY i.start_date DESC`,
+      ...[product.id]
+    );
+
+    // 3. Attach incidents to product
+    product.incidents = incidentsResult.rows;
+
+    res.json(product);
+  } catch (error) {
+    console.error('Error fetching product detail:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

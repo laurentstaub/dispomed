@@ -1,0 +1,73 @@
+extends layout
+
+block head
+  style.
+    .product-card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px #0001;
+      padding: 32px 24px;
+      margin: 32px auto;
+      max-width: 700px;
+    }
+    .product-title {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 12px;
+      color: #2a3a4a;
+    }
+    .cis-list {
+      margin-bottom: 20px;
+    }
+    .cis-pill {
+      display: inline-block;
+      background: #e0e7ef;
+      color: #333;
+      border-radius: 16px;
+      padding: 4px 12px;
+      margin: 2px 4px 2px 0;
+      font-size: 0.95em;
+    }
+    .section-title {
+      margin-top: 24px;
+      font-size: 1.2rem;
+      color: #2a3a4a;
+    }
+    .incident-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    .incident-table th, .incident-table td {
+      border-bottom: 1px solid #eee;
+      padding: 8px 6px;
+      text-align: left;
+    }
+    .incident-table th {
+      background: #f7f7fa;
+      color: #666;
+      font-weight: 500;
+    }
+
+block content
+  .product-card
+    h1.product-title= product.name
+    if product.cis_codes && product.cis_codes.length
+      .cis-list
+        | CIS codes:
+        each code in product.cis_codes
+          span.cis-pill= code
+    h2.section-title Historique des incidents
+    if product.incidents && product.incidents.length
+      table.incident-table
+        tr
+          th Statut
+          th Début
+          th Fin
+        each incident in product.incidents
+          tr
+            td= incident.status
+            td= incident.start_date ? incident.start_date.substring(0,10) : ''
+            td= incident.calculated_end_date ? incident.calculated_end_date.substring(0,10) : ''
+    else
+      p Aucune incident enregistré.

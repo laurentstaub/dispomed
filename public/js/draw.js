@@ -788,6 +788,15 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
         } else {
           tooltipContent += `<div style="color:${status.color}; font-weight:600;"><i class="${status.icon}"></i> ${status.text}</div>`;
         }
+        // Add CIS codes list as last item
+        if (mainIncident.cis_codes && mainIncident.cis_codes.length > 0) {
+          tooltipContent += '<div style="margin-top:10px;"><b>Codes CIS concernés :</b><ul style="margin:4px 0 0 12px;padding:0;">';
+          mainIncident.cis_codes.forEach(code => {
+            const name = mainIncident.cis_names && mainIncident.cis_names[code] ? mainIncident.cis_names[code] : '';
+            tooltipContent += `<li style="font-family:'Inter', 'Roboto', Arial, sans-serif; font-size:13px;">${code}${name ? ': ' + name : ''}</li>`;
+          });
+          tooltipContent += '</ul></div>';
+        }
         tooltip.transition().duration(200).style('opacity', 1);
         tooltip.html(tooltipContent).attr('class', status.class);
         const labelBox = this.getBoundingClientRect();
