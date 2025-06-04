@@ -153,7 +153,6 @@ function getUniqueProductLength(eventList) {
 
 function formatDuration(years, months, days) {
   const parts = [];
-
   const pluralize = (value, singular, plural) =>
     value > 0 ? `${value} ${value === 1 ? singular : plural}` : '';
 
@@ -165,7 +164,7 @@ function formatDuration(years, months, days) {
   if (monthsPart) parts.push(monthsPart);
   if (daysPart) parts.push(daysPart);
 
-  if (parts.length === 0) return '0 jour'; // Cas par défaut
+  if (parts.length === 0) return '0 jour';
 
   return parts.join(', ').replace(/, ([^,]*)$/, ' et $1');
 }
@@ -782,8 +781,8 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
         tooltipContent += `<div style="color: var(--gris); margin-bottom: 8px;">DCI: ${mainIncident.molecule || ''}</div>`;
         if (status.shorthand === 'rupture' || status.shorthand === 'tension') {
           if (mainIncident.start_date <= dateReport && mainIncident.calculated_end_date >= dateReport) {
-            const diffInDays = Math.round((dateReport - mainIncident.start_date) / MS_IN_DAY);
-            tooltipContent += `<div style="color:${status.color}; font-weight:600;"><i class="${status.icon}"></i> ${status.text} depuis ${daysToYearsMonths(diffInDays)}</div>`;
+            const diffInDays = getDaysBetween(mainIncident.start_date, dateReport);
+            tooltipContent += `<div style="color:${status.color}; font-weight:600;"><i class="${status.icon}"></i> ${status.text} ${formatDurationSince(diffInDays)}</div>`;
           }
         } else {
           tooltipContent += `<div style="color:${status.color}; font-weight:600;"><i class="${status.icon}"></i> ${status.text}</div>`;

@@ -26,6 +26,10 @@
     font-weight: 400;
 }
 
+body, .product-card, .incident-label, .cis-pill, .section-title {
+  font-family: 'Inter', 'Roboto', Arial, sans-serif !important;
+}
+
 .rupture { fill: var(--rupture) }
 .tension { fill: var(--tension) }
 .arret { fill: var(--arret-bg) }
@@ -822,3 +826,103 @@ li {
     flex-shrink: 1;
   }
 }
+
+.product-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px #0001;
+  padding: 32px 24px;
+  margin: 32px auto;
+  max-width: 700px;
+}
+.product-title {
+  font-family: 'Inter', 'Roboto', Arial, sans-serif !important;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: var(--grisfonce);
+}
+.cis-list {
+  margin-bottom: 20px;
+}
+.cis-pill {
+  display: inline-block;
+  background: #e0e7ef;
+  color: #333;
+  border-radius: 16px;
+  padding: 4px 12px;
+  margin: 2px 4px 2px 0;
+  font-size: 0.95em;
+}
+.section-title {
+  margin-top: 24px;
+  font-size: 1.2rem;
+  color: #2a3a4a;
+}
+.timeline-container {
+  margin-top: 18px;
+}
+.timeline-axis {
+  position: relative;
+  height: 2px;
+  margin-bottom: 8px;
+  margin-left: 0;
+  background: #f3f3f3;
+}
+.timeline-labels {
+  font-size: 13px;
+  color: #888;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2px;
+  margin-left: 0;
+}
+.incident-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  margin-left: 0;
+}
+.status-icon {
+  width: 24px;
+  text-align: center;
+}
+.incident-label {
+  font-size: 13px;
+  color: #444;
+  margin: 0 8px 0 0;
+  min-width: 0;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.incident-bar-container {
+  flex: 1;
+  position: relative;
+  height: 18px;
+  background: #f3f3f3;
+  overflow: hidden;
+}
+.incident-bar {
+  position: absolute;
+  height: 100%;
+  top: 0;
+}
+.incident-bar.rupture { background: var(--rupture); }
+.incident-bar.tension { background: var(--tension); }
+.incident-bar.arret { background: var(--arret-bg); }
+
+.current-status-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 1.1em;
+}
+.current-status-label {
+  font-size: 1.1em;
+  font-weight: 500;
+  color: #2a3a4a;
+  margin-left: 8px;
+}
+.rupture-icon { color: var(--rupture); }
+.tension-icon { color: var(--tension); }
+.arret-icon { color: var(--arret-bg); }
