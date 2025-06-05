@@ -451,9 +451,6 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("x", 10)
     .attr("y", 20)
     .attr("text-anchor", "start")
-    .attr("fill", "var(--grisfonce)")
-    .style("font-size", "15px")
-    .style("font-weight", "500")
     .text("Évolution des ruptures et tensions");
 
   const bbox = titleText.node().getBBox();
@@ -471,9 +468,6 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
       .attr("x", 10)
       .attr("y", 24 + bbox.height) // Position below the title with spacing
       .attr("text-anchor", "start")
-      .attr("fill", "var(--grisleger)")
-      .style("font-size", "11px")
-      .style("font-weight", "400")
       .text("En nombre de spécialités (Codes CIS) manquantes le 1er de chaque période");
 
   const g = svg.append("g")
@@ -526,9 +520,6 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("cx", (d) => xScale(d.date))
     .attr("cy", (d) => y(d.rupture))
     .attr("r", 3)
-    .style("fill", "var(--rupture)")
-    .style("stroke", "white")
-    .style("stroke-width", 0.5);
 
   // Add marks (circles) for tension data points - WITH FILTERING
   g.selectAll(".tension-mark")
@@ -539,9 +530,6 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("cx", (d) => xScale(d.date))
     .attr("cy", (d) => y(d.tension))
     .attr("r", 3)
-    .style("fill", "var(--tension)")
-    .style("stroke", "white")
-    .style("stroke-width", 0.5);
 
   // Add labels for rupture data points - WITH FILTERING
   g.selectAll(".rupture-label")
@@ -596,9 +584,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
           .attr("cx", xScale(dateReport))
           .attr("cy", y(currentMonthData.rupture))
           .attr("r", 2) // Larger than regular points
-          .style("fill", "var(--rupture)")
-          .style("stroke", "white")
-          .style("stroke-width", 1);
+          .style("fill", "var(--rupture)");
 
         // Add special label for current rupture
         g.append("text")
@@ -606,7 +592,6 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
           .attr("x", xScale(dateReport) + 12)
           .attr("y", y(currentMonthData.rupture))
           .attr("text-anchor", "middle")
-          .attr("font-weight", "bold")
           .style("fill", "var(--rupture)")
           .text(currentMonthData.rupture);
       }
@@ -619,9 +604,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
           .attr("cx", xScale(dateReport))
           .attr("cy", y(currentMonthData.tension))
           .attr("r", 2) // Larger than regular points
-          .style("fill", "var(--tension)")
-          .style("stroke", "white")
-          .style("stroke-width", 1);
+          .style("fill", "var(--tension)");
 
         // Add special label for current tension
         g.append("text")
@@ -629,7 +612,6 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
           .attr("x", xScale(dateReport) + 12)
           .attr("y", y(currentMonthData.tension))
           .attr("text-anchor", "middle")
-          .attr("font-weight", "bold")
           .style("fill", "var(--tension)")
           .text(currentMonthData.tension);
       }
@@ -658,14 +640,11 @@ function createFloatingLegend() {
       .attr("class", "legend-item");
 
     items.append("div")
-      .style("background-color", d => d.color)
-      .style("width", "14px")
-      .style("height", "14px")
-      .style("display", "inline-block")
-      .style("margin-right", "5px");
-
+      .attr("class", "legend-color-box")
+      .style("background-color", d => d.color);
+    
     items.append("span")
-      .text(d => d.label)
+      .text(d => d.label);
 }
 
 createFloatingLegend();
@@ -804,14 +783,8 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
     row.append('span')
       .attr('class', 'table-row-label')
       .style('width', labelWidth + 'px')
-      .style('flex-shrink', '0')
       .style('font-size', isMobile ? '12px' : '14px')
-      .style('color', 'var(--grisfonce)')
-      .style('overflow', 'hidden')
-      .style('text-overflow', 'ellipsis')
-      .style('white-space', 'nowrap')
       .style('margin-right', gap + 'px')
-      .style('cursor', 'pointer')
       .text(shortLabel)
       .on('mouseover', function () {
         let tooltipContent = `<div style="font-weight: 600; margin-bottom: 5px;">${accentedProducts[i]}</div>`;

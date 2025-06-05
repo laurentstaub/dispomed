@@ -265,6 +265,12 @@ p {
     color: var(--blanc);
   }
 
+.chart-subtitle {
+  font-size: 11px;
+  font-weight: 400;
+  fill: var(--grisleger);
+}
+
 .button-selected {
   background: var(--gris);
   color: var(--blanc);
@@ -391,6 +397,7 @@ p {
 
 .current-label {
     font-size: 9px;
+    font-weight: 500;
 }
 
 .grid-line {
@@ -711,10 +718,11 @@ li {
 }
 
 .table-row-label {
-  
+  color: var(--grisfonce);
+  cursor: pointer;
+  flex-shrink: 0;
   font-weight: 400;
   font-size: 14px;
-  color: var(--grisfonce);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -934,7 +942,24 @@ li {
 .tension-icon { color: var(--tension); }
 .arret-icon { color: var(--arret-bg); }
 
-.recent-changes-title-row {
+.current-point {
+  font-weight: 500;
+  stroke: var(--blanc);
+  stroke-width: 1;
+}
+
+.rupture-mark {
+  fill: var(--rupture);
+  stroke: var(--blanc);
+  stroke-width: 0.5;
+}
+.tension-mark {
+  fill: var(--tension);
+  stroke: var(--blanc);
+  stroke-width: 0.5;
+}
+
+.recent-changes-title-row,.other-changes-title-row {
   font-weight: 400;
   color: var(--grisfonce);
   margin: 18px 0 6px 0;
@@ -948,10 +973,28 @@ li {
   padding: 0 0 2px 0;
 }
 
-.other-changes-title-row {
-  font-weight: 400;
-  color: var(--grisfonce);
+.chart-title {
+  font-weight: 500;
+  fill: var(--grisfonce);
   margin: 18px 0 6px 0;
   padding-left: 6px;
   font-size: 15px;
+}
+
+.legend-color-box {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  margin-right: 5px;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px; /* optional, for spacing between legend items */
+}
+#title-legend {
+  font-weight: bold;
+  margin-bottom: 8px;
 }
