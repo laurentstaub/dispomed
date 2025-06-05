@@ -705,6 +705,16 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
   const rowHeight = 23;
   const barHeight = 15;
 
+  // Identify recently changed products (last 7 days)
+  const recentChangesMap = identifyRecentStatusChanges(rawData, 7);
+  const recentlyChangedProducts = Array.from(recentChangesMap.keys());
+
+  // Sort products: recently changed first, then the rest
+  const sortedProducts = [
+    ...recentlyChangedProducts,
+    ...products.filter(p => !recentlyChangedProducts.includes(p))
+  ];
+
   // Tooltip (reuse or create)
   let tooltip = d3.select('body').select('#tooltip');
   if (tooltip.empty()) {
@@ -724,14 +734,41 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
     containerWidth - iconWidth - labelWidth - statusBoxWidth - gap - padding
   );
 
-  products.forEach((product, i) => {
+  // Add section title row before the first recently changed product
+  let addedSectionTitle = false;
+  let recentBlock = null;
+  let addedOtherTitle = false;
+
+  sortedProducts.forEach((product, i) => {
+    // Insert section title row before the first recently changed product
+    if (!addedSectionTitle && recentlyChangedProducts.includes(product)) {
+      dash.append('div')
+        .attr('class', 'recent-changes-title-row')
+        .text('Changements de statut ces 7 derniers jours');
+      // Start the block for recently changed rows
+      recentBlock = dash.append('div').attr('class', 'recent-changes-block');
+      addedSectionTitle = true;
+    }
+
+    // Add title for other products
+    if (!recentlyChangedProducts.includes(product) && !addedOtherTitle) {
+      dash.append('div')
+        .attr('class', 'other-changes-title-row')
+        .text('Autres situations de disponibilité');
+      addedOtherTitle = true;
+    }
+
     const productIncidents = rawData.filter(d => d.product === product);
     const mainIncident = productIncidents[0] || {};
     const status = getProductStatus(mainIncident);
 
-    // Row container
-    const row = dash.append('div')
-      .attr('class', `table-row-modern hover-${status.shorthand}`)
+    // Add background for recently changed products
+    const isRecentlyChanged = recentlyChangedProducts.includes(product);
+
+    // Row container: use recentBlock for recently changed, dash for others
+    const parent = isRecentlyChanged && recentBlock ? recentBlock : dash;
+    const row = parent.append('div')
+      .attr('class', `table-row-modern hover-${status.shorthand}${isRecentlyChanged ? ' recently-changed-row' : ''}`)
       .style('display', 'flex')
       .style('align-items', 'center')
       .style('min-height', rowHeight + 'px')
@@ -759,7 +796,7 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
     if (commaCount === 1) {
       shortLabel = label.split(',')[0];
     }
-    const MAX_LABEL_LENGTH = isMobile ? 12 : 30;
+    const MAX_LABEL_LENGTH = isMobile ? 18 : 30;
     if (shortLabel.length > MAX_LABEL_LENGTH) {
       shortLabel = shortLabel.slice(0, MAX_LABEL_LENGTH) + '…';
     }

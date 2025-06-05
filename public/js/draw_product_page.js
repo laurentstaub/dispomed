@@ -16,9 +16,10 @@ function drawProductTimeline(product, containerId) {
   const timelineEnd = new Date();
   const totalDays = Math.round((timelineEnd - timelineStart) / (1000 * 60 * 60 * 24));
   const margin = { top: 15, right: 20, bottom: 30, left: 20 };
-  const barHeight = 12;
+  const barHeight = 14;
   const barGap = 10;
   const barY = 24;
+  const labelWidth = 160;
   const incidentCount = product.incidents.length;
   const chartHeight = barY + incidentCount * (barHeight + barGap);
   const width = container.node().getBoundingClientRect().width - margin.left - margin.right;
@@ -34,18 +35,18 @@ function drawProductTimeline(product, containerId) {
   // Create scales
   const xScale = d3.scaleTime()
     .domain([timelineStart, timelineEnd])
-    .range([0, width]);
+    .range([0, width - labelWidth]);
 
-  // Add timeline axis at the very top
+  // Add timeline axis at the very top, shifted by labelWidth
   const xAxis = d3.axisTop(xScale)
     .ticks(d3.timeYear.every(1))
     .tickFormat(d3.timeFormat('%Y'))
-    .tickSizeOuter(6)
+    .tickSizeOuter(4)
     .tickPadding(8);
 
   svg.append('g')
     .attr('class', 'x-axis')
-    .attr('transform', `translate(0,10)`)
+    .attr('transform', `translate(${labelWidth},10)`)
     .call(xAxis);
 
   // Draw each incident bar on its own row, with label
@@ -57,20 +58,29 @@ function drawProductTimeline(product, containerId) {
     const barWidth = Math.max(2, xEnd - xStart);
     const y = barY + index * (barHeight + barGap);
 
+    // Add background for the bar row
+    svg.append('rect')
+      .attr('x', labelWidth)
+      .attr('y', y)
+      .attr('width', width - labelWidth)
+      .attr('height', barHeight)
+      .attr('rx', 0)
+      .attr('fill', 'var(--gristresleger)');
+
     // Bar
     svg.append('rect')
-      .attr('x', xStart)
+      .attr('x', xStart + labelWidth)
       .attr('y', y)
       .attr('width', barWidth)
       .attr('height', barHeight)
-      .attr('rx', 3)
+      .attr('rx', 0)
       .attr('fill', getStatusColor(incident.status));
 
     // Label
     svg.append('text')
       .attr('x', 0)
       .attr('y', y + barHeight - 2)
-      .attr('fill', '#2d3748')
+      .attr('fill', 'var(--grisfonce)')
       .attr('font-size', 15)
       .attr('font-family', 'inherit')
       .attr('alignment-baseline', 'middle')

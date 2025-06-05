@@ -11,6 +11,7 @@
     --gristresfonce: rgb(50, 50, 50);
     --gristresleger: rgb(230, 230, 230);
     --gristrestresleger: rgb(235, 235, 235);
+    --grisclair: rgb(245, 246, 250);
     --gris: rgb(110, 110, 110);
     --grisfonce: rgb(90, 90, 90);
     --grisleger: rgb(170, 170, 170);
@@ -26,7 +27,8 @@
     font-weight: 400;
 }
 
-body, .product-card, .incident-label, .cis-pill, .section-title {
+body, .product-card, .incident-label, .cis-pill, .section-title, .cis-list {
+  color: var(--grisfonce);
   font-family: 'Inter', 'Roboto', Arial, sans-serif !important;
 }
 
@@ -323,6 +325,7 @@ p {
   animation: pulse 2s infinite;
 }
 
+
 @keyframes pulse {
   0% { opacity: 0.5; r: 4; }
   50% { opacity: 1; r: 6; }
@@ -405,6 +408,11 @@ p {
 
 .arret {
     fill: var(--gris);
+}
+
+.x-axis {
+  color: var(--grisleger);
+  fill: var(--gristresleger);
 }
 
 .x-axis-summary text {
@@ -857,7 +865,6 @@ li {
 .section-title {
   margin-top: 24px;
   font-size: 1.2rem;
-  color: #2a3a4a;
 }
 .timeline-container {
   margin-top: 18px;
@@ -920,9 +927,31 @@ li {
 .current-status-label {
   font-size: 1.1em;
   font-weight: 500;
-  color: #2a3a4a;
+  color: var(--grisfonce);
   margin-left: 8px;
 }
 .rupture-icon { color: var(--rupture); }
 .tension-icon { color: var(--tension); }
 .arret-icon { color: var(--arret-bg); }
+
+.recent-changes-title-row {
+  font-weight: 400;
+  color: var(--grisfonce);
+  margin: 18px 0 6px 0;
+  padding-left: 6px;
+  font-size: 15px;
+}
+
+.recent-changes-block {
+  background: var(--grisclair);
+  margin-bottom: 12px;
+  padding: 0 0 2px 0;
+}
+
+.other-changes-title-row {
+  font-weight: 400;
+  color: var(--grisfonce);
+  margin: 18px 0 6px 0;
+  padding-left: 6px;
+  font-size: 15px;
+}
