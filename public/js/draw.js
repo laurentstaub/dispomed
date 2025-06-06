@@ -275,12 +275,12 @@ window.addEventListener(
 // Set up debounced search to avoid querying too often
 const debouncedSearch = createDebouncedSearch(handleSearch);
 
-d3.select("#reinitialiser").on("click", function () {
+d3.select("#mainfilter-reset").on("click", function () {
   location.reload();
 });
 
 // Event listeners for search
-d3.select("#search-box").on("input", function () {
+d3.select("#mainfilter-search-box").on("input", function () {
   const searchTerm = removeAccents(this.value.toLowerCase());
   dataManager.setSearchTerm(searchTerm);
   debouncedSearch(false, searchTerm);
@@ -315,7 +315,7 @@ d3.select("#vaccines-filter").on("change", function() {
 });
 
 // Get all period buttons
-const periodButtons = document.querySelectorAll(".chart-button");
+const periodButtons = document.querySelectorAll(".mainfilter-button");
 
 // Function to highlight selected button and update chart
 function selectButton(button) {
@@ -447,7 +447,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
       .attr("transform", "translate(0, 0)");
 
   const titleText = svg.append("text")
-    .attr("class", "chart-title")
+    .attr("class", "sumchart-chart-title")
     .attr("x", 10)
     .attr("y", 20)
     .attr("text-anchor", "start")
@@ -464,7 +464,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
       .style("ry", 5);
 
   group.append("text")
-      .attr("class", "chart-subtitle")
+      .attr("class", "sumchart-chart-subtitle")
       .attr("x", 10)
       .attr("y", 24 + bbox.height) // Position below the title with spacing
       .attr("text-anchor", "start")
@@ -479,77 +479,77 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
     .attr("fill", "white");
 
   g.append("g")
-    .attr("class", "x-axis-summary")
+    .attr("class", "sumchart-x-axis")
     .attr("transform", `translate(0, ${innerHeight})`)
     .call(xAxis);
 
   // Style yearly tick
-  g.selectAll(".x-axis-summary .tick text")
+  g.selectAll(".sumchart-x-axis .tick text")
     .filter((d) => d.getMonth() === 0)
     .style("font-weight", "bold")
     .style("font-size", "11px")
     .style("fill", "var(--grisfonce)");
 
   // Style month labels differently
-  g.selectAll(".x-axis-summary .tick text")
+  g.selectAll(".sumchart-x-axis .tick text")
     .filter((d) => d.getMonth() !== 0)
     .style("font-size", "10px")
     .style("fill", "var(--grisleger)");
 
-  g.selectAll(".x-axis text")
+  g.selectAll(".sumchart-x-axis text")
     .style("font-size", `${labelFontSizeScale(windowWidth)}px`,
   );
 
   // Draw lines
   g.append("path")
     .datum(lineData)
-    .attr("class", "tension-line")
+    .attr("class", "sumchart-tension-line")
     .attr("d", lineTension);
 
   g.append("path")
     .datum(lineData)
-    .attr("class", "rupture-line")
+    .attr("class", "sumchart-rupture-line")
     .attr("d", lineRupture);
 
   // Add marks (circles) for rupture data points - WITH FILTERING
-  g.selectAll(".rupture-mark")
+  g.selectAll(".sumchart-rupture-mark")
     .data(lineData.filter((d) => d.rupture > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
     .enter()
     .append("circle")
-    .attr("class", "rupture-mark")
+    .attr("class", "sumchart-rupture-mark")
     .attr("cx", (d) => xScale(d.date))
     .attr("cy", (d) => y(d.rupture))
     .attr("r", 3)
 
   // Add marks (circles) for tension data points - WITH FILTERING
-  g.selectAll(".tension-mark")
+  g.selectAll(".sumchart-tension-mark")
     .data(lineData.filter((d) => d.tension > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
     .enter()
     .append("circle")
-    .attr("class", "tension-mark")
+    .attr("class", "sumchart-tension-mark")
     .attr("cx", (d) => xScale(d.date))
     .attr("cy", (d) => y(d.tension))
     .attr("r", 3)
 
   // Add labels for rupture data points - WITH FILTERING
-  g.selectAll(".rupture-label")
+  g.selectAll(".sumchart-rupture-label")
     .data(lineData.filter((d) => d.rupture > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
     .enter()
     .append("text")
     .style("font-size", `${labelFontSizeScale(windowWidth)}px`)
-    .attr("class", "rupture-label")
+    .attr("class", "sumchart-rupture-label")
     .attr("x", (d) => xScale(d.date))
     .attr("y", (d) => y(d.rupture) - 10)
     .attr("text-anchor", "middle")
     .text((d) => d.rupture);
 
   // Add labels for tension data points - WITH FILTERING
-  g.selectAll(".tension-label")
+  g.selectAll(".sumchart-tension-label")
     .data(lineData.filter((d) => d.tension > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
     .enter()
     .append("text")
     .style("font-size", `${labelFontSizeScale(windowWidth)}px`)
-    .attr("class", "tension-label")
+    .attr("class", "sumchart-tension-label")
     .attr("x", (d) => xScale(d.date))
     .attr("y", (d) => y(d.tension) - 10)
     .attr("text-anchor", "middle")
@@ -580,19 +580,17 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
       if (currentMonthData.rupture > 0) {
         // Add larger circle for current rupture total
         g.append("circle")
-          .attr("class", "current-point rupture-current")
+          .attr("class", "sumchart-current-point rupture-fill")
           .attr("cx", xScale(dateReport))
           .attr("cy", y(currentMonthData.rupture))
-          .attr("r", 2) // Larger than regular points
-          .style("fill", "var(--rupture)");
+          .attr("r", 2);
 
         // Add special label for current rupture
         g.append("text")
-          .attr("class", "current-label")
+          .attr("class", "sumchart-current-label rupture-fill")
           .attr("x", xScale(dateReport) + 12)
           .attr("y", y(currentMonthData.rupture))
           .attr("text-anchor", "middle")
-          .style("fill", "var(--rupture)")
           .text(currentMonthData.rupture);
       }
 
@@ -600,54 +598,21 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
       if (currentMonthData.tension > 0) {
         // Add larger circle for current tension total
         g.append("circle")
-          .attr("class", "current-point tension-current")
+          .attr("class", "sumchart-current-point tension-fill")
           .attr("cx", xScale(dateReport))
           .attr("cy", y(currentMonthData.tension))
-          .attr("r", 2) // Larger than regular points
-          .style("fill", "var(--tension)");
+          .attr("r", 2);
 
         // Add special label for current tension
         g.append("text")
-          .attr("class", "current-label")
+          .attr("class", "sumchart-current-label tension-fill")
           .attr("x", xScale(dateReport) + 12)
           .attr("y", y(currentMonthData.tension))
           .attr("text-anchor", "middle")
-          .style("fill", "var(--tension)")
           .text(currentMonthData.tension);
       }
     }
 }
-
-const legendData = [
-    { label: "Rupture", color: "var(--rupture)" }, // Red
-    { label: "Tension", color: "var(--tension)" }, // Orange
-    { label: "Arrêt de commercialisation", color: "var(--arret-bg)" }, // Black
-    { label: "Disponible", color: "var(--disponible)" } // Green
-];
-
-function createFloatingLegend() {
-    const legendContainer = d3.select("#floating-legend");
-
-    legendContainer
-      .append("p")
-      .attr("id", "title-legend")
-      .text("Légende")
-
-    const items = legendContainer.selectAll(".legend-item")
-      .data(legendData)
-      .enter()
-      .append("div")
-      .attr("class", "legend-item");
-
-    items.append("div")
-      .attr("class", "legend-color-box")
-      .style("background-color", d => d.color);
-    
-    items.append("span")
-      .text(d => d.label);
-}
-
-createFloatingLegend();
 
 /***************************/
 /* Create the table chart  */
@@ -846,12 +811,13 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
     productIncidents.forEach(d => {
       const barStart = d.start_date > startDate ? d.start_date : startDate;
       const barEnd = d.status === 'Arret' && !d.end_date ? dateReport : d.calculated_end_date;
+      
       svg.append('rect')
         .attr('x', xScale(barStart))
         .attr('y', (rowHeight - barHeight) / 2)
         .attr('width', Math.max(2, xScale(barEnd) - xScale(barStart)))
         .attr('height', barHeight)
-        .attr('class', `bar ${d.status}`.toLowerCase())
+        .attr('class', `bar ${d.status}-fill`.toLowerCase())
         .style('cursor', 'pointer')
         .on('mousemove', function (event) {
           let statusClass = `tooltip-${d.status.toLowerCase()}`;

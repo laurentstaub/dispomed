@@ -13,31 +13,44 @@ block content
         h2#mise-a-jour
 
     div.flex-container
-      div#controls-and-search.chart-controls-container
+      div#mainfilter-container
         h2 Filtres
-        div.sidebar-divider
-        input(type="text" id="search-box" placeholder="Rechercher un produit...")
-        div.atc-wrapper
-          select.selector#atc(name="atc")
+        div.mainfilter-divider
+        input(type="text" id="mainfilter-search-box" placeholder="Rechercher un produit...")
+        div.mainfilter-atc-wrapper
+          select.mainfilter-selector#atc(name="atc")
             option(value="" selected=selectedAtcClass === "") Choisir une classe ATC
             each atcClass in ATCClasses
               option(value=atcClass.code, selected=atcClass.code === selectedAtcClass)= `${atcClass.code} - ${atcClass.description}`
-          select.selector#molecule(name="molecule")
+          select.mainfilter-selector#molecule(name="molecule")
             option(value="") Choisir une molécule
             each molecule in molecules
               option(value=molecule.code)=`${molecule.name}`
-          div.checkbox-wrapper
+          div.mainfilter-checkbox-wrapper
             input(type="checkbox" id="vaccines-filter")
             label(for="vaccines-filter") Vaccins uniquement (ATC J07)
-        div.sidebar-divider
-        div.button-row
-          button#show-12-months.chart-button 12 mois
-          button#show-24-months.chart-button 24 mois
-          button#show-all-data.chart-button Tout
-        button#reinitialiser Réinitialiser
-        div.sidebar-divider
+        div.mainfilter-divider
+        div.mainfilter-button-row
+          button#show-12-months.mainfilter-button 12 mois
+          button#show-24-months.mainfilter-button 24 mois
+          button#show-all-data.mainfilter-button Tout
+        button#mainfilter-reset Réinitialiser
+        div.mainfilter-divider
         div#legend-container
           div#floating-legend
+            p#title-legend Légende
+            .legend-item
+              span.legend-color-box.legend-rupture
+              | Rupture
+            .legend-item
+              span.legend-color-box.legend-tension
+              | Tension
+            .legend-item
+              span.legend-color-box.legend-arret
+              | Arrêt de commercialisation
+            .legend-item
+              span.legend-color-box.legend-disponible
+              | Disponible
       div#summary
     div#recent-changes
     div.table-section-header
