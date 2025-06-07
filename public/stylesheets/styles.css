@@ -223,10 +223,23 @@ p {
     display: flex;
     gap: 10px;
     margin-bottom: 12px;
+    position: relative;
 }
 
-.mainfilter-button,
-#mainfilter-reset {
+.mainfilter-radio {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.mainfilter-radio:checked + .mainfilter-button {
+  background: var(--gris);
+  color: var(--blanc);
+  box-shadow: 0 2px 8px rgba(90,90,90,0.10);
+}
+
+.mainfilter-button {
   background: var(--gristrestresleger);
   color: var(--grisfonce);
   border: none;
@@ -253,14 +266,38 @@ p {
 }
 
 .mainfilter-button:focus {
-    background: var(--gris);
-    color: var(--blanc);
-  }
+  background: var(--gris);
+  color: var(--blanc);
+}
 
-.sumchart-chart-subtitle {
-  font-size: 11px;
-  font-weight: 400;
-  fill: var(--grisleger);
+.maintbl-row-label {
+  display: block;
+  width: var(--label-width, 180px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  color: var(--grisfonce);
+  cursor: pointer;
+  flex-shrink: 0;
+  min-width: 0;
+  margin-right: 12px;
+}
+
+.mainfilter-selector {
+  border-color: var(--gristresleger);
+  color: var(--grisfonce);
+  display: inline-block;
+  font-size: 14px;
+  height: 22px;
+  margin-bottom: 10px;
+  max-width: 220px;
+}
+
+.mainfilter-checkbox-wrapper label {
+  color: var(--grisfonce);
+  font-size: 13px;
+  margin-left: 5px;
 }
 
 .button-selected {
@@ -342,6 +379,29 @@ p {
   font-size: 15px;
 }
 
+.sumchart-chart-subtitle {
+  font-size: 11px;
+  font-weight: 400;
+  fill: var(--grisleger);
+}
+
+.sumchart-current-point {
+  font-weight: 500;
+  stroke: var(--blanc);
+  stroke-width: 1;
+}
+
+.sumchart-rupture-mark {
+  fill: var(--rupture);
+  stroke: var(--blanc);
+  stroke-width: 0.5;
+}
+
+.sumchart-tension-mark {
+  fill: var(--tension);
+  stroke: var(--blanc);
+  stroke-width: 0.5;
+}
 
 .legend-item {
   align-items: center;
@@ -366,16 +426,6 @@ p {
     gap: 0px;
 }
 
-.mainfilter-selector {
-    border-color: var(--gristresleger);
-    color: var(--grisfonce);
-    display: inline-block;
-    font-size: 14px;
-    height: 22px;
-    margin-bottom: 10px;
-    max-width: 220px;
-}
-
 .selector[open] {
     background-color: var(--gris);
 }
@@ -387,12 +437,6 @@ p {
 
 .atc-option label {
     margin-left: 5px;
-}
-
-.mainfilter-checkbox-wrapper label {
-  color: var(--grisfonce);
-  font-size: 13px;
-  margin-left: 5px;
 }
 
 #vaccines-filter {
@@ -463,8 +507,6 @@ p {
 }
 
 #cis-list { margin-top: 8px; }
-
-
 
 /* Section headings */
 #mainfilter-container h2 {
@@ -599,23 +641,6 @@ p {
 .maintbl-row-modern.hover-arret:hover { border-color: var(--arret-bg); }
 .maintbl-row-modern.hover-disponible:hover { border-color: var(--disponible); }
 
-.sumchart-current-point {
-  font-weight: 500;
-  stroke: var(--blanc);
-  stroke-width: 1;
-}
-
-.sumchart-rupture-mark {
-  fill: var(--rupture);
-  stroke: var(--blanc);
-  stroke-width: 0.5;
-}
-
-.sumchart-tension-mark {
-  fill: var(--tension);
-  stroke: var(--blanc);
-  stroke-width: 0.5;
-}
 
 .recent-changes-title-row,.other-changes-title-row {
   font-weight: 400;
@@ -652,9 +677,8 @@ p {
   }
 
   .maintbl-row-label {
-    flex: 0 0 var(--label-width-mobile);
+    width: var(--label-width-mobile, 90px);
     font-size: 13px;
-    flex-shrink: 1;
   }
 }
 
@@ -739,4 +763,36 @@ p {
         padding: 0 10px;
         width: 95%;
     }
+}
+
+.tooltip-title {
+  font-weight: 600;
+  margin-bottom: 5px;
+  font-size: 15px;
+  color: var(--grisfonce);
+}
+
+.tooltip-dci {
+  color: var(--gris);
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.tooltip-status {
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+.tooltip-status.rupture { color: var(--rupture); }
+.tooltip-status.tension { color: var(--tension); }
+.tooltip-status.arret { color: var(--arret-bg); }
+.tooltip-status.disponible { color: var(--disponible); }
+
+.tooltip-cis-list {
+  margin-top: 10px;
+}
+
+.tooltip-cis-item {
+  font-family: 'Inter', 'Roboto', Arial, sans-serif;
+  font-size: 13px;
 }

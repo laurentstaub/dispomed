@@ -30,11 +30,16 @@ block content
             input(type="checkbox" id="vaccines-filter")
             label(for="vaccines-filter") Vaccins uniquement (ATC J07)
         div.mainfilter-divider
-        div.mainfilter-button-row
-          button#show-12-months.mainfilter-button 12 mois
-          button#show-24-months.mainfilter-button 24 mois
-          button#show-all-data.mainfilter-button Tout
-        button#mainfilter-reset Réinitialiser
+        div.mainfilter-button-row(role="radiogroup" aria-label="Select time period")
+          input(type="radio" id="period-12" name="period" value="12" class="mainfilter-radio" checked)
+          label(for="period-12" class="mainfilter-button") 12 mois
+          
+          input(type="radio" id="period-24" name="period" value="24" class="mainfilter-radio")
+          label(for="period-24" class="mainfilter-button") 24 mois
+          
+          input(type="radio" id="period-all" name="period" value="all" class="mainfilter-radio")
+          label(for="period-all" class="mainfilter-button") Tout
+        button#mainfilter-reset.mainfilter-button Réinitialiser
         div.mainfilter-divider
         div#legend-container
           div#floating-legend

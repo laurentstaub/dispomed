@@ -67,9 +67,6 @@ function identifyRecentStatusChanges(data, recentDays = 7) {
     return d.calculated_end_date >= recentDate && d.end_date;
   });
 
-  // Combine both types of changes
-  const allRecentChanges = [...recentlyStarted, ...recentlyEnded];
-
   // Create a map with products as keys and their change type as values
   const productChanges = new Map();
 
@@ -314,45 +311,32 @@ d3.select("#vaccines-filter").on("change", function() {
   handleSearch(false, dataManager.getSearchTerm());
 });
 
-// Get all period buttons
-const periodButtons = document.querySelectorAll(".mainfilter-button");
-
-// Function to highlight selected button and update chart
-function selectButton(button) {
-  periodButtons.forEach((btn) => btn.classList.remove("button-selected"));
-  button.classList.add("button-selected");
-}
-
-// Attach event listeners to period buttons
-d3.select("#show-12-months").on("click", function () {
-  dataManager.setMonthsToShow(12);
-  handleSearch(true, dataManager.getSearchTerm());
-  selectButton(this);
+// Replace button click handlers with radio change handlers
+const periodRadios = document.querySelectorAll('.mainfilter-radio');
+periodRadios.forEach(radio => {
+  radio.addEventListener('change', (e) => {
+    const period = e.target.value;
+    if (period === '12') {
+      dataManager.setMonthsToShow(12);
+      handleSearch(true, dataManager.getSearchTerm());
+    } else if (period === '24') {
+      dataManager.setMonthsToShow(24);
+      handleSearch(true, dataManager.getSearchTerm());
+    } else if (period === 'all') {
+      const end = new Date(dataManager.getDateReport());
+      const start = ALL_TIME_START;
+      const yearsFromStart = end.getFullYear() - start.getFullYear();
+      const monthsFromStart = end.getMonth() - start.getMonth();
+      const monthsDiff = yearsFromStart * 12 + monthsFromStart + 1;
+      
+      dataManager.setMonthsToShow(monthsDiff);
+      handleSearch(true, dataManager.getSearchTerm());
+    }
+  });
 });
 
-d3.select("#show-24-months").on("click", function () {
-  dataManager.setMonthsToShow(24);
-  handleSearch(true, dataManager.getSearchTerm());
-  selectButton(this);
-});
-
-document.getElementById("show-all-data").addEventListener("click", function () {
-  const end = new Date(dataManager.getDateReport());
-  const start = ALL_TIME_START;
-  const yearsFromStart = end.getFullYear() - start.getFullYear();
-  const monthsFromStart = end.getMonth() - start.getMonth();
-  const monthsDiff = yearsFromStart * 12 + monthsFromStart + 1;
-
-  dataManager.setMonthsToShow(monthsDiff);
-  handleSearch(true, dataManager.getSearchTerm());
-  selectButton(this);
-});
-
-// Set default to 12 months button on page load
-window.addEventListener("load", function () {
-  const defaultButton = document.getElementById("show-12-months");
-  selectButton(defaultButton);
-});
+// Set default selection
+document.getElementById('period-12').checked = true;
 
 async function initializeData() {
   rawData = await fetchTableChartData(true);
@@ -732,34 +716,26 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
     if (commaCount === 1) {
       shortLabel = label.split(',')[0];
     }
-    const MAX_LABEL_LENGTH = isMobile ? 18 : 30;
-    if (shortLabel.length > MAX_LABEL_LENGTH) {
-      shortLabel = shortLabel.slice(0, MAX_LABEL_LENGTH) + '…';
-    }
-
     row.append('span')
       .attr('class', 'maintbl-row-label')
-      .style('width', labelWidth + 'px')
-      .style('font-size', isMobile ? '12px' : '14px')
-      .style('margin-right', gap + 'px')
       .text(shortLabel)
       .on('mouseover', function () {
-        let tooltipContent = `<div style="font-weight: 600; margin-bottom: 5px;">${accentedProducts[i]}</div>`;
-        tooltipContent += `<div style="color: var(--gris); margin-bottom: 8px;">DCI: ${mainIncident.molecule || ''}</div>`;
+        let tooltipContent = `<div class="tooltip-title">${accentedProducts[i]}</div>`;
+        tooltipContent += `<div class="tooltip-dci">DCI: ${mainIncident.molecule || ''}</div>`;
         if (status.shorthand === 'rupture' || status.shorthand === 'tension') {
           if (mainIncident.start_date <= dateReport && mainIncident.calculated_end_date >= dateReport) {
             const diffInDays = getDaysBetween(mainIncident.start_date, dateReport);
-            tooltipContent += `<div style="color:${status.color}; font-weight:600;"><i class="${status.icon}"></i> ${status.text} ${formatDurationSince(diffInDays)}</div>`;
+            tooltipContent += `<div class="tooltip-status ${status.shorthand}"><i class="${status.icon}"></i> ${status.text} ${formatDurationSince(diffInDays)}</div>`;
           }
         } else {
-          tooltipContent += `<div style="color:${status.color}; font-weight:600;"><i class="${status.icon}"></i> ${status.text}</div>`;
+          tooltipContent += `<div class="tooltip-status ${status.shorthand}"><i class="${status.icon}"></i> ${status.text}</div>`;
         }
         // Add CIS codes list as last item
         if (mainIncident.cis_codes && mainIncident.cis_codes.length > 0) {
-          tooltipContent += '<div style="margin-top:10px;"><b>Codes CIS concernés :</b><ul style="margin:4px 0 0 12px;padding:0;">';
+          tooltipContent += '<div class="tooltip-cis-list"><b>Codes CIS concernés :</b><ul>';
           mainIncident.cis_codes.forEach(code => {
             const name = mainIncident.cis_names && mainIncident.cis_names[code] ? mainIncident.cis_names[code] : '';
-            tooltipContent += `<li style="font-family:'Inter', 'Roboto', Arial, sans-serif; font-size:13px;">${code}${name ? ': ' + name : ''}</li>`;
+            tooltipContent += `<li class="tooltip-cis-item">${code}${name ? ': ' + name : ''}</li>`;
           });
           tooltipContent += '</ul></div>';
         }
@@ -818,33 +794,29 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
           if (d.status === 'Arret') {
             if (d.end_date) {
               tooltipHTML = `
-                <strong>${d.accented_product}</strong><br>
-                <div style="color: var(--gris); margin: 5px 0;">DCI: ${d.molecule}</div>
-                <strong>${d.status}</strong>, plus disponible de <strong>${formatDate(d.start_date)}</strong> jusqu'à <strong>${formatDate(d.end_date)}</strong>
+                <div class="tooltip-title">${d.accented_product}</div>
+                <div class="tooltip-dci">DCI: ${d.molecule}</div>
+                <div class="tooltip-status arret"><strong>${d.status}</strong>, plus disponible de <strong>${formatDate(d.start_date)}</strong> jusqu'à <strong>${formatDate(d.end_date)}</strong></div>
               `;
             } else {
               tooltipHTML = `
-                <strong>${d.accented_product}</strong><br>
-                <div style="color: var(--gris); margin: 5px 0;">DCI: ${d.molecule}</div>
-                <strong>${d.status}</strong>, plus disponible depuis le <strong>${formatDate(d.start_date)}</strong>
+                <div class="tooltip-title">${d.accented_product}</div>
+                <div class="tooltip-dci">DCI: ${d.molecule}</div>
+                <div class="tooltip-status arret"><strong>${d.status}</strong>, plus disponible depuis <strong>${formatDate(d.start_date)}</strong></div>
               `;
             }
-          } else {
-            if (formatDate(d.calculated_end_date) === formatDate(dateReport)) {
-              tooltipHTML = `
-                <strong>${d.accented_product}</strong><br>
-                <div style="color: var(--gris); margin: 5px 0;">DCI: ${d.molecule}</div>
-                <strong>${d.status} / En cours</strong><br>
-                Depuis le ${formatDate(d.start_date)} (${daysToYearsMonths(diffIndays(d.start_date, dateReport))})
-              `;
-            } else {
-              tooltipHTML = `
-                <strong>${d.accented_product}</strong><br>
-                <div style="color: var(--gris); margin: 5px 0;">DCI: ${d.molecule}</div>
-                <span style="color: var(--gris); font-weight: 600;">${d.status} / Terminé</span><br>
-                ${formatDate(d.start_date)} - ${formatDate(d.calculated_end_date)} (${daysToYearsMonths(diffIndays(d.start_date, d.calculated_end_date))})
-              `;
-            }
+          } else if (d.status === 'Rupture' || d.status === 'Tension') {
+            tooltipHTML = `
+              <div class="tooltip-title">${d.accented_product}</div>
+              <div class="tooltip-dci">DCI: ${d.molecule}</div>
+              <div class="tooltip-status ${d.status.toLowerCase()}"><strong>${d.status}</strong> du <strong>${formatDate(d.start_date)}</strong> au <strong>${formatDate(d.calculated_end_date)}</strong></div>
+            `;
+          } else if (d.status === 'Disponible') {
+            tooltipHTML = `
+              <div class="tooltip-title">${d.accented_product}</div>
+              <div class="tooltip-dci">DCI: ${d.molecule}</div>
+              <div class="tooltip-status disponible"><strong>${d.status}</strong> / Terminé</div>
+            `;
           }
           tooltip.html(tooltipHTML).attr('class', statusClass);
 
