@@ -10,8 +10,8 @@ block content
           span.cis-pill= code
     if product.incidents && product.incidents.length
       - const current = product.incidents[0];
-      .current-status-row
-        span.status-icon
+      .productpg-status-row
+        span.productpg-status-icon
           if current.status === 'Rupture'
             i(class="fa-solid fa-square-xmark rupture-icon")
           else if current.status === 'Tension'
@@ -20,10 +20,10 @@ block content
             i(class="fa-solid fa-square-xmark arret-icon")
           else
             i(class="fa-solid fa-square-question")
-        span.current-status-label(data-status=current.status data-start=current.start_date) Statut actuel : 
+        span.productpg-status-label(data-status=current.status data-start=current.start_date) Statut actuel : 
     h2.section-title Historique des incidents
     if product.incidents && product.incidents.length
-      #timeline-container.timeline-container
+      #productpg-timeline-container.productpg-timeline-container
     else
       p Aucune incident enregistré.
 

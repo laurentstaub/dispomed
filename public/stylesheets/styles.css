@@ -7,7 +7,6 @@
   --arret-bg: rgba(150, 150, 150, 0.9);
   --blanc: rgb(255, 255, 255);
   --disponible: rgb(111, 189, 77);
-  --disponiblefonce: rgb(191, 251, 191);
   --gristresfonce: rgb(50, 50, 50);
   --gristresleger: rgb(230, 230, 230);
   --gristrestresleger: rgb(235, 235, 235);
@@ -17,8 +16,6 @@
   --grisleger: rgb(170, 170, 170);
   --main-0: rgb(3, 95, 0);
   --rupture: rgb(213, 76, 117);
-  --rupture-old: rgb(230, 70, 100);
-  --rupture-bg: rgba(230, 70, 100, 0.9);
   --tension: rgb(251, 184, 84);
   --tensionleger: rgb(255, 202, 100);
   --tensiontresleger: rgba(255, 202, 100, 0.3);
@@ -289,18 +286,6 @@ p {
   box-shadow: 0 2px 8px rgba(90,90,90,0.10);
 }
 
-.toggle-button {
-  background-color: var(--gristresleger);
-  border-radius: 4px;
-  color: var(--gristresfonce);
-  cursor: pointer;
-  border: none;
-  font-size: 14px;
-  height: 30px;
-  padding: 5px;
-  width: 100%;
-}
-
 .recent-change-item {
   transition: background-color 0.2s;
 }
@@ -310,9 +295,7 @@ p {
   border-radius: 4px;
 }
 
-#summary {
-    flex: 1;
-}
+#summary { flex: 1; }
 
 .sumchart-tension-line {
     fill: none;
@@ -336,20 +319,6 @@ p {
     font-size: 10px;
 }
 
-.sumchart-current-label {
-    font-size: 9px;
-    font-weight: 500;
-}
-
-.grid-line {
-    stroke: var(--blanc);
-    stroke-width: 12px;
-}
-
-.sumchart-x-axis {
-  color: var(--grisleger);
-}
-
 .sumchart-x-axis text {
     fill: var(--gris);
     font-weight: 400;
@@ -365,14 +334,30 @@ p {
     stroke-width: 1px;
 }
 
-.year-line {
-    stroke: var(--grisleger);
-    stroke-width: 0.5px;
+.sumchart-chart-title {
+  font-weight: 500;
+  fill: var(--grisfonce);
+  margin: 18px 0 6px 0;
+  padding-left: 6px;
+  font-size: 15px;
 }
 
-.summary-chart-xline {
-    stroke-width: 1px;
-    stroke: var(--gris);
+
+.legend-item {
+  align-items: center;
+  color: var(--grisfonce);
+  display: flex;
+  font-size: 12px;
+  margin-bottom: 7px;
+}
+
+.legend-color-box {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  margin-right: 5px;
+  border-radius: 2px;
+  vertical-align: middle;
 }
 
 .flex-container {
@@ -431,23 +416,6 @@ p {
     padding: 0px 8px;
 }
 
-.legend-item {
-  align-items: center;
-  color: var(--grisfonce);
-  display: flex;
-  font-size: 12px;
-  margin-bottom: 7px;
-}
-
-.legend-color-box {
-  width: 14px;
-  height: 14px;
-  display: inline-block;
-  margin-right: 5px;
-  border-radius: 2px;
-  vertical-align: middle;
-}
-
 #tooltip {
   pointer-events: none;
   position: absolute;
@@ -496,13 +464,7 @@ p {
 
 #cis-list { margin-top: 8px; }
 
-ul {
-  list-style-type: none;
-}
 
-li {
-  margin-bottom: 4px;
-}
 
 /* Section headings */
 #mainfilter-container h2 {
@@ -535,7 +497,7 @@ li {
 }
 
 /* Modernized Table Row Styles */
-.table-row-modern {
+.maintbl-row-modern {
   border-bottom: 1px solid var(--blanc);
   border-top: 1px solid var(--blanc);
   display: flex;
@@ -543,36 +505,8 @@ li {
   min-height: 23px;
 }
 
-.table-row-label {
-  color: var(--grisfonce);
-  cursor: pointer;
-  flex-shrink: 0;
-  font-weight: 400;
-  font-size: 14px;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.table-row-bar-area {
-  flex: 1 1 0;
-  display: flex;
-  height: 100%;
-  align-items: center;
-  position: relative;
-  margin-left: 10px;
-  margin-right: 15px;
-}
-
-.table-row-bar-area svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-.table-row-modern:hover,
-.table-row-modern:focus-within {
+.maintbl-row-modern:hover,
+.maintbl-row-modern:focus-within {
   background: var(--blanc);
   font-weight: 400;
   transform: scale(1.05, 1.05) !important;
@@ -580,26 +514,7 @@ li {
   box-shadow: 0 8px 32px rgba(90,90,90,0.18) !important;
 }
 
-.table-row-status-icon {
-  width: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1em;
-  margin-right: 3px;
-  margin-left: 3px;
-}
-
-.table-row-label:hover {
-  font-weight: 500;
-}
-
-.table-row-bar {
-  flex: 3 1 0;
-  min-width: 0;
-}
-
-#dash {
+#maintbl-dash {
   width: 100%;
   overflow: visible;
 }
@@ -638,39 +553,22 @@ li {
   font-size: 1.2rem;
 }
 
-.timeline-container {
+.productpg-timeline-container {
   margin-top: 18px;
 }
 
-.timeline-axis {
-  position: relative;
-  height: 2px;
-  margin-bottom: 8px;
-  margin-left: 0;
-  background: #f3f3f3;
-}
-
-.timeline-labels {
-  font-size: 13px;
-  color: #888;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 2px;
-  margin-left: 0;
-}
-
-.status-icon {
+.productpg-status-icon {
   width: 24px;
   text-align: center;
 }
 
-.current-status-row {
+.productpg-status-row {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
   font-size: 1.1em;
 }
-.current-status-label {
+.productpg-status-label {
   font-size: 1.1em;
   font-weight: 500;
   color: var(--grisfonce);
@@ -696,10 +594,10 @@ li {
 .legend-color-box.legend-arret { background: var(--arret-bg); }
 .legend-color-box.legend-disponible { background: var(--disponible); }
 
-.table-row-modern.hover-rupture:hover { border-color: var(--rupture); }
-.table-row-modern.hover-tension:hover { border-color: var(--tension); }
-.table-row-modern.hover-arret:hover { border-color: var(--arret-bg); }
-.table-row-modern.hover-disponible:hover { border-color: var(--disponible); }
+.maintbl-row-modern.hover-rupture:hover { border-color: var(--rupture); }
+.maintbl-row-modern.hover-tension:hover { border-color: var(--tension); }
+.maintbl-row-modern.hover-arret:hover { border-color: var(--arret-bg); }
+.maintbl-row-modern.hover-disponible:hover { border-color: var(--disponible); }
 
 .sumchart-current-point {
   font-weight: 500;
@@ -735,13 +633,6 @@ li {
   padding: 0 0 2px 0;
 }
 
-.sumchart-chart-title {
-  font-weight: 500;
-  fill: var(--grisfonce);
-  margin: 18px 0 6px 0;
-  padding-left: 6px;
-  font-size: 15px;
-}
 
 #title-legend {
   font-weight: bold;
@@ -755,19 +646,12 @@ li {
     margin: 0;
     padding: 0;
   }
-  #dash {
+  #maintbl-dash {
     width: 100%;
     max-width: 100%;
   }
 
-  .table-row-bar svg {
-    width: 100% !important;
-    min-width: 0 !important;
-  }
-  .table-row-bar {
-    min-width: 0 !important;
-  }
-  .table-row-label {
+  .maintbl-row-label {
     flex: 0 0 var(--label-width-mobile);
     font-size: 13px;
     flex-shrink: 1;

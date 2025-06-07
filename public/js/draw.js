@@ -626,7 +626,7 @@ function getLabelWidth() {
 }
 
 function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
-  const dash = d3.select('#dash');
+  const dash = d3.select('#maintbl-dash');
   dash.html('');
 
   // Dynamically measure container width after clearing
@@ -712,19 +712,11 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
     // Row container: use recentBlock for recently changed, dash for others
     const parent = isRecentlyChanged && recentBlock ? recentBlock : dash;
     const row = parent.append('div')
-      .attr('class', `table-row-modern hover-${status.shorthand}${isRecentlyChanged ? ' recently-changed-row' : ''}`)
+      .attr('class', `maintbl-row-modern hover-${status.shorthand}${isRecentlyChanged ? ' recently-changed-row' : ''}`)
       .style('display', 'flex')
       .style('align-items', 'center')
       .style('min-height', rowHeight + 'px')
-      .style('position', 'relative')
-      .on('mouseenter', function () {
-        d3.select(this)
-          .classed('table-row-hover', true);
-      })
-      .on('mouseleave', function () {
-        d3.select(this)
-          .classed('table-row-hover', false);
-      });
+      .style('position', 'relative');
 
     // Status icon
     row.append('span')
@@ -746,7 +738,7 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
     }
 
     row.append('span')
-      .attr('class', 'table-row-label')
+      .attr('class', 'maintbl-row-label')
       .style('width', labelWidth + 'px')
       .style('font-size', isMobile ? '12px' : '14px')
       .style('margin-right', gap + 'px')

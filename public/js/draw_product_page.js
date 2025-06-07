@@ -114,12 +114,12 @@ function formatDate(date) {
 
 document.addEventListener('DOMContentLoaded', function() {
   if (typeof productData !== 'undefined') {
-    drawProductTimeline(productData, 'timeline-container');
+    drawProductTimeline(productData, 'productpg-timeline-container');
 
     // Update current status label with duration
     if (productData.incidents && productData.incidents.length) {
       const current = productData.incidents[0];
-      const statusLabel = document.querySelector('.current-status-label');
+      const statusLabel = document.querySelector('.productpg-status-label');
       if (statusLabel && current.start_date) {
         const now = new Date();
         const start = new Date(current.start_date);
