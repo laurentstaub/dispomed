@@ -70,7 +70,7 @@ function drawProductTimeline(product, containerId) {
       .attr('width', width - labelWidth)
       .attr('height', barHeight)
       .attr('rx', 0)
-      .attr('fill', 'var(--gristresleger)');
+      .attr('fill', 'var(--blanc)');
 
     // Bar
     svg.append('rect')
@@ -91,6 +91,91 @@ function drawProductTimeline(product, containerId) {
       .attr('alignment-baseline', 'middle')
       .text(`${incident.status} ${formatDate(start)} - ${formatDate(end)}`);
   });
+
+  // --- Add stats for total days in Rupture and Tension since April 2021 ---
+  let ruptureDays = 0;
+  let tensionDays = 0;
+  let totalScore = 0;
+  product.incidents.forEach(incident => {
+    // Get the overlap between the incident and the reference period
+    const start = new Date(Math.max(new Date(incident.start_date), timelineStart));
+    const end = new Date(Math.min(new Date(incident.calculated_end_date || incident.end_date || timelineEnd), timelineEnd));
+    if (end < start) return; // No overlap
+    const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    if (incident.status === 'Rupture') {
+      ruptureDays += days;
+      totalScore -= days; // -1 per day
+    } else if (incident.status === 'Tension') {
+      tensionDays += days;
+      totalScore -= days * 0.5; // -0.5 per day
+    }
+  });
+  const totalDaysPeriod = Math.floor((timelineEnd - timelineStart) / (1000 * 60 * 60 * 24)) + 1;
+  const rupturePercent = ((ruptureDays / totalDaysPeriod) * 100).toFixed(1);
+  const tensionPercent = ((tensionDays / totalDaysPeriod) * 100).toFixed(1);
+  // Score: (totalDays + totalScore) / totalDays
+  const score = (((totalDaysPeriod + totalScore) / totalDaysPeriod) * 100).toFixed(1);
+
+  // Color code the score
+  const scoreValue = parseFloat(score);
+  let scoreColor;
+  if (scoreValue < 50) {
+    scoreColor = 'var(--rupture)';
+  } else if (scoreValue < 75) {
+    scoreColor = 'var(--tension)';
+  } else {
+    scoreColor = 'var(--disponible)';
+  }
+
+  // Donut chart values
+  const disponibleDays = totalDaysPeriod - ruptureDays - tensionDays;
+  const disponiblePercent = ((disponibleDays / totalDaysPeriod) * 100).toFixed(1);
+  const donutSize = 80;
+  const donutStroke = 14;
+  const center = donutSize / 2;
+  const radius = (donutSize - donutStroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const disponibleArc = (disponibleDays / totalDaysPeriod) * circumference;
+  const donutSVG = `
+    <svg width="${donutSize}" height="${donutSize}" viewBox="0 0 ${donutSize} ${donutSize}">
+      <circle
+        cx="${center}" cy="${center}" r="${radius}"
+        fill="none" stroke="var(--gristrestresleger)" stroke-width="${donutStroke}"
+      />
+      <circle
+        cx="${center}" cy="${center}" r="${radius}"
+        fill="none" stroke="var(--disponible)" stroke-width="${donutStroke}"
+        stroke-dasharray="${disponibleArc} ${circumference - disponibleArc}"
+        stroke-dashoffset="${circumference / 4}"
+        style="transition: stroke-dasharray 0.5s;"
+      />
+      <text x="${center}" y="${center + 6}" text-anchor="middle" font-size="18" font-weight="700" fill="var(--disponible)" style="text-decoration: underline;">${score}%</text>
+    </svg>
+  `;
+
+  // Add stats to the page above the timeline
+  let statsContainer = document.getElementById('productpg-stats');
+  if (!statsContainer) {
+    statsContainer = document.createElement('div');
+    statsContainer.id = 'productpg-stats';
+    // Insert stats before the timeline container
+    const timelineNode = container.node();
+    timelineNode.parentNode.insertBefore(statsContainer, timelineNode);
+  }
+  statsContainer.innerHTML = `
+    <div style="display:flex;align-items:center;gap:18px;margin-top:18px;">
+      <div>${donutSVG}</div>
+      <div style="font-size:15px;color:var(--grisfonce);">
+        <b>Score de disponibilité :</b> <span style="font-size:18px;font-weight:700;color:var(--main-0)">${score}%</span><br>
+        <span style="font-size:13px;">(100% = toujours disponible, 0% = toujours en rupture)</span><br>
+        <b>Statistiques depuis avril 2021 :</b><br>
+        Rupture : <b>${ruptureDays}</b> jours (${rupturePercent}%)<br>
+        Tension : <b>${tensionDays}</b> jours (${tensionPercent}%)<br>
+        Disponible : <b>${disponibleDays}</b> jours (${disponiblePercent}%)<br>
+        Période totale : <b>${totalDaysPeriod}</b> jours
+      </div>
+    </div>
+  `;
 }
 
 // Helper to get color for status
