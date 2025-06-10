@@ -1,3 +1,5 @@
+import { getDaysBetween, formatDurationSince } from './utils.js';
+
 /**
  * Draws the timeline chart for a product's incidents
  * @param {Object} product - The product data object
@@ -7,6 +9,9 @@ function drawProductTimeline(product, containerId) {
   if (!product.incidents || !product.incidents.length) {
     return;
   }
+
+  // Sort incidents by start_date ascending (oldest first)
+  product.incidents.sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
 
   const container = d3.select(`#${containerId}`);
   container.html(''); // Clear existing content

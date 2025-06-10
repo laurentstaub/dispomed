@@ -1,5 +1,8 @@
 extends layout
 
+block scripts
+  script(type='module', src='/js/draw_product_page.js')
+
 block content
   .product-card
     h1.product-title= product.name
