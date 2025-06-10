@@ -1,39 +1,70 @@
-doctype html
-html(lang="en")
-    head
-        meta(charset="UTF-8")
-        meta(name="viewport", content="width=device-width, initial-scale=1.0")
-        title Disponibilité des produits de santé
-        link(rel="stylesheet", href="./public/stylesheets/styles.css")
-        script(src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js")
-    body
-        p Incidents de disponibilité par produit
-        div#chart-container
-            h1#last-report-date
-            div.flex-container
-                div#controls-and-search.chart-controls-container
-                    p.controls Recherches
-                    div.atc-wrapper
-                        select.selector#atc(name="atc")
-                            option(value="" selected=selectedAtcClass === "") Choisir une classe ATC
-                            each atcClass in ATCClasses
-                                option(value=atcClass.code, selected=atcClass.code === selectedAtcClass)= `${atcClass.code} - ${atcClass.description}`
-                        select.selector#molecule(name="molecule")
-                            option(value="") Choisir une molécule
-                            each molecule in molecules
-                                option(value=molecule.code)=`${molecule.name}`
-                    input(type="text" id="search-box" placeholder="Rechercher un produit...")
-                    button#reinitialiser Réinitialiser la recherche
-                    p.controls Echelle de temps
-                    div.button-row
-                        button#show-12-months.chart-button Derniers 12 mois
-                        button#show-24-months.chart-button Derniers 24 mois
-                    div.button-row
-                        button#show-all-data.chart-button Toutes les données
-                div#summary
-                div#tooltip(style="position: absolute; opacity: 0; pointer-events: none;")
-            div#dash
-    footer
-        p 2024 - Antheos
+extends layout
 
-    script(type="module",src="/src/draw.js")
+block head
+  script(src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js")
+  script(type="module",src="/js/draw.js")
+
+block content
+  div#chart-container
+    div#title-container.flex-container
+      img#capsule-icon(src="/images/gris_carre_leger.png" alt="Icône de capsule")
+      div#title-text
+        h1#report-title Incidents de disponibilité des médicaments et vaccins
+        h2#mise-a-jour
+
+    div.flex-container
+      div#mainfilter-container
+        h2 Filtres
+        div.mainfilter-divider
+        input(type="text" id="mainfilter-search-box" placeholder="Rechercher un produit...")
+        div.mainfilter-atc-wrapper
+          select.mainfilter-selector#atc(name="atc")
+            option(value="" selected=selectedAtcClass === "") Choisir une classe ATC
+            each atcClass in ATCClasses
+              option(value=atcClass.code, selected=atcClass.code === selectedAtcClass)= `${atcClass.code} - ${atcClass.description}`
+          select.mainfilter-selector#molecule(name="molecule")
+            option(value="") Choisir une molécule
+            each molecule in molecules
+              option(value=molecule.code)=`${molecule.name}`
+          div.mainfilter-checkbox-wrapper
+            input(type="checkbox" id="vaccines-filter")
+            label(for="vaccines-filter") Vaccins uniquement (ATC J07)
+        div.mainfilter-divider
+        div.mainfilter-button-row(role="radiogroup" aria-label="Select time period")
+          input(type="radio" id="period-12" name="period" value="12" class="mainfilter-radio" checked)
+          label(for="period-12" class="mainfilter-button") 12 mois
+          
+          input(type="radio" id="period-24" name="period" value="24" class="mainfilter-radio")
+          label(for="period-24" class="mainfilter-button") 24 mois
+          
+          input(type="radio" id="period-all" name="period" value="all" class="mainfilter-radio")
+          label(for="period-all" class="mainfilter-button") Tout
+        button#mainfilter-reset.mainfilter-button Réinitialiser
+        div.mainfilter-divider
+        div#legend-container
+          div#floating-legend
+            p#title-legend Légende
+            .legend-item
+              span.legend-color-box.legend-rupture
+              | Rupture
+            .legend-item
+              span.legend-color-box.legend-tension
+              | Tension
+            .legend-item
+              span.legend-color-box.legend-arret
+              | Arrêt de commercialisation
+            .legend-item
+              span.legend-color-box.legend-disponible
+              | Disponible
+      div#summary
+    div#recent-changes
+    div.table-section-header
+      h2 Détail des incidents: produits, statut et durée de chaque incident
+    div#maintbl-dash
+      div#tooltip
+
+  div#source-info
+    div#info-container
+      h2 Avertissement
+      p Les données présentées sur ce site proviennent de sources gouvernementales publiques. Bien que nous nous efforcions de garantir l'exactitude et la fiabilité des informations affichées, ce site ne saurait être tenu responsable des erreurs, omissions ou interprétations des données. Ce site est une représentation visuelle des données et ne constitue pas une source officielle ou faisant autorité. Pour des informations certifiées, veuillez consulter directement les sources gouvernementales référencées sur #[a(href='https://ansm.sante.fr/disponibilites-des-produits-de-sante/medicaments') Disponibilité des produits de santé].
+      p En utilisant ce site, vous acceptez ces conditions.
