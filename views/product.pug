@@ -1,0 +1,33 @@
+extends layout
+
+block content
+  .product-card
+    h1.product-title= product.name
+    if product.cis_codes && product.cis_codes.length
+      .cis-list
+        | Codes CIS :
+        each code in product.cis_codes
+          span.cis-pill= code
+    if product.incidents && product.incidents.length
+      - const current = product.incidents[0];
+      .productpg-status-row
+        span.productpg-status-icon
+          if current.status === 'Rupture'
+            i(class="fa-solid fa-square-xmark rupture-icon")
+          else if current.status === 'Tension'
+            i(class="fa-solid fa-square-minus tension-icon")
+          else if current.status === 'Arret'
+            i(class="fa-solid fa-square-xmark arret-icon")
+          else
+            i(class="fa-solid fa-square-question")
+        span.productpg-status-label(data-status=current.status data-start=current.start_date) Statut actuel : 
+    h2.section-title Historique des incidents
+    if product.incidents && product.incidents.length
+      #productpg-timeline-container.productpg-timeline-container
+    else
+      p Aucune incident enregistré.
+
+block head
+  script.
+    // Pass the product data to the JavaScript
+    const productData = !{JSON.stringify(product)};
