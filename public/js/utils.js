@@ -29,4 +29,35 @@ function getDaysBetween(startDate, endDate) {
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
-export { formatDurationSince, getDaysBetween };
+/**
+ * Get the current status of a product incident as of a given date (defaults to today)
+ * @param {object} incident - The incident object
+ * @param {Date} [dateReport=new Date()] - The date to check status for
+ * @returns {object} Status object with text, class, shorthand, color, and icon
+ */
+function getProductStatus(incident, dateReport) {
+  console.log(incident);
+  console.log(dateReport);
+  if (incident.status === "Arret") {
+    return { text: "Arrêt de commercialisation", class: "tooltip-arret", shorthand: "arret", color: "var(--arret-bg)", icon: "fa-solid fa-square-xmark" };
+  } else if (
+    new Date(incident.start_date) <= dateReport &&
+    new Date(incident.calculated_end_date) >= dateReport &&
+    incident.end_date === null
+  ) {
+    if (incident.status === "Rupture") {
+      return { text: "Rupture de stock", class: "tooltip-rupture", shorthand: "rupture", color: "var(--rupture)", icon: "fa-solid fa-square-xmark" };
+    } else if (incident.status === "Tension") {
+      return { text: "Tension d'approvisionnement", class: "tooltip-tension", shorthand: "tension", color: "var(--tension)", icon: "fa-solid fa-square-minus" };
+    }
+  } else if (
+    !incident.calculated_end_date ||
+    new Date(incident.calculated_end_date) < dateReport ||
+    incident.end_date
+  ) {
+    return { text: "Disponible", class: "tooltip-disponible", shorthand: "disponible", color: "var(--disponible)", icon: "fa-solid fa-square-check" };
+  }
+  return { text: "Statut inconnu", class: "", shorthand: "inconnu", color: "var(--grisleger)", icon: "fa-solid fa-square-question" };
+}
+
+export { formatDurationSince, getDaysBetween, getProductStatus };

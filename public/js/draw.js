@@ -1,6 +1,6 @@
 import { dataManager } from "./01_store_data.js";
 import { fetchTableChartData } from "./00_fetch_data.js";
-import { getDaysBetween, formatDurationSince } from "./utils.js";
+import { getDaysBetween, formatDurationSince, getProductStatus } from "./utils.js";
 
 const HOURS_IN_DAY = 24;
 const MINS_IN_HOUR = 60;
@@ -116,28 +116,6 @@ function getSpecialiteCount(product) {
   }
   return 1;
 };
-
-
-function getProductStatus(d) {
-  const dateReport = dataManager.getDateReport();
-
-  if (d.status === "Arret") {
-    return { text: "Arrêt de commercialisation", class: "tooltip-arret", shorthand: "arret", color: "var(--arret-bg)", icon: "fa-solid fa-square-xmark" };
-  } else if (
-    d.start_date <= dateReport &&
-    d.calculated_end_date >= dateReport &&
-    d.end_date === null
-  ) {
-    if (d.status === "Rupture") {
-      return { text: "Rupture de stock", class: "tooltip-rupture", shorthand: "rupture", color: "var(--rupture)", icon: "fa-solid fa-square-xmark" };
-    } else if (d.status === "Tension") {
-      return { text: "Tension d'approvisionnement", class: "tooltip-tension", shorthand: "tension", color: "var(--tension)", icon: "fa-solid fa-square-minus" };
-    }
-  } else if (!d.calculated_end_date || d.calculated_end_date < dateReport || d.end_date) {
-    return { text: "Disponible", class: "tooltip-disponible", shorthand: "disponible", color: "var(--disponible)", icon: "fa-solid fa-square-check" };
-  }
-  return { text: "Statut inconnu", class: "", shorthand: "inconnu", color: "var(--grisleger)", icon: "fa-solid fa-square-question" };
-}
 
 // Get unique products count
 function getUniqueProductLength(eventList) {
@@ -319,22 +297,22 @@ periodRadios.forEach(radio => {
   radio.addEventListener('change', (e) => {
     const period = e.target.value;
     if (period === '12') {
-      dataManager.setMonthsToShow(12);
-      handleSearch(true, dataManager.getSearchTerm());
+  dataManager.setMonthsToShow(12);
+  handleSearch(true, dataManager.getSearchTerm());
     } else if (period === '24') {
-      dataManager.setMonthsToShow(24);
-      handleSearch(true, dataManager.getSearchTerm());
+  dataManager.setMonthsToShow(24);
+  handleSearch(true, dataManager.getSearchTerm());
     } else if (period === 'all') {
-      const end = new Date(dataManager.getDateReport());
-      const start = ALL_TIME_START;
-      const yearsFromStart = end.getFullYear() - start.getFullYear();
-      const monthsFromStart = end.getMonth() - start.getMonth();
-      const monthsDiff = yearsFromStart * 12 + monthsFromStart + 1;
-      
-      dataManager.setMonthsToShow(monthsDiff);
-      handleSearch(true, dataManager.getSearchTerm());
+  const end = new Date(dataManager.getDateReport());
+  const start = ALL_TIME_START;
+  const yearsFromStart = end.getFullYear() - start.getFullYear();
+  const monthsFromStart = end.getMonth() - start.getMonth();
+  const monthsDiff = yearsFromStart * 12 + monthsFromStart + 1;
+
+  dataManager.setMonthsToShow(monthsDiff);
+  handleSearch(true, dataManager.getSearchTerm());
     }
-  });
+});
 });
 
 // Set default selection
@@ -691,7 +669,7 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
 
     const productIncidents = rawData.filter(d => d.product === product);
     const mainIncident = productIncidents[0] || {};
-    const status = getProductStatus(mainIncident);
+    const status = getProductStatus(mainIncident, dateReport);
 
     // Add background for recently changed products
     const isRecentlyChanged = recentlyChangedProducts.includes(product);
@@ -719,9 +697,10 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
     if (commaCount === 1) {
       shortLabel = label.split(',')[0];
     }
-    row.append('span')
-      .attr('class', 'maintbl-row-label')
-      .text(shortLabel)
+    row.append('a')
+    .attr('class', 'maintbl-row-label')
+    .attr('href', `/product/${mainIncident.product_id}`)
+    .text(shortLabel)
       .on('mouseover', function () {
         let tooltipContent = `<div class="tooltip-title">${accentedProducts[i]}</div>`;
         tooltipContent += `<div class="tooltip-dci">DCI: ${mainIncident.molecule || ''}</div>`;
@@ -788,37 +767,54 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
         .attr('class', `bar ${d.status}-fill`.toLowerCase())
         .style('cursor', 'pointer')
         .on('mousemove', function (event) {
-          let statusClass = `tooltip-${d.status.toLowerCase()}`;
-          let tooltipHTML;
-          const diffIndays = (startDate, endDate) => Math.round((endDate - startDate) / MS_IN_DAY);
+          let tooltipHTML = `
+            <div class="tooltip-title">${d.accented_product || d.product}</div>
+            <div class="tooltip-dci">DCI: ${d.molecule || ''}</div>
+          `;
+
+          const isOngoing = !d.end_date || (d.calculated_end_date && d.calculated_end_date >= dateReport);
+          const start = formatDate(d.start_date);
+          const end = formatDate(d.end_date || d.calculated_end_date);
+
           if (d.status === 'Arret') {
-            if (d.end_date) {
-              tooltipHTML = `
-                <div class="tooltip-title">${d.accented_product}</div>
-                <div class="tooltip-dci">DCI: ${d.molecule}</div>
-                <div class="tooltip-status arret"><strong>${d.status}</strong>, plus disponible de <strong>${formatDate(d.start_date)}</strong> jusqu'à <strong>${formatDate(d.end_date)}</strong></div>
-              `;
-            } else {
-              tooltipHTML = `
-                <div class="tooltip-title">${d.accented_product}</div>
-                <div class="tooltip-dci">DCI: ${d.molecule}</div>
-                <div class="tooltip-status arret"><strong>${d.status}</strong>, plus disponible depuis <strong>${formatDate(d.start_date)}</strong></div>
-              `;
-            }
+            tooltipHTML += `
+              <div class="tooltip-status arret">
+                Arrêt de commercialisation / ${isOngoing ? 'En cours' : 'Terminé'}<br>
+                ${isOngoing
+                  ? `Depuis le ${start}`
+                  : `Du ${start} au ${end}`
+                }
+              </div>
+            `;
           } else if (d.status === 'Rupture' || d.status === 'Tension') {
-            tooltipHTML = `
-              <div class="tooltip-title">${d.accented_product}</div>
-              <div class="tooltip-dci">DCI: ${d.molecule}</div>
-              <div class="tooltip-status ${d.status.toLowerCase()}"><strong>${d.status}</strong> du <strong>${formatDate(d.start_date)}</strong> au <strong>${formatDate(d.calculated_end_date)}</strong></div>
+            tooltipHTML += `
+              <div class="tooltip-status ${d.status.toLowerCase()}">
+                ${d.status} / ${isOngoing ? 'En cours' : 'Terminé'}<br>
+                ${isOngoing
+                  ? `Depuis le ${start}`
+                  : `Du ${start} au ${end}`
+                }
+              </div>
             `;
           } else if (d.status === 'Disponible') {
-            tooltipHTML = `
-              <div class="tooltip-title">${d.accented_product}</div>
-              <div class="tooltip-dci">DCI: ${d.molecule}</div>
-              <div class="tooltip-status disponible"><strong>${d.status}</strong> / Terminé</div>
+            tooltipHTML += `
+              <div class="tooltip-status disponible">
+                Disponible
+              </div>
             `;
           }
-          tooltip.html(tooltipHTML).attr('class', statusClass);
+
+          // Add CIS codes if available
+          if (d.cis_codes && d.cis_codes.length > 0) {
+            tooltipHTML += '<div class="tooltip-cis-list"><b>Codes CIS concernés :</b><ul>';
+            d.cis_codes.forEach(code => {
+              const name = d.cis_names && d.cis_names[code] ? d.cis_names[code] : '';
+              tooltipHTML += `<li class="tooltip-cis-item">${code}${name ? ': ' + name : ''}</li>`;
+            });
+            tooltipHTML += '</ul></div>';
+          }
+
+          tooltip.html(tooltipHTML).attr('class', `tooltip-${d.status.toLowerCase()}`);
 
           // Tooltip positioning: below the bar, left-aligned with bar, or right-aligned if not enough space
           const svgRect = svg.node().getBoundingClientRect();

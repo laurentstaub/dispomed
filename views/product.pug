@@ -4,33 +4,30 @@ block scripts
   script(type='module', src='/js/draw_product_page.js')
 
 block content
-  .product-card
-    h1.product-title= product.name
-    if product.cis_codes && product.cis_codes.length
-      .cis-list
-        | Codes CIS :
-        each code in product.cis_codes
-          span.cis-pill= code
-    if product.incidents && product.incidents.length
-      - const current = product.incidents[0];
-      .productpg-status-row
-        span.productpg-status-icon
-          if current.status === 'Rupture'
+  div.retour-container
+    a.productpg-back-link(href="/")
+      i(class="fa-solid fa-arrow-left")
+      |  Retour à l'accueil
+  div.main-container
+    div#title-container.flex-container
+      img#capsule-icon(src="/images/gris_carre_leger.png" alt="Icône de capsule")
+      div#title-text
+        h1#report-title
+        h2#mise-a-jour Informations produit
+
+    div.flex-container
+      .productpg-inner-wrapper
+        .productpg-status-row
+          span.productpg-status-icon
             i(class="fa-solid fa-square-xmark rupture-icon")
-          else if current.status === 'Tension'
-            i(class="fa-solid fa-square-minus tension-icon")
-          else if current.status === 'Arret'
-            i(class="fa-solid fa-square-xmark arret-icon")
-          else
-            i(class="fa-solid fa-square-question")
-        span.productpg-status-label(data-status=current.status data-start=current.start_date) Statut actuel : 
+          span.productpg-status-label Statut actuel :
+        // CIS codes will be filled by JS
+        .cis-list#cis-list
+        //- Score/Donut section (populated by draw_product_page.js)
+        #productpg-stats
     h2.section-title Historique des incidents
-    if product.incidents && product.incidents.length
-      #productpg-timeline-container.productpg-timeline-container
-    else
-      p Aucune incident enregistré.
+    #productpg-timeline-container.productpg-timeline-container
 
 block head
   script.
-    // Pass the product data to the JavaScript
-    const productData = !{JSON.stringify(product)};
+    window.productId = !{JSON.stringify(productId)};
