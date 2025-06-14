@@ -1,4 +1,6 @@
-import { getDaysBetween, formatDurationSince } from './utils.js';
+import { getDaysBetween, formatDurationSince, getProductStatus } from './utils.js';
+import { dataManager } from './01_store_data.js';
+import { fetchTableChartData } from './00_fetch_data.js';
 
 /**
  * Draws the timeline chart for a product's incidents
@@ -118,14 +120,6 @@ function drawProductTimeline(product, containerId) {
 
   // Color code the score
   const scoreValue = parseFloat(score);
-  let scoreColor;
-  if (scoreValue < 50) {
-    scoreColor = 'var(--rupture)';
-  } else if (scoreValue < 75) {
-    scoreColor = 'var(--tension)';
-  } else {
-    scoreColor = 'var(--disponible)';
-  }
 
   // Donut chart values
   const disponibleDays = totalDaysPeriod - ruptureDays - tensionDays;
@@ -144,12 +138,12 @@ function drawProductTimeline(product, containerId) {
       />
       <circle
         cx="${center}" cy="${center}" r="${radius}"
-        fill="none" stroke="var(--disponible)" stroke-width="${donutStroke}"
+        fill="none" stroke="var(--grisfonce)" stroke-width="${donutStroke}"
         stroke-dasharray="${disponibleArc} ${circumference - disponibleArc}"
         stroke-dashoffset="${circumference / 4}"
         style="transition: stroke-dasharray 0.5s;"
       />
-      <text x="${center}" y="${center + 6}" text-anchor="middle" font-size="18" font-weight="700" fill="var(--disponible)" style="text-decoration: underline;">${score}%</text>
+      <text x="${center}" y="${center + 6}" text-anchor="middle" font-size="1rem" font-weight="600" fill="var(--grisfonce)">${score}%</text>
     </svg>
   `;
 
@@ -163,16 +157,46 @@ function drawProductTimeline(product, containerId) {
     timelineNode.parentNode.insertBefore(statsContainer, timelineNode);
   }
   statsContainer.innerHTML = `
-    <div style="display:flex;align-items:center;gap:18px;margin-top:18px;">
-      <div>${donutSVG}</div>
-      <div style="font-size:15px;color:var(--grisfonce);">
-        <b>Score de disponibilité :</b> <span style="font-size:18px;font-weight:700;color:var(--main-0)">${score}%</span><br>
-        <span style="font-size:13px;">(100% = toujours disponible, 0% = toujours en rupture)</span><br>
-        <b>Statistiques depuis avril 2021 :</b><br>
-        Rupture : <b>${ruptureDays}</b> jours (${rupturePercent}%)<br>
-        Tension : <b>${tensionDays}</b> jours (${tensionPercent}%)<br>
-        Disponible : <b>${disponibleDays}</b> jours (${disponiblePercent}%)<br>
-        Période totale : <b>${totalDaysPeriod}</b> jours
+    <div class="productpg-score-flex">
+      <div class="productpg-score-stats productpg-stats-card">
+        <div class="productpg-stats-title">Jours de disponibilité depuis avril 2021</div>
+        <table class="productpg-stats-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Durée (jours)</th>
+              <th>Pourcentage (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="productpg-stats-label">Période totale</td>
+              <td class="productpg-stats-value"><b>${totalDaysPeriod}</b></td>
+              <td class="productpg-stats-percent">100%</td>
+            </tr>
+            <tr>
+              <td class="productpg-stats-label">Disponible</td>
+              <td class="productpg-stats-value"><b>${disponibleDays}</b></td>
+              <td class="productpg-stats-percent">${disponiblePercent}%</td>
+            </tr>
+            <tr>
+              <td class="productpg-stats-label">Tension</td>
+              <td class="productpg-stats-value"><b>${tensionDays}</b></td>
+              <td class="productpg-stats-percent">${tensionPercent}%</td>
+            </tr>
+            <tr>
+              <td class="productpg-stats-label">Rupture</td>
+              <td class="productpg-stats-value"><b>${ruptureDays}</b></td>
+              <td class="productpg-stats-percent">${rupturePercent}%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="productpg-score-donut">
+        <div class="productpg-stats-title">Score de disponibilité</div>
+        <span style="font-size:12px;">100% = toujours disponible<br>
+        0% = toujours en rupture</span><br>
+        ${donutSVG}
       </div>
     </div>
   `;
@@ -199,24 +223,93 @@ function formatDate(date) {
   return `${month}/${year}`;
 }
 
+// Helper to determine current product status with main page priority logic
+function getCurrentProductStatus(incidents, reportDate) {
+  console.log(incidents);
+  incidents.sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
+  let latestIncident = incidents[0];
+  console.log(latestIncident);
+  return getProductStatus(latestIncident, reportDate);
+}
+
 // On page load: draw timeline and update current status label
 // Requires productData global variable
 
-document.addEventListener('DOMContentLoaded', function() {
-  if (typeof productData !== 'undefined') {
-    drawProductTimeline(productData, 'productpg-timeline-container');
-
-    // Update current status label with duration
-    if (productData.incidents && productData.incidents.length) {
-      const current = productData.incidents[0];
-      const statusLabel = document.querySelector('.productpg-status-label');
-      if (statusLabel && current.start_date) {
-        const now = new Date();
-        const start = new Date(current.start_date);
-        const diffDays = getDaysBetween(start, now);
-        const durationLabel = formatDurationSince(diffDays);
-        statusLabel.textContent = `Statut actuel : ${current.status} ${durationLabel}`;
+document.addEventListener('DOMContentLoaded', async function() {
+  if (window.productId) {
+    try {
+      // Fetch all incidents for this product by ID
+      const response = await fetch(`/api/incidents/product/${window.productId}`);
+      const incidents = await response.json();
+      const cisListDiv = document.getElementById('cis-list');
+      const statsDiv = document.getElementById('productpg-stats');
+      const timelineDiv = document.getElementById('productpg-timeline-container');
+      if (!incidents.length) {
+        if (cisListDiv) cisListDiv.innerHTML = '';
+        if (statsDiv) statsDiv.innerHTML = '';
+        if (timelineDiv) timelineDiv.innerHTML = '<p style="margin:2rem 0 0 0;font-size:1.1em;color:var(--grisfonce);">Aucun incident enregistré.</p>';
+        document.querySelector('.productpg-status-label').textContent = 'Aucun incident enregistré.';
+        return;
       }
+      // Find the latest incident by start_date
+      incidents.sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
+      const latestIncident = incidents[0];
+
+      if (incidents.length > 0) {
+        const productName = incidents[0].product || '';
+        const reportTitle = document.getElementById('report-title');
+        if (reportTitle) {
+          reportTitle.textContent = productName;
+        }
+      }
+
+      // Use the latest calculated_end_date as the report date
+      const reportDate = incidents.reduce((max, inc) => {
+        const d = new Date(inc.calculated_end_date);
+        return d > max ? d : max;
+      }, new Date(incidents[0].calculated_end_date));
+      const status = getProductStatus(latestIncident, reportDate);
+      console.log(status);
+      const statusLabel = document.querySelector('.productpg-status-label');
+      const statusIcon = document.querySelector('.productpg-status-icon i');
+      const statusRow = document.querySelector('.productpg-status-row');
+      // Render CIS codes
+      const allCisCodes = Array.from(new Set(
+        incidents.flatMap(incident => incident.cis_codes || [])
+      ));
+      if (cisListDiv) {
+        cisListDiv.innerHTML = '';
+        if (allCisCodes.length > 0) {
+          const label = document.createElement('span');
+          label.textContent = 'Codes CIS concernés: ';
+          cisListDiv.appendChild(label);
+          allCisCodes.forEach(code => {
+            const pill = document.createElement('span');
+            pill.className = 'cis-pill';
+            pill.textContent = code;
+            cisListDiv.appendChild(pill);
+          });
+        }
+      }
+      if (statusLabel && statusIcon && statusRow) {
+        statusRow.classList.remove('status-disponible', 'status-tension', 'status-rupture');
+        if (status.shorthand === 'rupture') {
+          statusRow.classList.add('status-rupture');
+        } else if (status.shorthand === 'tension') {
+          statusRow.classList.add('status-tension');
+        } else if (status.shorthand === 'arret') {
+          statusRow.classList.add('status-rupture');
+        } else {
+          statusRow.classList.add('status-disponible');
+        }
+        statusLabel.textContent = `Statut actuel : ${status.text}`;
+        statusIcon.className = status.icon + ' ' + status.shorthand + '-icon';
+        statusIcon.style.color = status.color;
+      }
+      // Draw timeline and stats (update this as needed)
+      drawProductTimeline({ incidents }, 'productpg-timeline-container');
+    } catch (err) {
+      document.querySelector('.productpg-status-label').textContent = 'Erreur : impossible de déterminer la date de rapport.';
     }
   }
 }); 

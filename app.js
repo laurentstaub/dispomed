@@ -25,24 +25,9 @@ app.get("/", async (req, res) => {
   });
 });
 
-app.get("/product/:productName", async (req, res) => {
-  console.log("productName");
-  const { productName } = req.params;
-  console.log(productName);
-  try {
-    const apiUrl = `${req.protocol}://${req.get('host')}/api/product/${encodeURIComponent(productName)}`;
-    const response = await fetch(apiUrl);
-    console.log(response);
-    if (!response.ok) {
-      return res.status(404).render('404', { title: 'Produit non trouvé' });
-    }
-    const product = await response.json();
-    console.log(product);
-    res.render('product', { title: product.name, product });
-  } catch (error) {
-    console.error('Error rendering product page:', error);
-    res.status(500).render('error', { title: 'Erreur serveur', error });
-  }
+app.get("/product/:productId", async (req, res) => {
+  const { productId } = req.params;
+  res.render('product', { productId });
 });
 
 app.get("/api/config", (req, res) => {
@@ -62,6 +47,7 @@ app.get("/api/incidents", async (req, res) => {
       incidents_with_sorting AS (
           SELECT
               i.id,
+              p.id AS product_id,
               p.name AS product,
               p.accented_name AS accented_product,
               p.cis_codes,
@@ -155,6 +141,7 @@ app.get("/api/incidents", async (req, res) => {
     query += `
         GROUP BY
           i.id,
+          p.id,
           p.name,
           p.accented_name,
           p.cis_codes,
@@ -275,6 +262,91 @@ app.get('/api/product/:productName', async (req, res) => {
   } catch (error) {
     console.error('Error fetching product detail:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/api/incidents/product/:productId", async (req, res) => {
+  const { productId } = req.params;
+
+  try {
+    let query = `
+      WITH max_date AS (
+          SELECT MAX(calculated_end_date) AS max_date FROM incidents
+      ),
+      incidents_with_sorting AS (
+          SELECT
+              i.id,
+              p.id AS product_id,
+              p.name AS product,
+              p.accented_name AS accented_product,
+              p.cis_codes,
+              i.status,
+              TO_CHAR(i.start_date, 'YYYY-MM-DD') AS start_date,
+              TO_CHAR(i.end_date, 'YYYY-MM-DD') AS end_date,
+              TO_CHAR(i.mise_a_jour, 'YYYY-MM-DD') AS mise_a_jour,
+              TO_CHAR(i.date_dernier_rapport, 'YYYY-MM-DD') AS date_dernier_rapport,
+              TO_CHAR(i.calculated_end_date, 'YYYY-MM-DD') AS calculated_end_date,
+              STRING_AGG(DISTINCT m.name, ', ') AS molecule,
+              STRING_AGG(DISTINCT m.id::text, ', ') AS molecule_id,
+              ca.code || ' - ' || ca.description AS classe_atc,
+              ca.code AS atc_code
+          FROM incidents i
+          JOIN produits p ON i.product_id = p.id
+          LEFT JOIN produits_molecules pm ON p.id = pm.produit_id
+          LEFT JOIN molecules m ON pm.molecule_id = m.id
+          LEFT JOIN classe_atc ca ON p.classe_atc_id = ca.id
+          WHERE p.id = $1
+          GROUP BY
+            i.id,
+            p.id,
+            p.name,
+            p.accented_name,
+            p.cis_codes,
+            i.status,
+            i.start_date,
+            i.end_date,
+            i.mise_a_jour,
+            i.date_dernier_rapport,
+            i.calculated_end_date,
+            ca.code,
+            ca.description
+      )
+      SELECT * FROM incidents_with_sorting
+      ORDER BY
+        start_date ASC
+    `;
+
+    const params = [productId];
+
+    const result = await dbQuery(query, ...params);
+    const incidents = result.rows;
+
+    // 1. Récupérer tous les codes CIS uniques
+    const allCisCodes = [ ...new Set (incidents.flatMap(incident => incident.cis_codes || []))];
+
+    // 2. Aller chercher les noms correspondants dans dbpm.cis_bdpm
+    let cisNamesMap = {};
+    if (allCisCodes.length > 0) {
+      const { rows: cisNamesRows } = await dbQuery(
+        'SELECT code_cis, denomination_medicament FROM dbpm.cis_bdpm WHERE code_cis = ANY($1)', [allCisCodes]
+      );
+      cisNamesRows.forEach(row => {
+        cisNamesMap[row.code_cis] = row.denomination_medicament;
+      });
+    }
+
+    // 3. Associer à chaque incident le mapping code_cis -> nom
+    incidents.forEach(incident => {
+      incident.cis_names = {};
+      (incident.cis_codes || []).forEach(code => {
+        incident.cis_names[code] = cisNamesMap[code] || '';
+      });
+    });
+
+    res.json(incidents);
+  } catch (error) {
+    console.error("Error fetching product incidents:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
