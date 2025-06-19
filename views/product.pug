@@ -13,7 +13,7 @@ block content
       img#capsule-icon(src="/images/gris_carre_leger.png" alt="Icône de capsule")
       div#title-text
         h1#report-title
-        h2#mise-a-jour Informations produit
+        h2#mise-a-jour
 
     div.flex-container
       .productpg-inner-wrapper
@@ -21,12 +21,13 @@ block content
           span.productpg-status-icon
             i(class="fa-solid fa-square-xmark rupture-icon")
           span.productpg-status-label Statut actuel :
-        // CIS codes will be filled by JS
         .cis-list#cis-list
-        //- Score/Donut section (populated by draw_product_page.js)
+        h2.section-title Statistiques
         #productpg-stats
     h2.section-title Historique des incidents
     #productpg-timeline-container.productpg-timeline-container
+    h2.section-title Incidents EMA liés
+    #ema-incidents
 
 block head
   script.
