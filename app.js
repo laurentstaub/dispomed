@@ -350,6 +350,35 @@ app.get("/api/incidents/product/:productId", async (req, res) => {
   }
 });
 
+app.get('/api/ema-incidents', async (req, res) => {
+  const { cis_codes } = req.query;
+  if (!cis_codes) {
+    return res.status(400).json({ error: 'cis_codes query param required' });
+  }
+  const codes = cis_codes.split(',').map(code => code.trim());
+  try {
+    // Find all EMA incidents that have any of the given CIS codes, with details and French translations
+    const query = `
+      SELECT DISTINCT 
+        i.incident_id, 
+        i.title, 
+        i.first_published, 
+        i.expected_resolution, 
+        i.status,
+        ft.*
+      FROM incidents_ema.cis_mappings m
+      JOIN incidents_ema.incidents i ON m.incident_id = i.incident_id
+      LEFT JOIN incidents_ema.french_translations ft ON i.incident_id = ft.incident_id
+      WHERE m.cis_code = ANY($1)
+    `;
+    const { rows } = await dbQuery(query, [codes]);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching EMA incidents:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.listen(PORT, () =>
   console.log(`Server running on http://localhost:${PORT}`),
 );

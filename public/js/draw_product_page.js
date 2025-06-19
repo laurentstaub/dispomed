@@ -51,21 +51,60 @@ function drawProductTimeline(product, containerId) {
     .tickSizeOuter(4)
     .tickPadding(8);
 
-  svg.append('g')
-    .attr('class', 'x-axis')
-    .attr('transform', `translate(${labelWidth},10)`)
-    .call(xAxis);
+  // Add vertical grid lines for quarters and years
+  const gridGroup = svg.append('g')
+    .attr('class', 'grid-lines')
+    .attr('transform', `translate(${labelWidth},0)`);
 
-  // Draw each incident bar on its own row, with label
+  // Add year grid lines (more prominent)
+  gridGroup.selectAll('.grid-line-year')
+    .data(xScale.ticks(d3.timeYear.every(1)))
+    .enter()
+    .append('line')
+    .attr('class', 'grid-line-year')
+    .attr('x1', d => xScale(d))
+    .attr('x2', d => xScale(d))
+    .attr('y1', margin.top)
+    .attr('y2', height)
+    .attr('stroke', 'var(--grisleger)')
+    .attr('stroke-width', 1)
+    .attr('stroke-dasharray', '3,3');
+
+  // Create a separate group for horizontal gridlines
+  const horizontalGridGroup = svg.append('g')
+    .attr('class', 'horizontal-grid-lines');
+
+  // Add axis with more prominent styling
+  const xAxisGroup = svg.append('g')
+    .attr('class', 'x-axis')
+    .attr('transform', `translate(${labelWidth},10)`);
+
+  xAxisGroup.call(xAxis);
+
+  // Style the axis
+  xAxisGroup.select('.domain')
+    .attr('stroke', 'var(--grisfonce)')
+    .attr('stroke-width', 2);
+
+  xAxisGroup.selectAll('.tick text')
+    .attr('fill', 'var(--grisfonce)')
+    .attr('font-size', '14px')
+    .attr('font-weight', 600);
+
+  xAxisGroup.selectAll('.tick line')
+    .attr('stroke', 'var(--grisfonce)')
+    .attr('stroke-width', 2);
+
+  // Add horizontal grid lines for each row
   product.incidents.forEach((incident, index) => {
-    const start = new Date(incident.start_date);
-    const end = new Date(incident.calculated_end_date || incident.end_date || timelineEnd);
+    const start = new Date(Math.max(new Date(incident.start_date), timelineStart));
+    const end = new Date(Math.min(new Date(incident.calculated_end_date || incident.end_date || timelineEnd), timelineEnd));
     const xStart = xScale(start);
     const xEnd = xScale(end);
     const barWidth = Math.max(2, xEnd - xStart);
     const y = barY + index * (barHeight + barGap);
 
-    // Add background for the bar row
+    // 1. Add background for the bar row first
     svg.append('rect')
       .attr('x', labelWidth)
       .attr('y', y)
@@ -74,7 +113,17 @@ function drawProductTimeline(product, containerId) {
       .attr('rx', 0)
       .attr('fill', 'var(--blanc)');
 
-    // Bar
+    // 2. Add horizontal grid line
+    svg.append('line')
+      .attr('class', 'grid-line-horizontal')
+      .attr('x1', labelWidth)
+      .attr('x2', width)
+      .attr('y1', y + barHeight / 2)
+      .attr('y2', y + barHeight / 2)
+      .attr('stroke', 'var(--gristresleger)')
+      .attr('stroke-width', 1);
+
+    // 3. Add the colored bar on top
     svg.append('rect')
       .attr('x', xStart + labelWidth)
       .attr('y', y)
@@ -83,7 +132,7 @@ function drawProductTimeline(product, containerId) {
       .attr('rx', 0)
       .attr('fill', getStatusColor(incident.status));
 
-    // Label
+    // 4. Add label last
     svg.append('text')
       .attr('x', 0)
       .attr('y', y + barHeight - 2)
@@ -103,7 +152,8 @@ function drawProductTimeline(product, containerId) {
     const start = new Date(Math.max(new Date(incident.start_date), timelineStart));
     const end = new Date(Math.min(new Date(incident.calculated_end_date || incident.end_date || timelineEnd), timelineEnd));
     if (end < start) return; // No overlap
-    const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    // Exclude the end date (range is [start, end))
+    const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 2;
     if (incident.status === 'Rupture') {
       ruptureDays += days;
       totalScore -= days; // -1 per day
@@ -129,7 +179,7 @@ function drawProductTimeline(product, containerId) {
   const center = donutSize / 2;
   const radius = (donutSize - donutStroke) / 2;
   const circumference = 2 * Math.PI * radius;
-  const disponibleArc = (disponibleDays / totalDaysPeriod) * circumference;
+  const scoreArc = scoreValue / 100 * circumference;
   const donutSVG = `
     <svg width="${donutSize}" height="${donutSize}" viewBox="0 0 ${donutSize} ${donutSize}">
       <circle
@@ -139,7 +189,7 @@ function drawProductTimeline(product, containerId) {
       <circle
         cx="${center}" cy="${center}" r="${radius}"
         fill="none" stroke="var(--grisfonce)" stroke-width="${donutStroke}"
-        stroke-dasharray="${disponibleArc} ${circumference - disponibleArc}"
+        stroke-dasharray="${scoreArc} ${circumference - scoreArc}"
         stroke-dashoffset="${circumference / 4}"
         style="transition: stroke-dasharray 0.5s;"
       />
@@ -158,7 +208,7 @@ function drawProductTimeline(product, containerId) {
   }
   statsContainer.innerHTML = `
     <div class="productpg-score-flex">
-      <div class="productpg-score-stats productpg-stats-card">
+      <div class="productpg-score-stats">
         <div class="productpg-stats-title">Jours de disponibilité depuis avril 2021</div>
         <table class="productpg-stats-table">
           <thead>
@@ -170,24 +220,24 @@ function drawProductTimeline(product, containerId) {
           </thead>
           <tbody>
             <tr>
-              <td class="productpg-stats-label">Période totale</td>
-              <td class="productpg-stats-value"><b>${totalDaysPeriod}</b></td>
-              <td class="productpg-stats-percent">100%</td>
-            </tr>
-            <tr>
               <td class="productpg-stats-label">Disponible</td>
-              <td class="productpg-stats-value"><b>${disponibleDays}</b></td>
+              <td class="productpg-stats-value">${disponibleDays}</td>
               <td class="productpg-stats-percent">${disponiblePercent}%</td>
             </tr>
             <tr>
               <td class="productpg-stats-label">Tension</td>
-              <td class="productpg-stats-value"><b>${tensionDays}</b></td>
+              <td class="productpg-stats-value">${tensionDays}</td>
               <td class="productpg-stats-percent">${tensionPercent}%</td>
             </tr>
             <tr>
               <td class="productpg-stats-label">Rupture</td>
-              <td class="productpg-stats-value"><b>${ruptureDays}</b></td>
+              <td class="productpg-stats-value">${ruptureDays}</td>
               <td class="productpg-stats-percent">${rupturePercent}%</td>
+            </tr>
+            <tr>
+              <td class="productpg-stats-label">Période totale</td>
+              <td class="productpg-stats-value">${totalDaysPeriod}</td>
+              <td class="productpg-stats-percent">100%</td>
             </tr>
           </tbody>
         </table>
@@ -223,12 +273,18 @@ function formatDate(date) {
   return `${month}/${year}`;
 }
 
+// Helper to format a date to French (e.g. 14 juin 2024)
+function formatFrenchDate(dateStr) {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  if (isNaN(date)) return '';
+  return date.toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
 // Helper to determine current product status with main page priority logic
 function getCurrentProductStatus(incidents, reportDate) {
-  console.log(incidents);
   incidents.sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
   let latestIncident = incidents[0];
-  console.log(latestIncident);
   return getProductStatus(latestIncident, reportDate);
 }
 
@@ -256,11 +312,17 @@ document.addEventListener('DOMContentLoaded', async function() {
       const latestIncident = incidents[0];
 
       if (incidents.length > 0) {
-        const productName = incidents[0].product || '';
+        const accentedProductName = incidents[0].accented_product || incidents[0].product || '';
+        const moleculeName = incidents[0].molecule || '';
         const reportTitle = document.getElementById('report-title');
         if (reportTitle) {
-          reportTitle.textContent = productName;
+          reportTitle.textContent = accentedProductName;
         }
+        const infoSubtitle = document.getElementById('mise-a-jour');
+        if (infoSubtitle) {
+          infoSubtitle.textContent = (moleculeName ? `DCI : ${moleculeName}` : '');
+        }
+        document.title = accentedProductName + ' - Détails du produit';
       }
 
       // Use the latest calculated_end_date as the report date
@@ -269,7 +331,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         return d > max ? d : max;
       }, new Date(incidents[0].calculated_end_date));
       const status = getProductStatus(latestIncident, reportDate);
-      console.log(status);
       const statusLabel = document.querySelector('.productpg-status-label');
       const statusIcon = document.querySelector('.productpg-status-icon i');
       const statusRow = document.querySelector('.productpg-status-row');
@@ -280,17 +341,95 @@ document.addEventListener('DOMContentLoaded', async function() {
       if (cisListDiv) {
         cisListDiv.innerHTML = '';
         if (allCisCodes.length > 0) {
-          const label = document.createElement('span');
-          label.textContent = 'Codes CIS concernés: ';
-          cisListDiv.appendChild(label);
+          const cisSection = document.createElement('div');
+          cisSection.className = 'cis-section';
+          
+          // Créer le bouton toggle
+          const toggleButton = document.createElement('button');
+          toggleButton.className = 'cis-toggle-button';
+          toggleButton.innerHTML = `
+            <i class="fa-solid fa-chevron-down"></i>
+            <span>Codes CIS concernés (${allCisCodes.length})</span>
+          `;
+          
+          // Créer le conteneur pour le contenu
+          const contentDiv = document.createElement('div');
+          contentDiv.className = 'cis-content';
+          
+          // Créer un objet qui mappe les codes CIS à leurs dénominations
+          const cisNamesMap = {};
+          incidents.forEach(incident => {
+            if (incident.cis_names) {
+              Object.assign(cisNamesMap, incident.cis_names);
+            }
+          });
+          
+          const listContainer = document.createElement('div');
+          listContainer.className = 'cis-list-container';
+          
           allCisCodes.forEach(code => {
-            const pill = document.createElement('span');
-            pill.className = 'cis-pill';
-            pill.textContent = code;
-            cisListDiv.appendChild(pill);
+            const item = document.createElement('div');
+            item.className = 'cis-item';
+            
+            const codeSpan = document.createElement('span');
+            codeSpan.className = 'cis-code';
+            codeSpan.textContent = code;
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'cis-name';
+            nameSpan.textContent = cisNamesMap[code] || 'Dénomination non disponible';
+            
+            item.appendChild(codeSpan);
+            item.appendChild(nameSpan);
+            listContainer.appendChild(item);
+          });
+          
+          contentDiv.appendChild(listContainer);
+          
+          // Ajouter les éléments à la section
+          cisSection.appendChild(toggleButton);
+          cisSection.appendChild(contentDiv);
+          cisListDiv.appendChild(cisSection);
+          
+          // Ajouter l'événement click pour le toggle
+          toggleButton.addEventListener('click', () => {
+            const isExpanded = toggleButton.classList.contains('expanded');
+            toggleButton.classList.toggle('expanded');
+            contentDiv.classList.toggle('expanded');
           });
         }
       }
+      // Lookup related EMA incidents by CIS code
+      const emaIncidentsDiv = document.getElementById('ema-incidents');
+      if (emaIncidentsDiv && allCisCodes.length > 0) {
+        fetch(`/api/ema-incidents?cis_codes=${allCisCodes.join(',')}`)
+          .then(res => res.json())
+          .then(emaIncidents => {
+            if (!emaIncidents.length) {
+              emaIncidentsDiv.innerHTML = `<div class="ema-incident-card">
+                <div class="ema-incident-title">Aucun incident EMA lié</div>
+              </div>`;
+              return;
+            }
+            emaIncidentsDiv.innerHTML = '<ul>' +
+              emaIncidents.map(inc =>
+                `<div class="ema-incident-card">
+                  <div class="ema-incident-title">${inc.product_name || inc.title || inc.incident_id}</div>
+                  <div class="ema-incident-status">${inc.status ? `<span>${inc.status}</span>` : ''}</div>
+                  <div class="ema-incident-detail"><div class="ema-incident-label">Date de première publication</div><div class="ema-incident-value">${formatFrenchDate(inc.first_published) || 'N/A'}</div></div>
+                  <div class="ema-incident-detail"><div class="ema-incident-label">Raison de l'incident</div><div class="ema-incident-value">${inc.reason_for_shortage_fr || 'N/A'}</div></div>
+                  <div class="ema-incident-detail"><div class="ema-incident-label">Pays touchés</div><div class="ema-incident-value">${inc.member_states_affected_fr || 'N/A'}</div></div>
+                  <div class="ema-incident-detail"><div class="ema-incident-label">Résolution attendue</div><div class="ema-incident-value">${formatFrenchDate(inc.expected_resolution) || 'N/A'}</div></div>
+                  ${inc.summary_fr ? `<div class="ema-incident-summary"><div class="ema-incident-label">Résumé</div><div class="ema-incident-value">${inc.summary_fr}</div></div>` : ''}
+                </div>`
+              ).join('') + '</ul>';
+          })
+          .catch(() => {
+            emaIncidentsDiv.innerHTML = 'Erreur lors de la récupération des incidents EMA.';
+          });
+      }
+
+      // Update status label and icon
       if (statusLabel && statusIcon && statusRow) {
         statusRow.classList.remove('status-disponible', 'status-tension', 'status-rupture');
         if (status.shorthand === 'rupture') {

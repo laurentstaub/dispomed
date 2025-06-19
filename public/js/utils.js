@@ -36,8 +36,6 @@ function getDaysBetween(startDate, endDate) {
  * @returns {object} Status object with text, class, shorthand, color, and icon
  */
 function getProductStatus(incident, dateReport) {
-  console.log(incident);
-  console.log(dateReport);
   if (incident.status === "Arret") {
     return { text: "Arrêt de commercialisation", class: "tooltip-arret", shorthand: "arret", color: "var(--arret-bg)", icon: "fa-solid fa-square-xmark" };
   } else if (
