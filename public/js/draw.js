@@ -774,7 +774,12 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
 
           const isOngoing = !d.end_date || (d.calculated_end_date && d.calculated_end_date >= dateReport);
           const start = formatDate(d.start_date);
-          const end = formatDate(d.end_date || d.calculated_end_date);
+          const startDateObj = new Date(d.start_date);
+          const endDateObj = isOngoing ? dateReport : new Date(d.end_date || d.calculated_end_date);
+          const end = formatDate(endDateObj);
+
+          const diffDays = getDaysBetween(startDateObj, endDateObj);
+          const duration = daysToYearsMonths(diffDays);
 
           if (d.status === 'Arret') {
             tooltipHTML += `
@@ -783,7 +788,7 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
                 ${isOngoing
                   ? `Depuis le ${start}`
                   : `Du ${start} au ${end}`
-                }
+                } (${duration})
               </div>
             `;
           } else if (d.status === 'Rupture' || d.status === 'Tension') {
@@ -793,7 +798,7 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
                 ${isOngoing
                   ? `Depuis le ${start}`
                   : `Du ${start} au ${end}`
-                }
+                } (${duration})
               </div>
             `;
           } else if (d.status === 'Disponible') {
@@ -802,16 +807,6 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
                 Disponible
               </div>
             `;
-          }
-
-          // Add CIS codes if available
-          if (d.cis_codes && d.cis_codes.length > 0) {
-            tooltipHTML += '<div class="tooltip-cis-list"><b>Codes CIS concernés :</b><ul>';
-            d.cis_codes.forEach(code => {
-              const name = d.cis_names && d.cis_names[code] ? d.cis_names[code] : '';
-              tooltipHTML += `<li class="tooltip-cis-item">${code}${name ? ': ' + name : ''}</li>`;
-            });
-            tooltipHTML += '</ul></div>';
           }
 
           tooltip.html(tooltipHTML).attr('class', `tooltip-${d.status.toLowerCase()}`);
