@@ -7,6 +7,7 @@
   --arret-bg: rgba(150, 150, 150, 0.9);
   --blanc: rgb(255, 255, 255);
   --disponible: rgb(111, 189, 77);
+  --disponiblefonce: rgb(76, 153, 55);
   --gristresfonce: rgb(50, 50, 50);
   --gristresleger: rgb(230, 230, 230);
   --gristrestresleger: rgb(235, 235, 235);
@@ -17,6 +18,7 @@
   --main-0: rgb(3, 95, 0);
   --rupture: rgb(213, 76, 117);
   --tension: rgb(251, 184, 84);
+  --tensionfonce: rgb(224, 130, 0);
   --tensionleger: rgb(255, 202, 100);
   --tensiontresleger: rgba(255, 202, 100, 0.3);
   --vertleger: rgb(226, 248, 224);
@@ -86,7 +88,7 @@ p {
   display: flex;
   align-items: center;
   gap: 15px; /* Adjust spacing between image and text */
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 #title-text {
@@ -602,8 +604,8 @@ p {
 
 .section-title {
   background-color: var(--grisclair);
-  margin-top: 36px;
-  margin-bottom: 16px;
+  margin-top: 24px;
+  margin-bottom: 8px;
   font-size: 1.2rem;
   font-weight: 600;
   color: var(--gristresfonce);
@@ -867,7 +869,7 @@ p {
   box-sizing: border-box;
   border-radius: 0.5rem;
   flex: 1;
-  padding: 18px 20px;
+  padding: 14px;
 }
 
 
@@ -906,9 +908,7 @@ p {
   grid-template-columns: 1fr auto;
   row-gap: 2px;
 }
-.productpg-stats-label {
-  text-align: left;
-}
+
 .productpg-stats-value {
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -946,25 +946,20 @@ p {
 }
 
 .productpg-stats-title {
+  border-bottom: 1px solid var(--gristresleger);
+  color: var(--gristresfonce);
   font-size: 1.1rem;
   font-weight: 500;
-  color: var(--grisfonce);
-}
-
-.productpg-stats-title {
-  font-size: 1.02rem;
-  font-weight: 500;
-  color: var(--gristresfonce);
   margin-bottom: 0.5em;
   padding-bottom: 6px;
-  border-bottom: 1px solid var(--gristresleger);
+
 }
 
 .productpg-stats-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  margin: 0.5rem 0 0.1rem 0;
+  margin: 2rem 0;
   padding: 0;
   table-layout: fixed;
   background: none;
@@ -972,43 +967,78 @@ p {
   box-shadow: none;
   overflow: visible;
 }
+
 .productpg-stats-table th {
   background: var(--gristresleger);
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--gristresfonce);
-  border: none;
-  padding: 7px 0 4px 0;
+  font-size: 0.85rem;
+  color: var(--grisfonce);
+  padding: 6px 6px;
   text-align: right;
+  font-weight: 500;
 }
+
 .productpg-stats-table th:first-child {
   text-align: left;
 }
+
 .productpg-stats-table td {
-  background: var(--blanc);
-  font-size: 0.95rem;
-  color: var(--grisfonce);
-  padding: 6px 6px;
+  font-size: 0.85rem;
+  text-align: right;
+  padding: 4px 8px;
+  font-variant-numeric: tabular-nums;
 }
+
+.productpg-stats-table .productpg-stats-label {
+  text-align: left;
+  width: 80px;
+}
+
+.productpg-stats-table th:first-child {
+  width: 80px;
+}
+
+.productpg-stats-table .year-start-col,
+.productpg-stats-table .total-col {
+  border-left: 1px solid var(--gristresleger);
+}
+
 .productpg-stats-table tbody tr td {
-  border-bottom: 1px solid var(--gristresleger);
+  border-bottom: none;
 }
+
 .productpg-stats-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.productpg-stats-label {
-  text-align: left;
-  font-weight: 400;
-  width: 50%;
+/* Zebra striping for data rows */
+.productpg-stats-table tbody tr:nth-child(even) {
+  background-color: var(--grisclair);
 }
-.productpg-stats-value,
-.productpg-stats-percent {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  font-weight: 400;
-  width: 25%;
-  padding-left: 8px;
+
+/* Style for the 'Total' row at the bottom */
+.productpg-stats-table .total-row {
+  font-weight: 600;
+  color: var(--gristresfonce);
+  background-color: var(--gristresleger);
+  border-top: 1px solid var(--grisleger);
+}
+
+/* Color coding for status values */
+.productpg-stats-table .status-disponible {
+  color: var(--disponiblefonce);
+  font-weight: 500;
+}
+.productpg-stats-table .status-tension {
+  color: var(--tensionfonce);
+  font-weight: 500;
+}
+.productpg-stats-table .status-rupture {
+  color: var(--rupture);
+  font-weight: 500;
+}
+.productpg-stats-table .status-arret {
+  color: var(--arret-bg);
+  font-weight: 500;
 }
 
 .productpg-header {
@@ -1177,4 +1207,25 @@ p {
 .cis-name {
   color: var(--grisfonce);
   font-weight: 400;
+}
+
+.productpg-stats-value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  padding-left: 12px;
+}
+
+.productpg-stats-table .year-start-col,
+.productpg-stats-table .total-col {
+  border-left: 1px solid var(--gristresleger);
+}
+
+@media (max-width: 700px) {
+  .productpg-score-flex {
+    flex-direction: column;
+  }
+  
+  .productpg-score-donut {
+    padding: 18px 20px;
+  }
 }

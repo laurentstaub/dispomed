@@ -143,28 +143,68 @@ function drawProductTimeline(product, containerId) {
       .text(`${incident.status} ${formatDate(start)} - ${formatDate(end)}`);
   });
 
-  // --- Add stats for total days in Rupture and Tension since April 2021 ---
-  let ruptureDays = 0;
-  let tensionDays = 0;
-  let totalScore = 0;
-  product.incidents.forEach(incident => {
-    // Get the overlap between the incident and the reference period
-    const start = new Date(Math.max(new Date(incident.start_date), timelineStart));
-    const end = new Date(Math.min(new Date(incident.calculated_end_date || incident.end_date || timelineEnd), timelineEnd));
-    if (end < start) return; // No overlap
-    // Exclude the end date (range is [start, end))
-    const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 2;
-    if (incident.status === 'Rupture') {
-      ruptureDays += days;
-      totalScore -= days; // -1 per day
-    } else if (incident.status === 'Tension') {
-      tensionDays += days;
-      totalScore -= days * 0.5; // -0.5 per day
+  // --- Add stats per year and total since April 2021 ---
+  const years = [2021, 2022, 2023, 2024, 2025];
+  const yearlyStats = {};
+  years.forEach(year => {
+    yearlyStats[year] = { rupture: 0, tension: 0, arret: 0, total: 0 };
+    const yearStart = new Date(Math.max(new Date(year, 0, 1), timelineStart));
+    const yearEnd = new Date(Math.min(new Date(year, 11, 31), timelineEnd));
+    if (yearEnd > yearStart) {
+      yearlyStats[year].total = Math.floor((yearEnd - yearStart) / (1000 * 60 * 60 * 24)) + 1;
     }
   });
+
+  let ruptureDays = 0;
+  let tensionDays = 0;
+  let arretDays = 0;
+  let totalScore = 0;
+
+  product.incidents.forEach(incident => {
+    const incidentStart = new Date(incident.start_date);
+    const incidentEnd = new Date(incident.calculated_end_date || incident.end_date || timelineEnd);
+
+    years.forEach(year => {
+      const yearStart = new Date(year, 0, 1);
+      const yearEnd = new Date(year, 11, 31);
+
+      const overlapStart = new Date(Math.max(incidentStart, yearStart, timelineStart));
+      const overlapEnd = new Date(Math.min(incidentEnd, yearEnd, timelineEnd));
+
+      if (overlapEnd > overlapStart) {
+        const days = Math.floor((overlapEnd - overlapStart) / (1000 * 60 * 60 * 24)) + 1;
+        if (incident.status === 'Rupture') {
+          yearlyStats[year].rupture += days;
+        } else if (incident.status === 'Tension') {
+          yearlyStats[year].tension += days;
+        } else if (incident.status === 'Arret') {
+          yearlyStats[year].arret += days;
+        }
+      }
+    });
+
+    // Also update total counts for the entire period
+    const start = new Date(Math.max(new Date(incident.start_date), timelineStart));
+    const end = new Date(Math.min(new Date(incident.calculated_end_date || incident.end_date || timelineEnd), timelineEnd));
+    if (end > start) {
+      const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+       if (incident.status === 'Rupture') {
+        ruptureDays += days;
+        totalScore -= days;
+      } else if (incident.status === 'Tension') {
+        tensionDays += days;
+        totalScore -= days * 0.5;
+      } else if (incident.status === 'Arret') {
+        arretDays += days;
+        totalScore -= days;
+      }
+    }
+  });
+
   const totalDaysPeriod = Math.floor((timelineEnd - timelineStart) / (1000 * 60 * 60 * 24)) + 1;
   const rupturePercent = ((ruptureDays / totalDaysPeriod) * 100).toFixed(1);
   const tensionPercent = ((tensionDays / totalDaysPeriod) * 100).toFixed(1);
+  const arretPercent = ((arretDays / totalDaysPeriod) * 100).toFixed(1);
   // Score: (totalDays + totalScore) / totalDays
   const score = (((totalDaysPeriod + totalScore) / totalDaysPeriod) * 100).toFixed(1);
 
@@ -172,10 +212,10 @@ function drawProductTimeline(product, containerId) {
   const scoreValue = parseFloat(score);
 
   // Donut chart values
-  const disponibleDays = totalDaysPeriod - ruptureDays - tensionDays;
+  const disponibleDays = totalDaysPeriod - ruptureDays - tensionDays - arretDays;
   const disponiblePercent = ((disponibleDays / totalDaysPeriod) * 100).toFixed(1);
-  const donutSize = 80;
-  const donutStroke = 14;
+  const donutSize = 70;
+  const donutStroke = 12;
   const center = donutSize / 2;
   const radius = (donutSize - donutStroke) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -193,7 +233,7 @@ function drawProductTimeline(product, containerId) {
         stroke-dashoffset="${circumference / 4}"
         style="transition: stroke-dasharray 0.5s;"
       />
-      <text x="${center}" y="${center + 6}" text-anchor="middle" font-size="1rem" font-weight="600" fill="var(--grisfonce)">${score}%</text>
+      <text x="${center}" y="${center + 5}" text-anchor="middle" font-size="0.8rem" font-weight="600" fill="var(--grisfonce)">${score}%</text>
     </svg>
   `;
 
@@ -206,6 +246,9 @@ function drawProductTimeline(product, containerId) {
     const timelineNode = container.node();
     timelineNode.parentNode.insertBefore(statsContainer, timelineNode);
   }
+
+  const formatZero = (n) => (n === 0 ? '-' : n);
+
   statsContainer.innerHTML = `
     <div class="productpg-score-flex">
       <div class="productpg-score-stats">
@@ -214,30 +257,35 @@ function drawProductTimeline(product, containerId) {
           <thead>
             <tr>
               <th></th>
-              <th>Durée (jours)</th>
-              <th>Pourcentage (%)</th>
+              ${years.map((y, i) => `<th class="${i === 0 ? 'year-start-col' : ''}">${y}</th>`).join('')}
+              <th class="total-col">Total</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td class="productpg-stats-label">Disponible</td>
-              <td class="productpg-stats-value">${disponibleDays}</td>
-              <td class="productpg-stats-percent">${disponiblePercent}%</td>
+              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-disponible">${formatZero(yearlyStats[y].total - yearlyStats[y].rupture - yearlyStats[y].tension - yearlyStats[y].arret)}</span></td>`).join('')}
+              <td class="productpg-stats-value total-col"><span class="status-disponible">${formatZero(disponibleDays)}</span></td>
             </tr>
             <tr>
               <td class="productpg-stats-label">Tension</td>
-              <td class="productpg-stats-value">${tensionDays}</td>
-              <td class="productpg-stats-percent">${tensionPercent}%</td>
+              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-tension">${formatZero(yearlyStats[y].tension)}</span></td>`).join('')}
+              <td class="productpg-stats-value total-col"><span class="status-tension">${formatZero(tensionDays)}</span></td>
             </tr>
             <tr>
               <td class="productpg-stats-label">Rupture</td>
-              <td class="productpg-stats-value">${ruptureDays}</td>
-              <td class="productpg-stats-percent">${rupturePercent}%</td>
+              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-rupture">${formatZero(yearlyStats[y].rupture)}</span></td>`).join('')}
+              <td class="productpg-stats-value total-col"><span class="status-rupture">${formatZero(ruptureDays)}</span></td>
             </tr>
             <tr>
-              <td class="productpg-stats-label">Période totale</td>
-              <td class="productpg-stats-value">${totalDaysPeriod}</td>
-              <td class="productpg-stats-percent">100%</td>
+              <td class="productpg-stats-label">Arrêt</td>
+              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-arret">${formatZero(yearlyStats[y].arret)}</span></td>`).join('')}
+              <td class="productpg-stats-value total-col"><span class="status-arret">${formatZero(arretDays)}</span></td>
+            </tr>
+            <tr class="total-row">
+              <td class="productpg-stats-label">Total</td>
+              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}">${formatZero(yearlyStats[y].total)}</td>`).join('')}
+              <td class="productpg-stats-value total-col">${formatZero(totalDaysPeriod)}</td>
             </tr>
           </tbody>
         </table>
@@ -288,6 +336,13 @@ function getCurrentProductStatus(incidents, reportDate) {
   return getProductStatus(latestIncident, reportDate);
 }
 
+// Add a resize listener to redraw the timeline on window resize
+window.addEventListener('resize', debounce(() => {
+  if (window.productIncidents) {
+    drawProductTimeline({ incidents: window.productIncidents }, 'productpg-timeline-container');
+  }
+}, 250));
+
 // On page load: draw timeline and update current status label
 // Requires productData global variable
 
@@ -297,6 +352,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       // Fetch all incidents for this product by ID
       const response = await fetch(`/api/incidents/product/${window.productId}`);
       const incidents = await response.json();
+      window.productIncidents = incidents; // Store for resize
       const cisListDiv = document.getElementById('cis-list');
       const statsDiv = document.getElementById('productpg-stats');
       const timelineDiv = document.getElementById('productpg-timeline-container');
@@ -451,4 +507,14 @@ document.addEventListener('DOMContentLoaded', async function() {
       document.querySelector('.productpg-status-label').textContent = 'Erreur : impossible de déterminer la date de rapport.';
     }
   }
-}); 
+});
+
+// Helper function to debounce calls
+function debounce(func, delay) {
+  let debounceTimer;
+  return function(...args) {
+    const context = this;
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => func.apply(context, args), delay);
+  };
+} 
