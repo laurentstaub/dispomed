@@ -485,6 +485,58 @@ document.addEventListener('DOMContentLoaded', async function() {
           });
       }
 
+      // Fetch and display therapeutic alternatives
+      const substitutionsDiv = document.getElementById('substitutions-container');
+      if (substitutionsDiv && allCisCodes.length > 0) {
+        // Fetch alternatives for each CIS code
+        const allAlternatives = [];
+        for (const cisCode of allCisCodes) {
+          try {
+            const response = await fetch(`/api/substitutions/${cisCode}`);
+            const alternatives = await response.json();
+            allAlternatives.push(...alternatives);
+          } catch (error) {
+            console.error(`Error fetching alternatives for CIS ${cisCode}:`, error);
+          }
+        }
+
+        // Remove duplicates and sort by score
+        const uniqueAlternatives = allAlternatives
+          .filter((alt, index, self) => 
+            index === self.findIndex(a => a.code_cis_cible === alt.code_cis_cible)
+          )
+          .sort((a, b) => b.score_similarite - a.score_similarite)
+          .slice(0, 10); // Limit to top 10
+
+        if (uniqueAlternatives.length === 0) {
+          substitutionsDiv.innerHTML = '<p style="margin:2rem 0 0 0;font-size:1.1em;color:var(--grisfonce);">Aucune alternative thérapeutique trouvée.</p>';
+        } else {
+          const table = document.createElement('table');
+          table.className = 'substitutions-table';
+          
+          table.innerHTML = `
+            <thead>
+              <tr>
+                <th>Code CIS</th>
+                <th>Type d'équivalence</th>
+                <th>Score de similarité</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${uniqueAlternatives.map(alt => `
+                <tr>
+                  <td>${alt.code_cis_cible}</td>
+                  <td>${alt.type_equivalence}</td>
+                  <td>${(alt.score_similarite * 100).toFixed(0)}%</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          `;
+          
+          substitutionsDiv.appendChild(table);
+        }
+      }
+
       // Update status label and icon
       if (statusLabel && statusIcon && statusRow) {
         statusRow.classList.remove('status-disponible', 'status-tension', 'status-rupture');

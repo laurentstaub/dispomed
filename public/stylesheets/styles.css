@@ -1229,3 +1229,41 @@ p {
     padding: 18px 20px;
   }
 }
+
+.ema-incident-summary .ema-incident-label {
+  font-weight: 600;
+  margin-bottom: 0.25rem; /* Espace entre le label et le texte */
+}
+
+/* Substitutions Table */
+.substitutions-container {
+  margin-top: 2rem;
+}
+
+.substitutions-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.substitutions-table th,
+.substitutions-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--grisleger);
+}
+
+.substitutions-table th {
+  background-color: var(--gristresleger);
+  font-weight: 600;
+  color: var(--grisfonce);
+}
+
+.substitutions-table tbody tr:nth-child(even) {
+  background-color: var(--blanc);
+}
+
+.substitutions-table tbody tr:hover {
+  background-color: var(--gristrestresleger);
+}
