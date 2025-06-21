@@ -196,8 +196,33 @@ app.get("/api/incidents", async (req, res) => {
   }
 });
 
+app.get('/api/substitutions/:code_cis', async (req, res) => {
+  const { code_cis } = req.params;
+
+  try {
+    // Simplified query for debugging
+    const query = `
+      SELECT
+        s.code_cis_origine,
+        s.code_cis_cible,
+        s.score_similarite,
+        s.type_equivalence
+      FROM substitution.equivalences_therapeutiques s
+      WHERE s.code_cis_origine::TEXT = $1 OR s.code_cis_cible::TEXT = $1
+      ORDER BY s.score_similarite DESC;
+    `;
+
+    const result = await dbQuery(query, code_cis);
+    res.json(result.rows);
+  } catch (error) {
+    console.error(`Error fetching substitutions for CIS ${code_cis}:`, error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get("/api/incidents/ATCClasses", async (req, res) => {
   const { monthsToShow } = req.query;
+  const defaultMonths = 12;
 
   try {
     let query = `

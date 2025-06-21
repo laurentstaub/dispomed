@@ -127,3 +127,19 @@ function getDateRange(lastReportDate, monthsToShow) {
 
   return [startDate, endDate];
 }
+
+export async function fetchSubstitutions(code_cis) {
+  await fetchConfig();
+  const url = `${API_BASE_URL}/api/substitutions/${code_cis}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Failed to fetch substitutions for CIS ${code_cis}:`, error);
+    return []; // Return empty array on error
+  }
+}
