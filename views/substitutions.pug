@@ -1,0 +1,22 @@
+extends layout
+
+block scripts
+  script(type='module', src='/js/draw_substitutions_page.js')
+
+block content
+  div.retour-container
+    a.productpg-back-link(onclick="window.history.back(); return false;" href="#")
+      i(class="fa-solid fa-arrow-left")
+      |  Retour à la page précédente
+  div.main-container
+    div#title-container.flex-container
+      div#title-text
+        h1#report-title Alternatives thérapeutiques pour #{denomination}
+        h2#mise-a-jour CIS: #{cis_code}
+
+    #substitutions-container
+      // Table will be rendered here by JS
+
+block head
+  script.
+    window.cis_code = !{JSON.stringify(cis_code)}; 
