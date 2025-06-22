@@ -76,14 +76,31 @@ async function fetchAndDrawSubstitutions(cisCode) {
         const table = document.createElement('table');
         table.className = 'substitutions-table';
 
+        // Create table header based on type
         const thead = document.createElement('thead');
-        thead.innerHTML = `
-          <tr>
-            <th>Produit (code CIS)</th>
-            <th>Indice de similarité</th>
-            <th>Raison</th>
-          </tr>
-        `;
+        if (type === 'GENERIQUE_OFFICIEL') {
+          // For generics, keep the original simple format
+          thead.innerHTML = `
+            <tr>
+              <th>Produit (code CIS)</th>
+              <th>Score de similarité</th>
+              <th>Raison</th>
+            </tr>
+          `;
+        } else {
+          // For SIMILITUDE and ALTERNATIVE, use the detailed scoring format
+          thead.innerHTML = `
+            <tr>
+              <th>Produit (code CIS)</th>
+              <th class="score-final-header">Score de similarité</th>
+              <th>ATC</th>
+              <th>Forme</th>
+              <th>Dosage</th>
+              <th>Voie</th>
+              <th>Commentaire</th>
+            </tr>
+          `;
+        }
         table.appendChild(thead);
 
         const tbody = document.createElement('tbody');
@@ -93,17 +110,67 @@ async function fetchAndDrawSubstitutions(cisCode) {
           const alternativeName = isOrigin ? sub.denomination_cible : sub.denomination_origine;
           const alternativeCis = isOrigin ? sub.code_cis_cible : sub.code_cis_origine;
 
-          tr.innerHTML = `
-            <td>
-              <a href="/product/${alternativeCis}">
-                <strong>${alternativeName}</strong>
-                <br>
-                <small>CIS: ${alternativeCis}</small>
-              </a>
-            </td>
-            <td>${(sub.score_similarite * 100).toFixed(0)}%</td>
-            <td>${sub.raison || 'Non spécifié'}</td>
-          `;
+          if (type === 'GENERIQUE_OFFICIEL') {
+            // Original format for generics
+            tr.innerHTML = `
+              <td>
+                <a href="/product/${alternativeCis}">
+                  <strong>${alternativeName}</strong>
+                  <br>
+                  <small>CIS: ${alternativeCis}</small>
+                </a>
+              </td>
+              <td>${(sub.score_similarite * 100).toFixed(0)}%</td>
+              <td>${sub.raison || 'Non spécifié'}</td>
+            `;
+          } else {
+            // Detailed scoring format for SIMILITUDE and ALTERNATIVE
+            // Extract scores from sub.raison
+            let scoreATC = '-', scoreForme = '-', scoreDosage = '-', scoreVoie = '-';
+            let commentaire = '';
+            
+            if (sub.raison && (sub.raison.includes('DCI:') || sub.raison.includes('ATC:'))) {
+              const parts = sub.raison.split('|').map(s => s.trim());
+              parts.forEach(part => {
+                if (part.startsWith('DCI:') || part.startsWith('ATC:')) scoreATC = (parseFloat(part.split(':')[1]) * 100).toFixed(0) + '%';
+                if (part.startsWith('Form:')) scoreForme = (parseFloat(part.split(':')[1]) * 100).toFixed(0) + '%';
+                if (part.startsWith('Strength:')) scoreDosage = (parseFloat(part.split(':')[1]) * 100).toFixed(0) + '%';
+                if (part.startsWith('Route:')) scoreVoie = (parseFloat(part.split(':')[1]) * 100).toFixed(0) + '%';
+              });
+
+              // Generate explanatory comment based on scores
+              if (scoreATC === '100%' && scoreForme === '100%' && scoreDosage === '100%' && scoreVoie === '100%') {
+                commentaire = 'Produit identique';
+              } else if (scoreATC === '100%' && scoreForme === '100%' && scoreDosage !== '100%' && scoreVoie === '100%') {
+                commentaire = 'Produit identique avec dosage différent';
+              } else if (scoreATC === '100%' && scoreForme !== '100%') {
+                commentaire = 'Forme différente';
+              } else if (scoreATC !== '100%') {
+                commentaire = 'Classe thérapeutique différente';
+              } else {
+                commentaire = 'Voir détails';
+              }
+            } else {
+              commentaire = sub.raison || 'Non spécifié';
+            }
+
+            tr.innerHTML = `
+              <td>
+                <a href="/product/${alternativeCis}">
+                  <strong>${alternativeName}</strong>
+                  <br>
+                  <small>CIS: ${alternativeCis}</small>
+                </a>
+              </td>
+              <td class="score-final-cell">${(sub.score_similarite * 100).toFixed(0)}%</td>
+              <td>${scoreATC}</td>
+              <td>${scoreForme}</td>
+              <td>${scoreDosage}</td>
+              <td>${scoreVoie}</td>
+              <td>${commentaire}</td>
+            `;
+          }
+          
           tbody.appendChild(tr);
         });
         table.appendChild(tbody);
