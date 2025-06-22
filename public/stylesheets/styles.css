@@ -627,12 +627,6 @@ p {
   padding-bottom: 0;
 }
 
-#ema-incidents {
-  margin-top: 32px;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
 .productpg-status-row {
   display: flex;
   align-items: center;
@@ -1086,7 +1080,7 @@ p {
   background: #fafbfc;
   border: 1px solid #e5e5e5;
   border-radius: 10px;
-  padding: 14px 18px;
+  padding: 10px;
   margin: 14px 10px;
   box-shadow: 0 2px 8px rgba(90, 90, 90, 0.04);
   font-weight: 400;
@@ -1121,7 +1115,7 @@ p {
   margin-top: 8px;
   font-size: 1rem;
   color: var(--grisfonce);
-} 
+}
 
 .ema-incident-label {
   margin-top: 1rem;
@@ -1266,4 +1260,48 @@ p {
 
 .substitutions-table tbody tr:hover {
   background-color: var(--gristrestresleger);
+}
+
+.substitution-group-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--gristresfonce);
+  margin-top: 2rem;
+}
+
+#alternatives-form {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+#alternatives-form label {
+  font-size: 1rem;
+  color: var(--grisfonce);
+  white-space: nowrap;
+}
+
+#alternatives-form select {
+  flex-grow: 1;
+  max-width: 450px;
+  border-radius: 6px;
+  border: 1px solid var(--grisleger);
+  background: var(--blanc);
+  padding: 4px;
+  font-size: 1rem;
+}
+
+#alternatives-form button {
+  padding: 8px;
+  font-size: 1rem;
+  border-radius: 6px;
+  background-color: var(--grisfonce);
+  color: var(--blanc);
+  cursor: pointer;
+  border: 1px solid var(--grisfonce);
+  transition: background-color 0.2s;
+}
+
+#alternatives-form button:hover {
+  background-color: #555;
 }

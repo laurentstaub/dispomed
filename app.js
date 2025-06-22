@@ -200,13 +200,15 @@ app.get('/api/substitutions/:code_cis', async (req, res) => {
   const { code_cis } = req.params;
 
   try {
-    // Simplified query for debugging
     const query = `
       SELECT
         s.code_cis_origine,
+        s.denomination_origine,
         s.code_cis_cible,
+        s.denomination_cible,
         s.score_similarite,
-        s.type_equivalence
+        s.type_equivalence,
+        s.raison
       FROM substitution.equivalences_therapeutiques s
       WHERE s.code_cis_origine::TEXT = $1 OR s.code_cis_cible::TEXT = $1
       ORDER BY s.score_similarite DESC;
@@ -401,6 +403,25 @@ app.get('/api/ema-incidents', async (req, res) => {
   } catch (error) {
     console.error('Error fetching EMA incidents:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get("/substitutions/:cis_code", async (req, res) => {
+  const { cis_code } = req.params;
+  // We need to fetch the name for this CIS code to display it.
+  try {
+    const { rows } = await dbQuery(
+      'SELECT denomination_medicament FROM dbpm.cis_bdpm WHERE code_cis = $1', [cis_code]
+    );
+    const denomination = rows.length > 0 ? rows[0].denomination_medicament : cis_code;
+
+    res.render('substitutions', { 
+      cis_code: cis_code,
+      denomination: denomination 
+    });
+  } catch (error) {
+    console.error('Error fetching CIS denomination for substitutions page:', error);
+    res.status(500).render('error', { message: 'Error loading page' });
   }
 });
 

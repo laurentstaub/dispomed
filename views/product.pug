@@ -28,10 +28,14 @@ block content
     #productpg-timeline-container.productpg-timeline-container
     
     h2.section-title Alternatives thérapeutiques
-    #substitutions-container
+    #alternatives-navigation-container.ema-incident-card
+      form#alternatives-form
+        label(for="cis-selector") Choisir un code CIS pour voir les alternatives :
+        select#cis-selector(name="cis")
+        button(type="submit") Voir les alternatives
 
     h2.section-title Incidents EMA liés
-    #ema-incidents
+    #ema-incidents.ema-incident-card
 
 block head
   script.

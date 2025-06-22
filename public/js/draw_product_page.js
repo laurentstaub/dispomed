@@ -3,6 +3,24 @@ import { dataManager } from './01_store_data.js';
 import { fetchTableChartData } from './00_fetch_data.js';
 
 /**
+ * Fetches incidents for a specific product ID from the API.
+ * @param {string} productId - The ID of the product.
+ * @returns {Promise<Array>} A promise that resolves to an array of incidents.
+ */
+async function fetchProductIncidents(productId) {
+    try {
+        const response = await fetch(`/api/incidents/product/${productId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching product incidents:', error);
+        return null;
+    }
+}
+
+/**
  * Draws the timeline chart for a product's incidents
  * @param {Object} product - The product data object
  * @param {string} containerId - The ID of the container element
@@ -343,224 +361,6 @@ window.addEventListener('resize', debounce(() => {
   }
 }, 250));
 
-// On page load: draw timeline and update current status label
-// Requires productData global variable
-
-document.addEventListener('DOMContentLoaded', async function() {
-  if (window.productId) {
-    try {
-      // Fetch all incidents for this product by ID
-      const response = await fetch(`/api/incidents/product/${window.productId}`);
-      const incidents = await response.json();
-      window.productIncidents = incidents; // Store for resize
-      const cisListDiv = document.getElementById('cis-list');
-      const statsDiv = document.getElementById('productpg-stats');
-      const timelineDiv = document.getElementById('productpg-timeline-container');
-      if (!incidents.length) {
-        if (cisListDiv) cisListDiv.innerHTML = '';
-        if (statsDiv) statsDiv.innerHTML = '';
-        if (timelineDiv) timelineDiv.innerHTML = '<p style="margin:2rem 0 0 0;font-size:1.1em;color:var(--grisfonce);">Aucun incident enregistré.</p>';
-        document.querySelector('.productpg-status-label').textContent = 'Aucun incident enregistré.';
-        return;
-      }
-      // Find the latest incident by start_date
-      incidents.sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
-      const latestIncident = incidents[0];
-
-      if (incidents.length > 0) {
-        const accentedProductName = incidents[0].accented_product || incidents[0].product || '';
-        const moleculeName = incidents[0].molecule || '';
-        const reportTitle = document.getElementById('report-title');
-        if (reportTitle) {
-          reportTitle.textContent = accentedProductName;
-        }
-        const infoSubtitle = document.getElementById('mise-a-jour');
-        if (infoSubtitle) {
-          infoSubtitle.textContent = (moleculeName ? `DCI : ${moleculeName}` : '');
-        }
-        document.title = accentedProductName + ' - Détails du produit';
-      }
-
-      // Use the latest calculated_end_date as the report date
-      const reportDate = incidents.reduce((max, inc) => {
-        const d = new Date(inc.calculated_end_date);
-        return d > max ? d : max;
-      }, new Date(incidents[0].calculated_end_date));
-      const status = getProductStatus(latestIncident, reportDate);
-      const statusLabel = document.querySelector('.productpg-status-label');
-      const statusIcon = document.querySelector('.productpg-status-icon i');
-      const statusRow = document.querySelector('.productpg-status-row');
-      // Render CIS codes
-      const allCisCodes = Array.from(new Set(
-        incidents.flatMap(incident => incident.cis_codes || [])
-      ));
-      if (cisListDiv) {
-        cisListDiv.innerHTML = '';
-        if (allCisCodes.length > 0) {
-          const cisSection = document.createElement('div');
-          cisSection.className = 'cis-section';
-          
-          // Créer le bouton toggle
-          const toggleButton = document.createElement('button');
-          toggleButton.className = 'cis-toggle-button';
-          toggleButton.innerHTML = `
-            <i class="fa-solid fa-chevron-down"></i>
-            <span>Codes CIS concernés (${allCisCodes.length})</span>
-          `;
-          
-          // Créer le conteneur pour le contenu
-          const contentDiv = document.createElement('div');
-          contentDiv.className = 'cis-content';
-          
-          // Créer un objet qui mappe les codes CIS à leurs dénominations
-          const cisNamesMap = {};
-          incidents.forEach(incident => {
-            if (incident.cis_names) {
-              Object.assign(cisNamesMap, incident.cis_names);
-            }
-          });
-          
-          const listContainer = document.createElement('div');
-          listContainer.className = 'cis-list-container';
-          
-          allCisCodes.forEach(code => {
-            const item = document.createElement('div');
-            item.className = 'cis-item';
-            
-            const codeSpan = document.createElement('span');
-            codeSpan.className = 'cis-code';
-            codeSpan.textContent = code;
-            
-            const nameSpan = document.createElement('span');
-            nameSpan.className = 'cis-name';
-            nameSpan.textContent = cisNamesMap[code] || 'Dénomination non disponible';
-            
-            item.appendChild(codeSpan);
-            item.appendChild(nameSpan);
-            listContainer.appendChild(item);
-          });
-          
-          contentDiv.appendChild(listContainer);
-          
-          // Ajouter les éléments à la section
-          cisSection.appendChild(toggleButton);
-          cisSection.appendChild(contentDiv);
-          cisListDiv.appendChild(cisSection);
-          
-          // Ajouter l'événement click pour le toggle
-          toggleButton.addEventListener('click', () => {
-            const isExpanded = toggleButton.classList.contains('expanded');
-            toggleButton.classList.toggle('expanded');
-            contentDiv.classList.toggle('expanded');
-          });
-        }
-      }
-      // Lookup related EMA incidents by CIS code
-      const emaIncidentsDiv = document.getElementById('ema-incidents');
-      if (emaIncidentsDiv && allCisCodes.length > 0) {
-        fetch(`/api/ema-incidents?cis_codes=${allCisCodes.join(',')}`)
-          .then(res => res.json())
-          .then(emaIncidents => {
-            if (!emaIncidents.length) {
-              emaIncidentsDiv.innerHTML = `<div class="ema-incident-card">
-                <div class="ema-incident-title">Aucun incident EMA lié</div>
-              </div>`;
-              return;
-            }
-            emaIncidentsDiv.innerHTML = '<ul>' +
-              emaIncidents.map(inc =>
-                `<div class="ema-incident-card">
-                  <div class="ema-incident-title">${inc.product_name || inc.title || inc.incident_id}</div>
-                  <div class="ema-incident-status">${inc.status ? `<span>${inc.status}</span>` : ''}</div>
-                  <div class="ema-incident-detail"><div class="ema-incident-label">Date de première publication</div><div class="ema-incident-value">${formatFrenchDate(inc.first_published) || 'N/A'}</div></div>
-                  <div class="ema-incident-detail"><div class="ema-incident-label">Raison de l'incident</div><div class="ema-incident-value">${inc.reason_for_shortage_fr || 'N/A'}</div></div>
-                  <div class="ema-incident-detail"><div class="ema-incident-label">Pays touchés</div><div class="ema-incident-value">${inc.member_states_affected_fr || 'N/A'}</div></div>
-                  <div class="ema-incident-detail"><div class="ema-incident-label">Résolution attendue</div><div class="ema-incident-value">${formatFrenchDate(inc.expected_resolution) || 'N/A'}</div></div>
-                  ${inc.summary_fr ? `<div class="ema-incident-summary"><div class="ema-incident-label">Résumé</div><div class="ema-incident-value">${inc.summary_fr}</div></div>` : ''}
-                </div>`
-              ).join('') + '</ul>';
-          })
-          .catch(() => {
-            emaIncidentsDiv.innerHTML = 'Erreur lors de la récupération des incidents EMA.';
-          });
-      }
-
-      // Fetch and display therapeutic alternatives
-      const substitutionsDiv = document.getElementById('substitutions-container');
-      if (substitutionsDiv && allCisCodes.length > 0) {
-        // Fetch alternatives for each CIS code
-        const allAlternatives = [];
-        for (const cisCode of allCisCodes) {
-          try {
-            const response = await fetch(`/api/substitutions/${cisCode}`);
-            const alternatives = await response.json();
-            allAlternatives.push(...alternatives);
-          } catch (error) {
-            console.error(`Error fetching alternatives for CIS ${cisCode}:`, error);
-          }
-        }
-
-        // Remove duplicates and sort by score
-        const uniqueAlternatives = allAlternatives
-          .filter((alt, index, self) => 
-            index === self.findIndex(a => a.code_cis_cible === alt.code_cis_cible)
-          )
-          .sort((a, b) => b.score_similarite - a.score_similarite)
-          .slice(0, 10); // Limit to top 10
-
-        if (uniqueAlternatives.length === 0) {
-          substitutionsDiv.innerHTML = '<p style="margin:2rem 0 0 0;font-size:1.1em;color:var(--grisfonce);">Aucune alternative thérapeutique trouvée.</p>';
-        } else {
-          const table = document.createElement('table');
-          table.className = 'substitutions-table';
-          
-          table.innerHTML = `
-            <thead>
-              <tr>
-                <th>Code CIS</th>
-                <th>Type d'équivalence</th>
-                <th>Score de similarité</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${uniqueAlternatives.map(alt => `
-                <tr>
-                  <td>${alt.code_cis_cible}</td>
-                  <td>${alt.type_equivalence}</td>
-                  <td>${(alt.score_similarite * 100).toFixed(0)}%</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          `;
-          
-          substitutionsDiv.appendChild(table);
-        }
-      }
-
-      // Update status label and icon
-      if (statusLabel && statusIcon && statusRow) {
-        statusRow.classList.remove('status-disponible', 'status-tension', 'status-rupture');
-        if (status.shorthand === 'rupture') {
-          statusRow.classList.add('status-rupture');
-        } else if (status.shorthand === 'tension') {
-          statusRow.classList.add('status-tension');
-        } else if (status.shorthand === 'arret') {
-          statusRow.classList.add('status-rupture');
-        } else {
-          statusRow.classList.add('status-disponible');
-        }
-        statusLabel.textContent = `Statut actuel : ${status.text}`;
-        statusIcon.className = status.icon + ' ' + status.shorthand + '-icon';
-        statusIcon.style.color = status.color;
-      }
-      // Draw timeline and stats (update this as needed)
-      drawProductTimeline({ incidents }, 'productpg-timeline-container');
-    } catch (err) {
-      document.querySelector('.productpg-status-label').textContent = 'Erreur : impossible de déterminer la date de rapport.';
-    }
-  }
-});
-
 // Helper function to debounce calls
 function debounce(func, delay) {
   let debounceTimer;
@@ -569,4 +369,201 @@ function debounce(func, delay) {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => func.apply(context, args), delay);
   };
-} 
+}
+
+async function main() {
+    if (window.productId) {
+        try {
+          // Fetch all incidents for this product by ID
+          const incidents = await fetchProductIncidents(window.productId);
+          window.productIncidents = incidents; // Store for resize
+          const cisListDiv = document.getElementById('cis-list');
+          const statsDiv = document.getElementById('productpg-stats');
+          const timelineDiv = document.getElementById('productpg-timeline-container');
+          if (!incidents || !incidents.length) {
+            if (cisListDiv) cisListDiv.innerHTML = '';
+            if (statsDiv) statsDiv.innerHTML = '';
+            if (timelineDiv) timelineDiv.innerHTML = '<p style="margin:2rem 0 0 0;font-size:1.1em;color:var(--grisfonce);">Aucun incident enregistré.</p>';
+            document.querySelector('.productpg-status-label').textContent = 'Aucun incident enregistré.';
+            return;
+          }
+          // Find the latest incident by start_date
+          incidents.sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
+          const latestIncident = incidents[0];
+    
+          if (incidents.length > 0) {
+            const accentedProductName = incidents[0].accented_product || incidents[0].product || '';
+            const moleculeName = incidents[0].molecule || '';
+            const reportTitle = document.getElementById('report-title');
+            if (reportTitle) {
+              reportTitle.textContent = accentedProductName;
+            }
+            const infoSubtitle = document.getElementById('mise-a-jour');
+            if (infoSubtitle) {
+              infoSubtitle.textContent = (moleculeName ? `DCI : ${moleculeName}` : '');
+            }
+            document.title = accentedProductName + ' - Détails du produit';
+          }
+    
+          // Use the latest calculated_end_date as the report date
+          const reportDate = incidents.reduce((max, inc) => {
+            const d = new Date(inc.calculated_end_date);
+            return d > max ? d : max;
+          }, new Date(incidents[0].calculated_end_date));
+          const status = getProductStatus(latestIncident, reportDate);
+          const statusLabel = document.querySelector('.productpg-status-label');
+          const statusIcon = document.querySelector('.productpg-status-icon i');
+          const statusRow = document.querySelector('.productpg-status-row');
+          // Render CIS codes
+          const allCisCodes = Array.from(new Set(
+            incidents.flatMap(incident => incident.cis_codes || [])
+          ));
+
+          const cisNamesMap = {};
+            incidents.forEach(incident => {
+                if (incident.cis_names) {
+                Object.assign(cisNamesMap, incident.cis_names);
+                }
+            });
+
+          if (cisListDiv) {
+            cisListDiv.innerHTML = '';
+            if (allCisCodes.length > 0) {
+              const cisSection = document.createElement('div');
+              cisSection.className = 'cis-section';
+              
+              // Créer le bouton toggle
+              const toggleButton = document.createElement('button');
+              toggleButton.className = 'cis-toggle-button';
+              toggleButton.innerHTML = `
+                <i class="fa-solid fa-chevron-down"></i>
+                <span>Codes CIS concernés (${allCisCodes.length})</span>
+              `;
+              
+              // Créer le conteneur pour le contenu
+              const contentDiv = document.createElement('div');
+              contentDiv.className = 'cis-content';
+              
+              // Créer un objet qui mappe les codes CIS à leurs dénominations
+             
+              
+              const listContainer = document.createElement('div');
+              listContainer.className = 'cis-list-container';
+              
+              allCisCodes.forEach(code => {
+                const item = document.createElement('div');
+                item.className = 'cis-item';
+                
+                const codeSpan = document.createElement('span');
+                codeSpan.className = 'cis-code';
+                codeSpan.textContent = code;
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'cis-name';
+                nameSpan.textContent = cisNamesMap[code] || 'Dénomination non disponible';
+                
+                item.appendChild(codeSpan);
+                item.appendChild(nameSpan);
+                listContainer.appendChild(item);
+              });
+              
+              contentDiv.appendChild(listContainer);
+              
+              // Ajouter les éléments à la section
+              cisSection.appendChild(toggleButton);
+              cisSection.appendChild(contentDiv);
+              cisListDiv.appendChild(cisSection);
+              
+              // Ajouter l'événement click pour le toggle
+              toggleButton.addEventListener('click', () => {
+                const isExpanded = toggleButton.classList.contains('expanded');
+                toggleButton.classList.toggle('expanded');
+                contentDiv.classList.toggle('expanded');
+              });
+            }
+          }
+          // Lookup related EMA incidents by CIS code
+          const emaIncidentsDiv = document.getElementById('ema-incidents');
+          if (emaIncidentsDiv && allCisCodes.length > 0) {
+            fetch(`/api/ema-incidents?cis_codes=${allCisCodes.join(',')}`)
+              .then(res => res.json())
+              .then(emaIncidents => {
+                if (!emaIncidents.length) {
+                  emaIncidentsDiv.innerHTML = `<div class="ema-incident-title">Aucun incident EMA lié</div>`;
+                  return;
+                }
+                emaIncidentsDiv.innerHTML = '<ul>' +
+                  emaIncidents.map(inc =>
+                    `<li>
+                      <div class="ema-incident-title">${inc.product_name || inc.title || inc.incident_id}</div>
+                      <div class="ema-incident-status">${inc.status ? `<span>${inc.status}</span>` : ''}</div>
+                      <div class="ema-incident-detail"><div class="ema-incident-label">Date de première publication</div><div class="ema-incident-value">${formatFrenchDate(inc.first_published) || 'N/A'}</div></div>
+                      <div class="ema-incident-detail"><div class="ema-incident-label">Raison de l'incident</div><div class="ema-incident-value">${inc.reason_for_shortage_fr || 'N/A'}</div></div>
+                      <div class="ema-incident-detail"><div class="ema-incident-label">Pays touchés</div><div class="ema-incident-value">${inc.member_states_affected_fr || 'N/A'}</div></div>
+                      <div class="ema-incident-detail"><div class="ema-incident-label">Résolution attendue</div><div class="ema-incident-value">${formatFrenchDate(inc.expected_resolution) || 'N/A'}</div></div>
+                      ${inc.summary_fr ? `<div class="ema-incident-summary"><div class="ema-incident-label">Résumé</div><div class="ema-incident-value">${inc.summary_fr}</div></div>` : ''}
+                    </li>`
+                  ).join('') + '</ul>';
+              })
+              .catch(() => {
+                emaIncidentsDiv.innerHTML = 'Erreur lors de la récupération des incidents EMA.';
+              });
+          }
+    
+          // Update status label and icon
+          if (statusLabel && statusIcon && statusRow) {
+            statusRow.classList.remove('status-disponible', 'status-tension', 'status-rupture');
+            if (status.shorthand === 'rupture') {
+              statusRow.classList.add('status-rupture');
+            } else if (status.shorthand === 'tension') {
+              statusRow.classList.add('status-tension');
+            } else if (status.shorthand === 'arret') {
+              statusRow.classList.add('status-rupture');
+            } else {
+              statusRow.classList.add('status-disponible');
+            }
+            statusLabel.textContent = `Statut actuel : ${status.text}`;
+            statusIcon.className = status.icon + ' ' + status.shorthand + '-icon';
+            statusIcon.style.color = status.color;
+          }
+          // Draw timeline and stats (update this as needed)
+          drawProductTimeline({ incidents }, 'productpg-timeline-container');
+
+          const alternativesForm = document.getElementById('alternatives-form');
+          const cisSelector = document.getElementById('cis-selector');
+
+          if (alternativesForm && cisSelector && allCisCodes.length > 0) {
+            // Populate the selector
+            allCisCodes.forEach(code => {
+              const option = document.createElement('option');
+              option.value = code;
+              option.textContent = `${cisNamesMap[code] || code}`;
+              cisSelector.appendChild(option);
+            });
+
+            // Add event listener to the form
+            alternativesForm.addEventListener('submit', (event) => {
+              event.preventDefault(); // Prevent default form submission
+              const selectedCis = cisSelector.value;
+              if (selectedCis) {
+                window.location.href = `/substitutions/${selectedCis}`;
+              }
+            });
+          } else if (alternativesForm) {
+              // Hide the form if there are no CIS codes
+              alternativesForm.style.display = 'none';
+              const container = document.getElementById('alternatives-navigation-container');
+              if (container) {
+                container.innerHTML = `<div>Aucune alternative ne peut être recherchée pour ce produit.</div>`;
+              }
+          }
+
+        } catch (err) {
+            console.error(err);
+          document.querySelector('.productpg-status-label').textContent = 'Erreur : impossible de déterminer la date de rapport.';
+        }
+      }
+}
+
+// On page load: draw timeline and update current status label
+document.addEventListener('DOMContentLoaded', main);
