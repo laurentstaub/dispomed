@@ -30,15 +30,19 @@ function drawProductTimeline(product, containerId) {
     return;
   }
 
-  // Sort incidents by start_date ascending (oldest first)
   product.incidents.sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
 
   const container = d3.select(`#${containerId}`);
   container.html(''); // Clear existing content
 
+  // Determine the report date to be used as the timeline's end.
+  // Use the most recent 'date_dernier_rapport' from all incidents.
+  const reportDates = product.incidents.map(inc => new Date(inc.date_dernier_rapport)).filter(d => !isNaN(d.getTime()));
+  const lastReportDate = reportDates.length > 0 ? new Date(Math.max.apply(null, reportDates)) : new Date();
+
   // Timeline configuration
   const timelineStart = new Date(2021, 3, 1); // April 2021 (month is 0-based)
-  const timelineEnd = new Date();
+  const timelineEnd = lastReportDate; // Use the determined report date
   const totalDays = Math.round((timelineEnd - timelineStart) / (1000 * 60 * 60 * 24));
   const margin = { top: 15, right: 20, bottom: 30, left: 20 };
   const barHeight = 14;

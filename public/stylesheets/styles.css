@@ -1305,3 +1305,20 @@ p {
 #alternatives-form button:hover {
   background-color: #555;
 }
+
+/* Substitutions Table - Score Final Styling */
+.substitutions-table .score-final-header {
+  border-left: 2px solid var(--grisleger);
+  border-right: 2px solid var(--grisleger);
+  background-color: var(--gristresleger);
+  font-weight: 700;
+  text-align: center;
+}
+
+.substitutions-table .score-final-cell {
+  border-left: 2px solid var(--grisleger);
+  border-right: 2px solid var(--grisleger);
+  background-color: var(--gristrestresleger);
+  font-weight: 600;
+  text-align: center;
+}
