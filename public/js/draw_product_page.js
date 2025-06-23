@@ -30,19 +30,22 @@ function drawProductTimeline(product, containerId) {
     return;
   }
 
+  // Sort incidents by start_date ascending (oldest first)
   product.incidents.sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
 
   const container = d3.select(`#${containerId}`);
   container.html(''); // Clear existing content
 
-  // Determine the report date to be used as the timeline's end.
-  // Use the most recent 'date_dernier_rapport' from all incidents.
-  const reportDates = product.incidents.map(inc => new Date(inc.date_dernier_rapport)).filter(d => !isNaN(d.getTime()));
-  const lastReportDate = reportDates.length > 0 ? new Date(Math.max.apply(null, reportDates)) : new Date();
+  // Use the global report date if available, otherwise fallback to max calculated_end_date among product incidents
+  let timelineEnd;
+  if (window.globalReportDate) {
+    timelineEnd = new Date(window.globalReportDate);
+  } else {
+    timelineEnd = new Date(Math.max(...product.incidents.map(inc => new Date(inc.calculated_end_date))));
+  }
 
   // Timeline configuration
   const timelineStart = new Date(2021, 3, 1); // April 2021 (month is 0-based)
-  const timelineEnd = lastReportDate; // Use the determined report date
   const totalDays = Math.round((timelineEnd - timelineStart) / (1000 * 60 * 60 * 24));
   const margin = { top: 15, right: 20, bottom: 30, left: 20 };
   const barHeight = 14;
@@ -188,13 +191,13 @@ function drawProductTimeline(product, containerId) {
 
     years.forEach(year => {
       const yearStart = new Date(year, 0, 1);
-      const yearEnd = new Date(year, 11, 31);
+      const yearEnd = new Date(year, 11, 31, 23, 59, 59, 999);
 
       const overlapStart = new Date(Math.max(incidentStart, yearStart, timelineStart));
       const overlapEnd = new Date(Math.min(incidentEnd, yearEnd, timelineEnd));
 
       if (overlapEnd > overlapStart) {
-        const days = Math.floor((overlapEnd - overlapStart) / (1000 * 60 * 60 * 24)) + 1;
+        const days = Math.round((overlapEnd - overlapStart) / (1000 * 60 * 60 * 24));
         if (incident.status === 'Rupture') {
           yearlyStats[year].rupture += days;
         } else if (incident.status === 'Tension') {
@@ -496,18 +499,25 @@ async function main() {
                   emaIncidentsDiv.innerHTML = `<div class="ema-incident-title">Aucun incident EMA lié</div>`;
                   return;
                 }
+                
+                const statusTranslations = {
+                  'Ongoing': 'En cours',
+                  'Resolved': 'Terminé'
+                };
+
                 emaIncidentsDiv.innerHTML = '<ul>' +
-                  emaIncidents.map(inc =>
-                    `<li>
+                  emaIncidents.map(inc => {
+                    const translatedStatus = statusTranslations[inc.status] || inc.status;
+                    return `<li>
                       <div class="ema-incident-title">${inc.product_name || inc.title || inc.incident_id}</div>
-                      <div class="ema-incident-status">${inc.status ? `<span>${inc.status}</span>` : ''}</div>
+                      <div class="ema-incident-status">${inc.status ? `<span>${translatedStatus}</span>` : ''}</div>
                       <div class="ema-incident-detail"><div class="ema-incident-label">Date de première publication</div><div class="ema-incident-value">${formatFrenchDate(inc.first_published) || 'N/A'}</div></div>
                       <div class="ema-incident-detail"><div class="ema-incident-label">Raison de l'incident</div><div class="ema-incident-value">${inc.reason_for_shortage_fr || 'N/A'}</div></div>
                       <div class="ema-incident-detail"><div class="ema-incident-label">Pays touchés</div><div class="ema-incident-value">${inc.member_states_affected_fr || 'N/A'}</div></div>
                       <div class="ema-incident-detail"><div class="ema-incident-label">Résolution attendue</div><div class="ema-incident-value">${formatFrenchDate(inc.expected_resolution) || 'N/A'}</div></div>
                       ${inc.summary_fr ? `<div class="ema-incident-summary"><div class="ema-incident-label">Résumé</div><div class="ema-incident-value">${inc.summary_fr}</div></div>` : ''}
                     </li>`
-                  ).join('') + '</ul>';
+                  }).join('') + '</ul>';
               })
               .catch(() => {
                 emaIncidentsDiv.innerHTML = 'Erreur lors de la récupération des incidents EMA.';
