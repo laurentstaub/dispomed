@@ -27,7 +27,12 @@ app.get("/", async (req, res) => {
 
 app.get("/product/:productId", async (req, res) => {
   const { productId } = req.params;
-  res.render('product', { productId });
+
+  // Fetch the global report date (max calculated_end_date from all incidents)
+  const { rows: reportRows } = await dbQuery('SELECT MAX(calculated_end_date) AS max_report_date FROM incidents');
+  const globalReportDate = reportRows[0].max_report_date;
+
+  res.render('product', { productId, globalReportDate });
 });
 
 app.get("/api/config", (req, res) => {
