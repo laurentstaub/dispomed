@@ -540,21 +540,25 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
       };
 
     if (currentMonthData) {
+      // S'assurer que dateReport est un objet Date
+      const dateObj = (dateReport instanceof Date ? dateReport : new Date(dateReport));
+      const dayOfMonth = dateObj.getDate();
+      const labelOffset = dayOfMonth > 15 ? -5 : 10;
       // Add rupture point if there are ruptures
       if (currentMonthData.rupture > 0) {
         // Add larger circle for current rupture total
         g.append("circle")
           .attr("class", "sumchart-current-point rupture-fill")
-          .attr("cx", xScale(dateReport))
+          .attr("cx", xScale(dateObj))
           .attr("cy", yScale(currentMonthData.rupture))
           .attr("r", 3);
 
-        // Add special label for current rupture
+        // Position label: à gauche si jour > 15, sinon à droite
         g.append("text")
           .attr("class", "sumchart-current-label rupture-fill")
-          .attr("x", xScale(dateReport) + 20)
+          .attr("x", xScale(dateObj) + labelOffset)
           .attr("y", yScale(currentMonthData.rupture))
-          .attr("text-anchor", "middle")
+          .attr("text-anchor", dayOfMonth > 15 ? "end" : "start")
           .style("font-size", `${labelFontSizeScale(windowWidth) + 2}px`)
           .text(currentMonthData.rupture);
       }
@@ -564,16 +568,16 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
         // Add larger circle for current tension total
         g.append("circle")
           .attr("class", "sumchart-current-point tension-fill")
-          .attr("cx", xScale(dateReport))
+          .attr("cx", xScale(dateObj))
           .attr("cy", yScale(currentMonthData.tension))
           .attr("r", 3);
 
-        // Add special label for current tension
+        // Position label: à gauche si jour > 15, sinon à droite
         g.append("text")
           .attr("class", "sumchart-current-label tension-fill")
-          .attr("x", xScale(dateReport) + 20)
+          .attr("x", xScale(dateObj) + labelOffset)
           .attr("y", yScale(currentMonthData.tension))
-          .attr("text-anchor", "middle")
+          .attr("text-anchor", dayOfMonth > 15 ? "end" : "start")
           .style("font-size", `${labelFontSizeScale(windowWidth) + 2}px`)
           .text(currentMonthData.tension);
       }

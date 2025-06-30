@@ -397,21 +397,35 @@ async function main() {
           // Find the latest incident by start_date
           incidents.sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
           const latestIncident = incidents[0];
-    
+
           if (incidents.length > 0) {
             const accentedProductName = incidents[0].accented_product || incidents[0].product || '';
             const moleculeName = incidents[0].molecule || '';
+            const atcCode = incidents[0].atc_code || '';
+            const atcDescription = incidents[0].classe_atc ? incidents[0].classe_atc.split(' - ')[1] : '';
+
             const reportTitle = document.getElementById('report-title');
             if (reportTitle) {
               reportTitle.textContent = accentedProductName;
             }
             const infoSubtitle = document.getElementById('mise-a-jour');
             if (infoSubtitle) {
-              infoSubtitle.textContent = (moleculeName ? `DCI : ${moleculeName}` : '');
+              let subtitleText = '';
+              if (moleculeName) {
+                subtitleText += `DCI : ${moleculeName}`;
+              }
+              if (atcCode) {
+                if (subtitleText) subtitleText += '<br>';
+                subtitleText += `Classe ATC : ${atcCode}`;
+                if (atcDescription) {
+                  subtitleText += ` - ${atcDescription}`;
+                }
+              }
+              infoSubtitle.innerHTML = subtitleText;
             }
             document.title = accentedProductName + ' - Détails du produit';
           }
-    
+
           // Use the latest calculated_end_date as the report date
           const reportDate = incidents.reduce((max, inc) => {
             const d = new Date(inc.calculated_end_date);
@@ -438,7 +452,7 @@ async function main() {
             if (allCisCodes.length > 0) {
               const cisSection = document.createElement('div');
               cisSection.className = 'cis-section';
-              
+
               // Créer le bouton toggle
               const toggleButton = document.createElement('button');
               toggleButton.className = 'cis-toggle-button';
@@ -446,41 +460,41 @@ async function main() {
                 <i class="fa-solid fa-chevron-down"></i>
                 <span>Codes CIS concernés (${allCisCodes.length})</span>
               `;
-              
+
               // Créer le conteneur pour le contenu
               const contentDiv = document.createElement('div');
               contentDiv.className = 'cis-content';
-              
+
               // Créer un objet qui mappe les codes CIS à leurs dénominations
-             
-              
+
+
               const listContainer = document.createElement('div');
               listContainer.className = 'cis-list-container';
-              
+
               allCisCodes.forEach(code => {
                 const item = document.createElement('div');
                 item.className = 'cis-item';
-                
+
                 const codeSpan = document.createElement('span');
                 codeSpan.className = 'cis-code';
                 codeSpan.textContent = code;
-                
+
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'cis-name';
                 nameSpan.textContent = cisNamesMap[code] || 'Dénomination non disponible';
-                
+
                 item.appendChild(codeSpan);
                 item.appendChild(nameSpan);
                 listContainer.appendChild(item);
               });
-              
+
               contentDiv.appendChild(listContainer);
-              
+
               // Ajouter les éléments à la section
               cisSection.appendChild(toggleButton);
               cisSection.appendChild(contentDiv);
               cisListDiv.appendChild(cisSection);
-              
+
               // Ajouter l'événement click pour le toggle
               toggleButton.addEventListener('click', () => {
                 const isExpanded = toggleButton.classList.contains('expanded');
@@ -499,7 +513,7 @@ async function main() {
                   emaIncidentsDiv.innerHTML = `<div class="ema-incident-title">Aucun incident EMA lié</div>`;
                   return;
                 }
-                
+
                 const statusTranslations = {
                   'Ongoing': 'En cours',
                   'Resolved': 'Terminé'
@@ -523,7 +537,7 @@ async function main() {
                 emaIncidentsDiv.innerHTML = 'Erreur lors de la récupération des incidents EMA.';
               });
           }
-    
+
           // Update status label and icon
           if (statusLabel && statusIcon && statusRow) {
             statusRow.classList.remove('status-disponible', 'status-tension', 'status-rupture');
