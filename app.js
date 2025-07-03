@@ -65,7 +65,7 @@ app.get("/api/incidents", async (req, res) => {
               STRING_AGG(DISTINCT m.name, ', ') AS molecule,
               STRING_AGG(DISTINCT m.id::text, ', ') AS molecule_id,
               ca.code || ' - ' || ca.description AS classe_atc,
-              ca.code AS atc_code,
+              p.atc_code AS atc_code,
               CASE
                   -- Un incident est actif s'il est en Arret sans end_date
                   WHEN i.status = 'Arret' AND i.end_date IS NULL THEN 1
@@ -321,7 +321,7 @@ app.get("/api/incidents/product/:productId", async (req, res) => {
               STRING_AGG(DISTINCT m.name, ', ') AS molecule,
               STRING_AGG(DISTINCT m.id::text, ', ') AS molecule_id,
               ca.code || ' - ' || ca.description AS classe_atc,
-              ca.code AS atc_code
+              p.atc_code AS atc_code
           FROM incidents i
           JOIN produits p ON i.product_id = p.id
           LEFT JOIN produits_molecules pm ON p.id = pm.produit_id

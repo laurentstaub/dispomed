@@ -707,7 +707,7 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
     .text(shortLabel)
       .on('mouseover', function () {
         let tooltipContent = `<div class="tooltip-title">${accentedProducts[i]}</div>`;
-        tooltipContent += `<div class="tooltip-dci">DCI: ${mainIncident.molecule || ''}</div>`;
+        tooltipContent += `<div class="tooltip-dci">DCI: ${mainIncident.molecule || ''} / ATC: ${mainIncident.atc_code || ''}</div>`;
         if (status.shorthand === 'rupture' || status.shorthand === 'tension') {
           if (mainIncident.start_date <= dateReport && mainIncident.calculated_end_date >= dateReport) {
             const diffInDays = getDaysBetween(mainIncident.start_date, dateReport);

@@ -46,7 +46,6 @@ function drawProductTimeline(product, containerId) {
 
   // Timeline configuration
   const timelineStart = new Date(2021, 3, 1); // April 2021 (month is 0-based)
-  const totalDays = Math.round((timelineEnd - timelineStart) / (1000 * 60 * 60 * 24));
   const margin = { top: 15, right: 20, bottom: 30, left: 20 };
   const barHeight = 14;
   const barGap = 10;
@@ -227,13 +226,7 @@ function drawProductTimeline(product, containerId) {
   });
 
   const totalDaysPeriod = Math.floor((timelineEnd - timelineStart) / (1000 * 60 * 60 * 24)) + 1;
-  const rupturePercent = ((ruptureDays / totalDaysPeriod) * 100).toFixed(1);
-  const tensionPercent = ((tensionDays / totalDaysPeriod) * 100).toFixed(1);
-  const arretPercent = ((arretDays / totalDaysPeriod) * 100).toFixed(1);
-  // Score: (totalDays + totalScore) / totalDays
   const score = (((totalDaysPeriod + totalScore) / totalDaysPeriod) * 100).toFixed(1);
-
-  // Color code the score
   const scoreValue = parseFloat(score);
 
   // Donut chart values
@@ -408,17 +401,16 @@ async function main() {
             if (reportTitle) {
               reportTitle.textContent = accentedProductName;
             }
-            const infoSubtitle = document.getElementById('mise-a-jour');
+            const infoSubtitle = document.getElementById('atc-description');
             if (infoSubtitle) {
               let subtitleText = '';
-              if (moleculeName) {
-                subtitleText += `DCI : ${moleculeName}`;
-              }
+              if (moleculeName) { subtitleText += `DCI : ${moleculeName}`; }
               if (atcCode) {
                 if (subtitleText) subtitleText += '<br>';
-                subtitleText += `Classe ATC : ${atcCode}`;
+                subtitleText += `Classe ATC : ${atcCode.slice(0, 1)}`;
                 if (atcDescription) {
                   subtitleText += ` - ${atcDescription}`;
+
                 }
               }
               infoSubtitle.innerHTML = subtitleText;
