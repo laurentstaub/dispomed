@@ -1,6 +1,4 @@
-import { getDaysBetween, formatDurationSince, getProductStatus } from './utils.js';
-import { dataManager } from './01_store_data.js';
-import { fetchTableChartData } from './00_fetch_data.js';
+import { getProductStatus } from './utils.js';
 
 /**
  * Fetches incidents for a specific product ID from the API.

@@ -1,5 +1,18 @@
 import pg from "pg";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
 const { Client } = pg;
+
+// Get the directory name of the current module
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Function to load SQL from file
+export function loadSqlFile(filePath) {
+  const fullPath = path.resolve(__dirname, '..', filePath);
+  return fs.readFileSync(fullPath, 'utf8');
+}
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -14,10 +27,21 @@ export async function dbQuery(statement, ...parameters) {
   try {
     await client.connect();
     logQuery(statement, parameters);
-    const result = await client.query(statement, parameters);
-    return result;
+    return await client.query(statement, parameters);
   } catch (error) {
     console.error("Database query error:", error);
+
+    // Check if the error is "database does not exist"
+    if (error.code === '3D000') {
+      console.error("\n\n========== DATABASE SETUP REQUIRED ==========");
+      console.error("The database 'dispomed' does not exist. Please follow these steps to set it up:");
+      console.error("1. Create the database: createdb dispomed");
+      console.error("2. Create a .env file with: DATABASE_URL=postgres://localhost:5432/dispomed");
+      console.error("3. Initialize the database schema: npm run init-db");
+      console.error("For more details, please refer to the README.md file.");
+      console.error("===========================================\n\n");
+    }
+
     throw error;
   } finally {
     await client.end();

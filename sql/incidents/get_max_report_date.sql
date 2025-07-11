@@ -1,0 +1,1 @@
+SELECT MAX(calculated_end_date) AS max_report_date FROM incidents

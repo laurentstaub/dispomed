@@ -66,7 +66,6 @@ jest.mock('d3', () => {
 
 // Now import the dependencies
 import { dataManager } from '../../../public/js/01_store_data.js';
-import { fetchTableChartData } from '../../../public/js/00_fetch_data.js';
 
 // Mock the dependencies after the d3 mock is set up
 jest.mock('../../../public/js/01_store_data.js', () => ({

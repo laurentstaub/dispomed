@@ -115,7 +115,7 @@ function getSpecialiteCount(product) {
     return product.cis_codes.length;
   }
   return 1;
-};
+}
 
 // Get unique products count
 function getUniqueProductLength(eventList) {
