@@ -11,7 +11,6 @@ function processDates(data) {
     end_date: parseTime(d.end_date),
     mise_a_jour_date: parseTime(d.mise_a_jour_date),
     date_dernier_rapport: parseTime(d.date_dernier_rapport),
-    end_date: parseTime(d.end_date),
     calculated_end_date: parseTime(d.calculated_end_date),
   }));
 }

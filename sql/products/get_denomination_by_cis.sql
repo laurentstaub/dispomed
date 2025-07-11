@@ -1,0 +1,1 @@
+SELECT denomination_medicament FROM dbpm.cis_bdpm WHERE code_cis = $1
