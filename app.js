@@ -1,3 +1,25 @@
+/**
+ * @fileoverview Main application server for Dispomed
+ * 
+ * This file sets up an Express.js server that provides API endpoints and page routes
+ * for the Dispomed application. It handles database queries, error handling, and
+ * rendering views for the frontend.
+ * 
+ * The server provides endpoints for:
+ * - Fetching incident data with various filtering options
+ * - Retrieving product information
+ * - Getting ATC (Anatomical Therapeutic Chemical) classification data
+ * - Accessing EMA (European Medicines Agency) incident data
+ * - Finding therapeutic substitutions for medications
+ * 
+ * @module app
+ * @requires express
+ * @requires cors
+ * @requires ./library/config.js
+ * @requires ./database/connect_db
+ * @requires ./public/js/fetch_first_atcdata
+ */
+
 // noinspection JSUnusedLocalSymbols
 
 import express from "express";
@@ -6,15 +28,42 @@ import "./library/config.js";
 import { dbQuery, loadSqlFile } from "./database/connect_db.js";
 import ATCDataManager from "./public/js/fetch_first_atcdata.js";
 
+/**
+ * Express application instance
+ * @type {import('express').Application}
+ */
 const app = express();
+
+/**
+ * Port number for the server to listen on
+ * @type {number}
+ */
 const PORT = process.env.PORT || 3000;
 
+/**
+ * Configure view engine settings
+ */
 app.set("views", "./views");
 app.set("view engine", "pug");
 
+/**
+ * Set up middleware
+ * - Serve static files from the 'public' directory
+ * - Enable CORS (Cross-Origin Resource Sharing)
+ */
 app.use(express.static("public"));
 app.use(cors());
 
+/**
+ * Route handler for the home page
+ * 
+ * Fetches ATC data for the last 12 months and renders the chart view
+ * with ATC classes and molecules data.
+ * 
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ * @returns {Promise<void>} - Renders the chart view or sends an error response
+ */
 app.get("/", async (req, res) => {
   try {
     await ATCDataManager.fetchAndInitialize(12); // 12 for 12 months as default report time length
@@ -47,13 +96,28 @@ app.get("/", async (req, res) => {
   }
 });
 
+
+/**
+ * Route handler for the product detail page
+ *
+ * Fetches the global report date and renders the product detail page
+ * with the product ID and global report date.
+ *
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ * @param {Object} req.params - URL parameters
+ * @param {string} req.params.productId - ID of the product to retrieve
+ * @returns {Promise<void>} - Renders the product page or sends an error response
+ */
+
 app.get("/product/:productId", async (req, res) => {
   try {
     const { productId } = req.params;
 
     // Fetch the global report date (max calculated_end_date from all incidents)
     const { rows: reportRows } = await dbQuery(loadSqlFile('sql/incidents/get_max_report_date.sql'));
-    const globalReportDate = reportRows[0].max_report_date;
+    const reportData = reportRows[0] || {};
+    const globalReportDate = reportData.max_report_date;
 
     res.render('product', { productId, globalReportDate });
   } catch (error) {
@@ -77,11 +141,39 @@ app.get("/product/:productId", async (req, res) => {
   }
 });
 
+/**
+ * API endpoint for client-side configuration
+ * 
+ * Returns configuration values needed by the client-side application,
+ * such as the API base URL.
+ *
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ * @returns {void} - Sends a JSON response with configuration values
+ */
+
 app.get("/api/config", (req, res) => {
   res.json({
     API_BASE_URL: process.env.API_BASE_URL || "http://localhost:3000",
   });
 });
+
+/**
+ * API endpoint for fetching incidents with filtering options
+ * 
+ * Retrieves incident data based on various query parameters for filtering.
+ * Also fetches and associates CIS (drug identification) codes with their names.
+ * 
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ * @param {Object} req.query - Query parameters
+ * @param {string} req.query.monthsToShow - Number of months of data to retrieve
+ * @param {string} [req.query.product] - Optional product name filter
+ * @param {string} [req.query.atcClass] - Optional ATC class code filter
+ * @param {string} [req.query.molecule] - Optional molecule ID filter (can be comma-separated)
+ * @param {string} [req.query.vaccinesOnly] - If 'true', filters for vaccines only (ATC code J07)
+ * @returns {Promise<void>} - Sends a JSON response with incident data
+ */
 
 app.get("/api/incidents", async (req, res) => {
   const { monthsToShow, product, atcClass, molecule } = req.query;
@@ -165,6 +257,19 @@ app.get("/api/incidents", async (req, res) => {
   }
 });
 
+/**
+ * API endpoint for fetching therapeutic substitutions for a medication
+ * 
+ * Retrieves potential therapeutic substitutions for a given medication
+ * identified by its CIS code. Returns both substitutions where the
+ * medication is the source and where it is the target.
+ * 
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ * @param {Object} req.params - URL parameters
+ * @param {string} req.params.code_cis - CIS code of the medication
+ * @returns {Promise<void>} - Sends a JSON response with substitution data
+ */
 app.get('/api/substitutions/:code_cis', async (req, res) => {
   const { code_cis } = req.params;
 
@@ -200,6 +305,18 @@ app.get('/api/substitutions/:code_cis', async (req, res) => {
   }
 });
 
+/**
+ * API endpoint for fetching ATC (Anatomical Therapeutic Chemical) classes
+ * 
+ * Retrieves ATC classification data for medications based on the specified
+ * time period.
+ * 
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ * @param {Object} req.query - Query parameters
+ * @param {string} req.query.monthsToShow - Number of months of data to retrieve
+ * @returns {Promise<void>} - Sends a JSON response with ATC classes data
+ */
 app.get("/api/incidents/ATCClasses", async (req, res) => {
   const { monthsToShow } = req.query;
 
@@ -222,7 +339,18 @@ app.get("/api/incidents/ATCClasses", async (req, res) => {
   }
 });
 
-// Product detail API route (by product name)
+/**
+ * API endpoint for fetching product details by product name
+ * 
+ * Retrieves detailed information about a product, including all associated
+ * incidents. The product is identified by its name.
+ * 
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ * @param {Object} req.params - URL parameters
+ * @param {string} req.params.productName - Name of the product to retrieve
+ * @returns {Promise<void>} - Sends a JSON response with product data and incidents
+ */
 app.get('/api/product/:productName', async (req, res) => {
   const { productName } = req.params;
   try {
@@ -261,6 +389,18 @@ app.get('/api/product/:productName', async (req, res) => {
   }
 });
 
+/**
+ * API endpoint for fetching incidents related to a specific product
+ * 
+ * Retrieves all incidents associated with a product identified by its ID.
+ * Also fetches and associates CIS (drug identification) codes with their names.
+ * 
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ * @param {Object} req.params - URL parameters
+ * @param {string} req.params.productId - ID of the product to retrieve incidents for
+ * @returns {Promise<void>} - Sends a JSON response with incident data
+ */
 app.get("/api/incidents/product/:productId", async (req, res) => {
   const { productId } = req.params;
 
@@ -309,6 +449,18 @@ app.get("/api/incidents/product/:productId", async (req, res) => {
   }
 });
 
+/**
+ * API endpoint for fetching EMA (European Medicines Agency) incidents
+ * 
+ * Retrieves incidents from the EMA database that are associated with
+ * the specified CIS codes. Includes details and French translations.
+ * 
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ * @param {Object} req.query - Query parameters
+ * @param {string} req.query.cis_codes - Comma-separated list of CIS codes
+ * @returns {Promise<void>} - Sends a JSON response with EMA incident data
+ */
 app.get('/api/ema-incidents', async (req, res) => {
   const { cis_codes } = req.query;
   if (!cis_codes) {
@@ -335,6 +487,19 @@ app.get('/api/ema-incidents', async (req, res) => {
   }
 });
 
+/**
+ * Route handler for the substitutions page
+ * 
+ * Renders a page showing therapeutic substitutions for a medication
+ * identified by its CIS code. Fetches the medication name to display
+ * alongside the substitution information.
+ * 
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ * @param {Object} req.params - URL parameters
+ * @param {string} req.params.cis_code - CIS code of the medication
+ * @returns {Promise<void>} - Renders the substitutions page or sends an error response
+ */
 app.get("/substitutions/:cis_code", async (req, res) => {
   const { cis_code } = req.params;
   // We need to fetch the name for this CIS code to display it.
@@ -370,6 +535,12 @@ app.get("/substitutions/:cis_code", async (req, res) => {
   }
 });
 
+/**
+ * Start the Express server and listen for incoming connections
+ * 
+ * @listens {number} PORT - The port number to listen on
+ * @returns {import('http').Server} - The HTTP server instance
+ */
 app.listen(PORT, () =>
   console.log(`Server running on http://localhost:${PORT}`),
 );

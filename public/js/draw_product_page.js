@@ -345,13 +345,6 @@ function formatFrenchDate(dateStr) {
   return date.toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-// Helper to determine current product status with main page priority logic
-function getCurrentProductStatus(incidents, reportDate) {
-  incidents.sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
-  let latestIncident = incidents[0];
-  return getProductStatus(latestIncident, reportDate);
-}
-
 // Add a resize listener to redraw the timeline on window resize
 window.addEventListener('resize', debounce(() => {
   if (window.productIncidents) {
@@ -393,7 +386,9 @@ async function main() {
             const accentedProductName = incidents[0].accented_product || incidents[0].product || '';
             const moleculeName = incidents[0].molecule || '';
             const atcCode = incidents[0].atc_code || '';
-            const atcDescription = incidents[0].classe_atc ? incidents[0].classe_atc.split(' - ')[1] : '';
+            const atcDescription = incidents[0].classe_atc || '';
+            console.log(atcCode);
+            console.log(atcDescription);
 
             const reportTitle = document.getElementById('report-title');
             if (reportTitle) {
@@ -403,13 +398,13 @@ async function main() {
             if (infoSubtitle) {
               let subtitleText = '';
               if (moleculeName) { subtitleText += `DCI : ${moleculeName}`; }
+              if (atcDescription) {
+                if (subtitleText) subtitleText += '<br>';
+                subtitleText += `${atcDescription}`;
+              }
               if (atcCode) {
                 if (subtitleText) subtitleText += '<br>';
-                subtitleText += `Classe ATC : ${atcCode.slice(0, 1)}`;
-                if (atcDescription) {
-                  subtitleText += ` - ${atcDescription}`;
-
-                }
+                subtitleText += `${atcCode}`;
               }
               infoSubtitle.innerHTML = subtitleText;
             }
@@ -455,9 +450,7 @@ async function main() {
               const contentDiv = document.createElement('div');
               contentDiv.className = 'cis-content';
 
-              // Créer un objet qui mappe les codes CIS à leurs dénominations
-
-
+              // Créer un objet qui mappe les codes CIS à leurs dénomination
               const listContainer = document.createElement('div');
               listContainer.className = 'cis-list-container';
 

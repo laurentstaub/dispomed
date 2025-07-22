@@ -8,7 +8,11 @@ const { Client } = pg;
 // Get the directory name of the current module
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Function to load SQL from file
+/**
+ * Loads SQL query from a file
+ * @param {string} filePath - The path to the SQL file, relative to the project root
+ * @returns {string} - The SQL query as a string
+ */
 export function loadSqlFile(filePath) {
   const fullPath = path.resolve(__dirname, '..', filePath);
   return fs.readFileSync(fullPath, 'utf8');
@@ -21,6 +25,14 @@ const CONNECTION = {
   ssl: isProduction ? { rejectUnauthorized: false } : false,
 };
 
+/**
+ * Executes a SQL query against the database
+ * @param {string} statement - The SQL query to execute
+ * @param {...any} parameters - The parameters to pass to the query
+ * @returns {Promise<{rows: Array<Object>, rowCount: number}>} - The query result object
+ *   with rows property containing the query results as an array of objects
+ *   where each object has properties corresponding to the column names in the query
+ */
 export async function dbQuery(statement, ...parameters) {
   const client = new Client(CONNECTION);
 
