@@ -1,3 +1,26 @@
+/* RESET */
+ul, ol {
+  list-style: none;
+}
+
+ul, ol, li, h1, h2, h3, h4, h5, h6, pre, form, body, html, p, blockquote, fieldset, input, dl, dt, dd, figure, figcaption {
+  margin: 0;
+  padding: 0;
+}
+
+a img, :link img, :visited img, fieldset {
+  border: none;
+}
+
+header, section, article, nav, footer, hgroup, details, summary, figure, main {
+  display: block;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+
 :root {
   --label-width: 240px;
   --label-width-mobile: 120px;
@@ -705,7 +728,6 @@ p {
   padding: 0 0 2px 0;
 }
 
-
 #title-legend {
   font-weight: bold;
   margin-bottom: 8px;
@@ -913,11 +935,11 @@ p {
   .productpg-score-flex {
     flex-direction: column;
   }
-  
+
   .productpg-score-donut {
     padding: 18px 20px;
   }
-  
+
   .productpg-score-donut svg {
     max-width: 140px;
   }
@@ -1033,6 +1055,35 @@ p {
 .productpg-stats-table .status-arret {
   color: var(--arret-bg);
   font-weight: 500;
+}
+
+/* Sales data rows styling */
+.productpg-stats-table .sales-header {
+  background-color: var(--gristresleger);
+  font-weight: 600;
+}
+
+.productpg-stats-table .sales-header-cell {
+  text-align: center;
+  padding: 8px 0;
+  color: var(--gristresfonce);
+  border-top: 1px solid var(--grisleger);
+}
+
+.productpg-stats-table .cis-total-row {
+  background-color: var(--grisclair);
+  font-weight: 500;
+  color: var(--gristresfonce);
+}
+
+.productpg-stats-table .cip13-row {
+  font-size: 0.8rem;
+}
+
+.productpg-stats-table .cip13-label {
+  padding-left: 20px;
+  font-style: italic;
+  color: var(--gris);
 }
 
 .productpg-header {
@@ -1218,7 +1269,7 @@ p {
   .productpg-score-flex {
     flex-direction: column;
   }
-  
+
   .productpg-score-donut {
     padding: 18px 20px;
   }

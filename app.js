@@ -263,12 +263,6 @@ app.get("/api/incidents", async (req, res) => {
  * Retrieves potential therapeutic substitutions for a given medication
  * identified by its CIS code. Returns both substitutions where the
  * medication is the source and where it is the target.
- * 
- * @param {import('express').Request} req - Express request object
- * @param {import('express').Response} res - Express response object
- * @param {Object} req.params - URL parameters
- * @param {string} req.params.code_cis - CIS code of the medication
- * @returns {Promise<void>} - Sends a JSON response with substitution data
  */
 app.get('/api/substitutions/:code_cis', async (req, res) => {
   const { code_cis } = req.params;
@@ -310,11 +304,6 @@ app.get('/api/substitutions/:code_cis', async (req, res) => {
  * 
  * Retrieves ATC classification data for medications based on the specified
  * time period.
- * 
- * @param {import('express').Request} req - Express request object
- * @param {import('express').Response} res - Express response object
- * @param {Object} req.query - Query parameters
- * @param {string} req.query.monthsToShow - Number of months of data to retrieve
  * @returns {Promise<void>} - Sends a JSON response with ATC classes data
  */
 app.get("/api/incidents/ATCClasses", async (req, res) => {
@@ -344,12 +333,6 @@ app.get("/api/incidents/ATCClasses", async (req, res) => {
  * 
  * Retrieves detailed information about a product, including all associated
  * incidents. The product is identified by its name.
- * 
- * @param {import('express').Request} req - Express request object
- * @param {import('express').Response} res - Express response object
- * @param {Object} req.params - URL parameters
- * @param {string} req.params.productName - Name of the product to retrieve
- * @returns {Promise<void>} - Sends a JSON response with product data and incidents
  */
 app.get('/api/product/:productName', async (req, res) => {
   const { productName } = req.params;
@@ -454,12 +437,6 @@ app.get("/api/incidents/product/:productId", async (req, res) => {
  * 
  * Retrieves incidents from the EMA database that are associated with
  * the specified CIS codes. Includes details and French translations.
- * 
- * @param {import('express').Request} req - Express request object
- * @param {import('express').Response} res - Express response object
- * @param {Object} req.query - Query parameters
- * @param {string} req.query.cis_codes - Comma-separated list of CIS codes
- * @returns {Promise<void>} - Sends a JSON response with EMA incident data
  */
 app.get('/api/ema-incidents', async (req, res) => {
   const { cis_codes } = req.query;
@@ -488,17 +465,43 @@ app.get('/api/ema-incidents', async (req, res) => {
 });
 
 /**
+ * API endpoint for fetching sales data by CIS codes
+ * 
+ * Retrieves sales data for each CIP13 per year (2021-2024) associated with
+ * the specified CIS codes.
+ */
+app.get('/api/sales-by-cis', async (req, res) => {
+  const { cis_codes } = req.query;
+  if (!cis_codes) {
+    return res.status(400).json({ error: 'cis_codes query param required' });
+  }
+  const codes = cis_codes.split(',').map(code => code.trim());
+  try {
+    // Find sales data for the given CIS codes
+    const query = loadSqlFile('sql/products/get_sales_by_cis_codes.sql');
+    const { rows } = await dbQuery(query, [codes]);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching sales data:', error);
+
+    // Check if it's a database connection error
+    if (error.code === '3D000' || (error.message && error.message.includes("database") && error.message.includes("does not exist"))) {
+      res.status(500).json({ 
+        error: "Database Setup Required", 
+        message: "The application database has not been set up correctly. Please follow these steps:\n1. Create the database: createdb dispomed\n2. Create a .env file with: DATABASE_URL=postgres://localhost:5432/dispomed\n3. Initialize the database schema: npm run init-db\nFor more details, please refer to the README.md file."
+      });
+    } else {
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+});
+
+/**
  * Route handler for the substitutions page
  * 
  * Renders a page showing therapeutic substitutions for a medication
  * identified by its CIS code. Fetches the medication name to display
  * alongside the substitution information.
- * 
- * @param {import('express').Request} req - Express request object
- * @param {import('express').Response} res - Express response object
- * @param {Object} req.params - URL parameters
- * @param {string} req.params.cis_code - CIS code of the medication
- * @returns {Promise<void>} - Renders the substitutions page or sends an error response
  */
 app.get("/substitutions/:cis_code", async (req, res) => {
   const { cis_code } = req.params;

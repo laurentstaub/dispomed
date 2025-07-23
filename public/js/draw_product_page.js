@@ -21,12 +21,17 @@ async function fetchProductIncidents(productId) {
 /**
  * Draws the timeline chart for a product's incidents
  * @param {Object} product - The product data object
+ * @param {Array} product.incidents - The incidents data
+ * @param {Array} product.salesData - The sales data by CIS and CIP13
  * @param {string} containerId - The ID of the container element
  */
 function drawProductTimeline(product, containerId) {
   if (!product.incidents || !product.incidents.length) {
     return;
   }
+
+  // Extract sales data if available
+  const salesData = product.salesData || [];
 
   // Sort incidents by start_date ascending (oldest first)
   product.incidents.sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
@@ -263,7 +268,67 @@ function drawProductTimeline(product, containerId) {
     timelineNode.parentNode.insertBefore(statsContainer, timelineNode);
   }
 
-  const formatZero = (n) => (n === 0 ? '-' : n);
+  const formatNumber = (n) => (n === 0 ? '-' : Number(n).toLocaleString('fr-FR'));
+
+  // Process sales data by CIS and CIP13
+  const salesByCis = {};
+
+  if (salesData && salesData.length > 0) {
+    // Group sales data by CIS code
+    salesData.forEach(sale => {
+      if (!salesByCis[sale.code_cis]) {
+        salesByCis[sale.code_cis] = {
+          cis: sale.code_cis,
+          cip13Sales: {},
+          totalByYear: {}
+        };
+      }
+
+      // Group by CIP13 within each CIS
+      if (!salesByCis[sale.code_cis].cip13Sales[sale.cip13]) {
+        salesByCis[sale.code_cis].cip13Sales[sale.cip13] = {
+          cip13: sale.cip13,
+          label: sale.product_label,
+          byYear: {}
+        };
+      }
+
+      // Store sales by year
+      salesByCis[sale.code_cis].cip13Sales[sale.cip13].byYear[sale.year] = sale.total_boxes;
+
+      // Update total by year for this CIS
+      if (!salesByCis[sale.code_cis].totalByYear[sale.year]) {
+        salesByCis[sale.code_cis].totalByYear[sale.year] = 0;
+      }
+      salesByCis[sale.code_cis].totalByYear[sale.year] += sale.total_boxes;
+    });
+  }
+
+  // Generate sales rows HTML
+  let salesRowsHtml = '';
+
+  if (Object.keys(salesByCis).length > 0) {
+    // Add a header row for sales section
+    salesRowsHtml += `
+      <tr class="sales-header">
+        <td colspan="${years.length + 2}" class="sales-header-cell">Nombre de boîtes vendues</td>
+      </tr>
+    `;
+
+    // Add rows for each CIS code
+    Object.values(salesByCis).forEach(cisSales => {
+      // Add rows for each CIP13 within this CIS
+      Object.values(cisSales.cip13Sales).forEach(cip13Sale => {
+        salesRowsHtml += `
+          <tr class="cip13-row">
+            <td class="productpg-stats-label">${cip13Sale.label || cip13Sale.cip13}</td>
+            ${years.map(year => `<td class="${year === 2021 ? 'year-start-col' : ''}">${formatNumber(cip13Sale.byYear[year] || 0)}</td>`).join('')}
+            <td class="productpg-stats-value total-col">${formatNumber(Object.values(cip13Sale.byYear).reduce((sum, val) => sum + Number(val), 0))}</td>
+          </tr>
+        `;
+      });
+    });
+  }
 
   statsContainer.innerHTML = `
     <div class="productpg-score-flex">
@@ -280,29 +345,30 @@ function drawProductTimeline(product, containerId) {
           <tbody>
             <tr>
               <td class="productpg-stats-label">Disponible</td>
-              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-disponible">${formatZero(yearlyStats[y].total - yearlyStats[y].rupture - yearlyStats[y].tension - yearlyStats[y].arret)}</span></td>`).join('')}
-              <td class="productpg-stats-value total-col"><span class="status-disponible">${formatZero(disponibleDays)}</span></td>
+              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-disponible">${formatNumber(yearlyStats[y].total - yearlyStats[y].rupture - yearlyStats[y].tension - yearlyStats[y].arret)}</span></td>`).join('')}
+              <td class="productpg-stats-value total-col"><span class="status-disponible">${formatNumber(disponibleDays)}</span></td>
             </tr>
             <tr>
               <td class="productpg-stats-label">Tension</td>
-              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-tension">${formatZero(yearlyStats[y].tension)}</span></td>`).join('')}
-              <td class="productpg-stats-value total-col"><span class="status-tension">${formatZero(tensionDays)}</span></td>
+              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-tension">${formatNumber(yearlyStats[y].tension)}</span></td>`).join('')}
+              <td class="productpg-stats-value total-col"><span class="status-tension">${formatNumber(tensionDays)}</span></td>
             </tr>
             <tr>
               <td class="productpg-stats-label">Rupture</td>
-              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-rupture">${formatZero(yearlyStats[y].rupture)}</span></td>`).join('')}
-              <td class="productpg-stats-value total-col"><span class="status-rupture">${formatZero(ruptureDays)}</span></td>
+              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-rupture">${formatNumber(yearlyStats[y].rupture)}</span></td>`).join('')}
+              <td class="productpg-stats-value total-col"><span class="status-rupture">${formatNumber(ruptureDays)}</span></td>
             </tr>
             <tr>
               <td class="productpg-stats-label">Arrêt</td>
-              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-arret">${formatZero(yearlyStats[y].arret)}</span></td>`).join('')}
-              <td class="productpg-stats-value total-col"><span class="status-arret">${formatZero(arretDays)}</span></td>
+              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-arret">${formatNumber(yearlyStats[y].arret)}</span></td>`).join('')}
+              <td class="productpg-stats-value total-col"><span class="status-arret">${formatNumber(arretDays)}</span></td>
             </tr>
             <tr class="total-row">
               <td class="productpg-stats-label">Total</td>
-              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}">${formatZero(yearlyStats[y].total)}</td>`).join('')}
-              <td class="productpg-stats-value total-col">${formatZero(totalDaysPeriod)}</td>
+              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}">${formatNumber(yearlyStats[y].total)}</td>`).join('')}
+              <td class="productpg-stats-value total-col">${formatNumber(totalDaysPeriod)}</td>
             </tr>
+            ${salesRowsHtml}
           </tbody>
         </table>
       </div>
@@ -348,7 +414,10 @@ function formatFrenchDate(dateStr) {
 // Add a resize listener to redraw the timeline on window resize
 window.addEventListener('resize', debounce(() => {
   if (window.productIncidents) {
-    drawProductTimeline({ incidents: window.productIncidents }, 'productpg-timeline-container');
+    drawProductTimeline({ 
+      incidents: window.productIncidents,
+      salesData: window.productSalesData || []
+    }, 'productpg-timeline-container');
   }
 }, 250));
 
@@ -387,8 +456,6 @@ async function main() {
             const moleculeName = incidents[0].molecule || '';
             const atcCode = incidents[0].atc_code || '';
             const atcDescription = incidents[0].classe_atc || '';
-            console.log(atcCode);
-            console.log(atcDescription);
 
             const reportTitle = document.getElementById('report-title');
             if (reportTitle) {
@@ -486,6 +553,29 @@ async function main() {
               });
             }
           }
+
+          // Fetch sales data by CIS codes
+          let salesData = [];
+          if (allCisCodes.length > 0) {
+            fetch(`/api/sales-by-cis?cis_codes=${allCisCodes.join(',')}`)
+              .then(res => res.json())
+              .then(data => {
+                salesData = data;
+                // Store sales data for resize events
+                window.productSalesData = data;
+                // Draw timeline and stats with sales data
+                drawProductTimeline({ incidents, salesData }, 'productpg-timeline-container');
+              })
+              .catch(error => {
+                console.error('Error fetching sales data:', error);
+                // Draw timeline and stats without sales data
+                drawProductTimeline({ incidents }, 'productpg-timeline-container');
+              });
+          } else {
+            // Draw timeline and stats without sales data
+            drawProductTimeline({ incidents }, 'productpg-timeline-container');
+          }
+
           // Lookup related EMA incidents by CIS code
           const emaIncidentsDiv = document.getElementById('ema-incidents');
           if (emaIncidentsDiv && allCisCodes.length > 0) {
@@ -537,8 +627,6 @@ async function main() {
             statusIcon.className = status.icon + ' ' + status.shorthand + '-icon';
             statusIcon.style.color = status.color;
           }
-          // Draw timeline and stats (update this as needed)
-          drawProductTimeline({ incidents }, 'productpg-timeline-container');
 
           const alternativesForm = document.getElementById('alternatives-form');
           const cisSelector = document.getElementById('cis-selector');
