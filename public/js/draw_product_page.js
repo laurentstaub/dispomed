@@ -464,15 +464,10 @@ async function main() {
             const infoSubtitle = document.getElementById('atc-description');
             if (infoSubtitle) {
               let subtitleText = '';
-              if (moleculeName) { subtitleText += `DCI : ${moleculeName}`; }
-              if (atcDescription) {
-                if (subtitleText) subtitleText += '<br>';
-                subtitleText += `${atcDescription}`;
-              }
-              if (atcCode) {
-                if (subtitleText) subtitleText += '<br>';
-                subtitleText += `${atcCode}`;
-              }
+              if (atcDescription) { subtitleText += `${atcDescription} / `; }
+              if (atcCode) { subtitleText += `${atcCode} / `; }
+              if (moleculeName) { subtitleText += `${moleculeName}`; }
+
               infoSubtitle.innerHTML = subtitleText;
             }
             document.title = accentedProductName + ' - Détails du produit';
@@ -527,14 +522,9 @@ async function main() {
 
                 const codeSpan = document.createElement('span');
                 codeSpan.className = 'cis-code';
-                codeSpan.textContent = code;
-
-                const nameSpan = document.createElement('span');
-                nameSpan.className = 'cis-name';
-                nameSpan.textContent = cisNamesMap[code] || 'Dénomination non disponible';
+                codeSpan.textContent = `${code} - ${cisNamesMap[code] || 'Dénomination non disponible'}`;
 
                 item.appendChild(codeSpan);
-                item.appendChild(nameSpan);
                 listContainer.appendChild(item);
               });
 
