@@ -350,7 +350,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 
   // Filter out months with no data
   const filteredData = monthlyChartData.filter(
-    (d) => d.rupture > 0 || d.tension > 0,
+      (d) => d.rupture > 0 || d.tension > 0,
   );
 
   // For 24+ months, only keep one point per quarter (Jan, Apr, Jul, Oct)
@@ -366,42 +366,42 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 
   // Create scales
   const xScale = d3.scaleTime()
-    .domain([startDate, endDate])
-    .range([0, innerWidth]);
+      .domain([startDate, endDate])
+      .range([0, innerWidth]);
 
   const yScale = d3.scaleLinear()
-    .domain([0, d3.max(lineData, (d) => Math.max(d.rupture, d.tension))])
-    .nice()
-    .range([innerHeight, 0]);
+      .domain([0, d3.max(lineData, (d) => Math.max(d.rupture, d.tension))])
+      .nice()
+      .range([innerHeight, 0]);
 
   const xAxis = d3.axisBottom(xScale)
-    .ticks(dataManager.getMonthsToShow() >= 24 ? d3.timeMonth.every(3) : d3.timeMonth.every(1))
-    .tickFormat((d) => {
-      if (d.getMonth() === 0) {
-        return d3.timeFormat("%Y")(d);
-      }
-      return formatDateShort(d);
-    })
-    .tickSize(4);
+      .ticks(dataManager.getMonthsToShow() >= 24 ? d3.timeMonth.every(3) : d3.timeMonth.every(1))
+      .tickFormat((d) => {
+        if (d.getMonth() === 0) {
+          return d3.timeFormat("%Y")(d);
+        }
+        return formatDateShort(d);
+      })
+      .tickSize(4);
 
   // Create line generators
   const lineTension = d3.line()
-    .x((d) => xScale(d.date))
-    .y((d) => yScale(d.tension))
-    .defined((d) => d.tension > 0);
+      .x((d) => xScale(d.date))
+      .y((d) => yScale(d.tension))
+      .defined((d) => d.tension > 0);
 
   const lineRupture = d3.line()
-    .x((d) => xScale(d.date))
-    .y((d) => yScale(d.rupture))
-    .defined((d) => d.rupture > 0);
+      .x((d) => xScale(d.date))
+      .y((d) => yScale(d.rupture))
+      .defined((d) => d.rupture > 0);
 
   // Create SVG
   let svg;
   if (isInitialSetup) {
     svg = d3.select("#summary")
-      .append("svg")
-      .attr("viewBox", `0 0 ${width} ${height}`)
-      .attr("preserveAspectRatio", "xMidYMid meet");
+        .append("svg")
+        .attr("viewBox", `0 0 ${width} ${height}`)
+        .attr("preserveAspectRatio", "xMidYMid meet");
   } else {
     svg = d3.select("#summary svg");
     svg.selectAll("*").remove();
@@ -411,11 +411,11 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
       .attr("transform", "translate(0, 0)");
 
   const titleText = svg.append("text")
-    .attr("class", "sumchart-chart-title")
-    .attr("x", 10)
-    .attr("y", 20)
-    .attr("text-anchor", "start")
-    .text("Évolution des ruptures et tensions");
+      .attr("class", "sumchart-chart-title")
+      .attr("x", 10)
+      .attr("y", 20)
+      .attr("text-anchor", "start")
+      .text("Évolution des ruptures et tensions");
 
   const bbox = titleText.node().getBBox();
   group.insert("rect", "text")
@@ -435,155 +435,193 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
       .text("En nombre de spécialités (Codes CIS) manquantes le 1er de chaque période");
 
   const g = svg.append("g")
-    .attr("transform", `translate(${margin.left},${margin.top})`);
+      .attr("transform", `translate(${margin.left},${margin.top})`);
 
   g.append("rect")
-    .attr("width", "100%")
-    .attr("height", `${innerHeight}`)
-    .attr("fill", "white");
+      .attr("width", "100%")
+      .attr("height", `${innerHeight}`)
+      .attr("fill", "white");
 
   g.append("g")
-    .attr("class", "sumchart-x-axis")
-    .attr("transform", `translate(0, ${innerHeight})`)
-    .call(xAxis);
+      .attr("class", "sumchart-x-axis")
+      .attr("transform", `translate(0, ${innerHeight})`)
+      .call(xAxis);
 
   // Style yearly tick
   g.selectAll(".sumchart-x-axis .tick text")
-    .filter((d) => d.getMonth() === 0)
-    .style("font-weight", "bold")
-    .style("font-size", "11px")
-    .style("fill", "var(--grisfonce)");
+      .filter((d) => d.getMonth() === 0)
+      .style("font-weight", "bold")
+      .style("font-size", "11px")
+      .style("fill", "var(--grisfonce)");
 
   // Style month labels differently
   g.selectAll(".sumchart-x-axis .tick text")
-    .filter((d) => d.getMonth() !== 0)
-    .style("font-size", "10px")
-    .style("fill", "var(--grisleger)");
+      .filter((d) => d.getMonth() !== 0)
+      .style("font-size", "10px")
+      .style("fill", "var(--grisleger)");
 
   g.selectAll(".sumchart-x-axis text")
-    .style("font-size", `${labelFontSizeScale(windowWidth)}px`,
-  );
+      .style("font-size", `${labelFontSizeScale(windowWidth)}px`,
+      );
 
   // Draw lines
   g.append("path")
-    .datum(lineData)
-    .attr("class", "sumchart-tension-line")
-    .attr("d", lineTension);
+      .datum(lineData)
+      .attr("class", "sumchart-tension-line")
+      .attr("d", lineTension);
 
   g.append("path")
-    .datum(lineData)
-    .attr("class", "sumchart-rupture-line")
-    .attr("d", lineRupture);
+      .datum(lineData)
+      .attr("class", "sumchart-rupture-line")
+      .attr("d", lineRupture);
 
   // Add marks (circles) for rupture data points - WITH FILTERING
   g.selectAll(".sumchart-rupture-mark")
-    .data(lineData.filter((d) => d.rupture > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
-    .enter()
-    .append("circle")
-    .attr("class", "sumchart-rupture-mark")
-    .attr("cx", (d) => xScale(d.date))
-    .attr("cy", (d) => yScale(d.rupture))
-    .attr("r", 1)
+      .data(lineData.filter((d) => d.rupture > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
+      .enter()
+      .append("circle")
+      .attr("class", "sumchart-rupture-mark")
+      .attr("cx", (d) => xScale(d.date))
+      .attr("cy", (d) => yScale(d.rupture))
+      .attr("r", 1)
 
   // Add marks (circles) for tension data points - WITH FILTERING
   g.selectAll(".sumchart-tension-mark")
-    .data(lineData.filter((d) => d.tension > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
-    .enter()
-    .append("circle")
-    .attr("class", "sumchart-tension-mark")
-    .attr("cx", (d) => xScale(d.date))
-    .attr("cy", (d) => yScale(d.tension))
-    .attr("r", 1)
+      .data(lineData.filter((d) => d.tension > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
+      .enter()
+      .append("circle")
+      .attr("class", "sumchart-tension-mark")
+      .attr("cx", (d) => xScale(d.date))
+      .attr("cy", (d) => yScale(d.tension))
+      .attr("r", 1)
 
   // Add labels for rupture data points - WITH FILTERING
   g.selectAll(".sumchart-rupture-label")
-    .data(lineData.filter((d) => d.rupture > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
-    .enter()
-    .append("text")
-    .style("font-size", `${labelFontSizeScale(windowWidth)}px`)
-    .attr("class", "sumchart-rupture-label")
-    .attr("x", (d) => xScale(d.date))
-    .attr("y", (d) => yScale(d.rupture) - 10)
-    .attr("text-anchor", "middle")
-    .text((d) => d.rupture);
+      .data(lineData.filter((d) => d.rupture > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
+      .enter()
+      .append("text")
+      .style("font-size", `${labelFontSizeScale(windowWidth)}px`)
+      .attr("class", "sumchart-rupture-label")
+      .attr("x", (d) => xScale(d.date))
+      .attr("y", (d) => yScale(d.rupture) - 10)
+      .attr("text-anchor", "middle")
+      .text((d) => d.rupture);
 
   // Add labels for tension data points - WITH FILTERING
   g.selectAll(".sumchart-tension-label")
-    .data(lineData.filter((d) => d.tension > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
-    .enter()
-    .append("text")
-    .style("font-size", `${labelFontSizeScale(windowWidth)}px`)
-    .attr("class", "sumchart-tension-label")
-    .attr("x", (d) => xScale(d.date))
-    .attr("y", (d) => yScale(d.tension) - 10)
-    .attr("text-anchor", "middle")
-    .text((d) => d.tension);
+      .data(lineData.filter((d) => d.tension > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
+      .enter()
+      .append("text")
+      .style("font-size", `${labelFontSizeScale(windowWidth)}px`)
+      .attr("class", "sumchart-tension-label")
+      .attr("x", (d) => xScale(d.date))
+      .attr("y", (d) => yScale(d.tension) - 10)
+      .attr("text-anchor", "middle")
+      .text((d) => d.tension);
 
-      let currentRupture = 0;
-      let currentTension = 0;
+  let currentRupture = 0;
+  let currentTension = 0;
 
-      rawData.forEach((product) => {
-        if (product.start_date <= dateReport && product.calculated_end_date >= dateReport) {
-          const count = getSpecialiteCount(product);
-          if (product.status === "Rupture") {
-            currentRupture += count;
-          } else if (product.status === "Tension") {
-            currentTension += count;
-          }
-        }
-      });
+  rawData.forEach((product) => {
+    if (product.start_date <= dateReport && product.calculated_end_date >= dateReport) {
+      const count = getSpecialiteCount(product);
+      if (product.status === "Rupture") {
+        currentRupture += count;
+      } else if (product.status === "Tension") {
+        currentTension += count;
+      }
+    }
+  });
 
-      let currentMonthData = {
-        date: dateReport,
-        rupture: currentRupture,
-        tension: currentTension
-      };
+  let currentMonthData = {
+    date: dateReport,
+    rupture: currentRupture,
+    tension: currentTension
+  };
 
-    if (currentMonthData) {
-      // S'assurer que dateReport est un objet Date
-      const dateObj = (dateReport instanceof Date ? dateReport : new Date(dateReport));
-      const dayOfMonth = dateObj.getDate();
-      const labelOffset = dayOfMonth > 15 ? -5 : 10;
-      // Add rupture point if there are ruptures
-      if (currentMonthData.rupture > 0) {
-        // Add larger circle for current rupture total
-        g.append("circle")
+  if (currentMonthData) {
+    const dateObj = (dateReport instanceof Date ? dateReport : new Date(dateReport));
+    const dayOfMonth = dateObj.getDate();
+
+    // Calculate fixed x position for current label
+    const lastMonthStart = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
+    const lastMonthEnd = new Date(dateObj.getFullYear(), dateObj.getMonth() + 1, 0);
+    const midMonthDate = new Date(lastMonthStart.getTime() + (lastMonthEnd.getTime() - lastMonthStart.getTime()) / 2);
+    const labelX = xScale(midMonthDate);
+
+    // Add white background rectangle
+    const ruptureText = currentMonthData.rupture.toString();
+    const fontSize = labelFontSizeScale(windowWidth) + 2;
+    const textWidth = ruptureText.length * fontSize * 0.6; // Approximate text width
+    const textHeight = fontSize;
+
+    // Add rupture point if there are ruptures
+    if (currentMonthData.rupture > 0) {
+      // Add larger circle for current rupture total
+      g.append("circle")
           .attr("class", "sumchart-current-point rupture-fill")
           .attr("cx", xScale(dateObj))
           .attr("cy", yScale(currentMonthData.rupture))
           .attr("r", 3);
 
-        // Position label: à gauche si jour > 15, sinon à droite
-        g.append("text")
-          .attr("class", "sumchart-current-label rupture-fill")
-          .attr("x", xScale(dateObj) + labelOffset)
-          .attr("y", yScale(currentMonthData.rupture))
-          .attr("text-anchor", dayOfMonth > 15 ? "end" : "start")
-          .style("font-size", `${labelFontSizeScale(windowWidth) + 2}px`)
+      // Create a group for the current rupture label with background
+      const ruptureGroup = g.append("g").attr("class", "current-label-group");
+
+      ruptureGroup.append("rect")
+          .attr("x", labelX - textWidth/2 - 2)
+          .attr("y", yScale(currentMonthData.rupture) - textHeight - 10)
+          .attr("width", textWidth + 4)
+          .attr("height", textHeight + 2)
+          .attr("fill", "var(--rupture)")
+          .attr("rx", 2);
+
+// Add the text label on top
+      ruptureGroup.append("text")
+          .attr("class", "sumchart-current-label")
+          .attr("x", labelX)
+          .attr("y", yScale(currentMonthData.rupture) - 10)
+          .attr("text-anchor", "middle")
+          .attr("fill", "var(--blanc  )")
+          .style("font-size", `${fontSize}px`)
+          .style("font-weight", "700")
           .text(currentMonthData.rupture);
-      }
-
-      // Add tension point if there are tensions
-      if (currentMonthData.tension > 0) {
-        // Add larger circle for current tension total
-        g.append("circle")
-          .attr("class", "sumchart-current-point tension-fill")
-          .attr("cx", xScale(dateObj))
-          .attr("cy", yScale(currentMonthData.tension))
-          .attr("r", 3);
-
-        // Position label: à gauche si jour > 15, sinon à droite
-        g.append("text")
-          .attr("class", "sumchart-current-label tension-fill")
-          .attr("x", xScale(dateObj) + labelOffset)
-          .attr("y", yScale(currentMonthData.tension))
-          .attr("text-anchor", dayOfMonth > 15 ? "end" : "start")
-          .style("font-size", `${labelFontSizeScale(windowWidth) + 2}px`)
-          .text(currentMonthData.tension);
-      }
     }
-}
 
+    // Add tension point if there are tensions
+    if (currentMonthData.tension > 0) {
+      // Add larger circle for current tension total
+      g.append("circle")
+        .attr("class", "sumchart-current-point tension-fill")
+        .attr("cx", xScale(dateObj))
+        .attr("cy", yScale(currentMonthData.tension))
+        .attr("r", 3);
+
+      // Create a group for the current tension label with background
+      const tensionGroup = g.append("g").attr("class", "current-label-group");
+      const tensionText = currentMonthData.tension.toString();
+      const tensionTextWidth = tensionText.length * fontSize * 0.6;
+
+      tensionGroup.append("rect")
+        .attr("x", labelX - tensionTextWidth/2 - 2)
+        .attr("y", yScale(currentMonthData.tension) - textHeight - 10)
+        .attr("width", textWidth + 10)
+        .attr("height", textHeight + 4)
+        .attr("fill", "var(--tension)")
+        .attr("rx", 2);
+
+      // Add the text label on top
+      tensionGroup.append("text")
+        .attr("class", "sumchart-current-label")
+        .attr("x", labelX)
+        .attr("y",  yScale(currentMonthData.tension) - 10)
+        .attr("text-anchor", "middle")
+        .attr("fill", "var(--blanc)")
+        .style("font-size", `${fontSize}px`)
+        .style("font-weight", "700")
+        .text(currentMonthData.tension);
+    }
+  }
+}
 /***************************/
 /* Create the table chart  */
 /***************************/
