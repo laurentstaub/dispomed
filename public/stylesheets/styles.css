@@ -85,9 +85,8 @@ footer a:focus {
 }
 
 p {
-  margin: 0;
+  margin: 0 0 5px 0;
   padding: 0;
-  margin-bottom: 5px;
 }
 
 .main-container {
@@ -187,7 +186,7 @@ p {
 #source-info a {
   color: var(--main-0);
   text-decoration: none;
-  border-bottom: 1.5px solid var(--main-0);
+  border-bottom: 1px solid var(--main-0);
   transition: all 0.2s;
 }
 
@@ -206,35 +205,38 @@ p {
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
   padding: 10px;
-  margin: 0px 10px 10px 10px;
+  margin: 0 10px 10px 10px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
 }
 
 #mainfilter-search-box,
-.selector {
-  font-size: 12px;
+.mainfilter-selector {
+    background: var(--blanc);
+  border: 1px solid var(--grisleger);
+  border-radius: 8px;
+  color: var(--grisfonce);
+  font-size: 14px;
+  height: 28px;
   width: 100%;
   margin-bottom: 12px;
   display: block;
 }
 
 #mainfilter-search-box {
-  font-size: 14px;
-  height: 30px;
-  padding: 0 36px 0 14px;
-  border: 1px solid var(--grisleger);
-  border-radius: 8px;
-  background: var(--blanc);
-  color: var(--grisfonce);
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  padding-left: 5px;
   box-sizing: border-box;
-  background-image: url('data:image/svg+xml;utf8,<svg fill="gray" height="18" viewBox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99c.41.41 1.09.41 1.5 0s.41-1.09 0-1.5l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>');
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 18px 18px;
+}
+
+.mainfilter-selector {
+    max-width: 220px;
+}
+
+.mainfilter-checkbox-wrapper label {
+    color: var(--grisfonce);
+    font-size: 13px;
+    margin-left: 5px;
 }
 
 #mainfilter-search-box:focus {
@@ -249,7 +251,7 @@ p {
 }
 
 .mainfilter-checkbox-wrapper {
-    margin-bottom: 0px;
+    margin-bottom: 0;
 }
 
 .mainfilter-button-row {
@@ -305,32 +307,17 @@ p {
 
 .maintbl-row-label {
   display: block;
-  width: var(--label-width, 180px);
-  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
   font-size: 14px;
   color: var(--grisfonce);
   cursor: pointer;
   flex-shrink: 0;
   min-width: 0;
   margin-right: 12px;
-}
-
-.mainfilter-selector {
-  border-color: var(--gristresleger);
-  color: var(--grisfonce);
-  display: inline-block;
-  font-size: 14px;
-  height: 22px;
-  margin-bottom: 10px;
-  max-width: 220px;
-}
-
-.mainfilter-checkbox-wrapper label {
-  color: var(--grisfonce);
-  font-size: 13px;
-  margin-left: 5px;
+  text-decoration-color: var(--gristresleger);
+  text-overflow: ellipsis;
+  width: var(--label-width, 180px);
+  white-space: nowrap;
 }
 
 .button-selected {
@@ -453,7 +440,7 @@ p {
 .flex-container {
   display: flex;
   align-items: flex-start;
-  gap: 0px;
+  gap: 0;
   min-height: 400px;
 }
 
@@ -488,7 +475,7 @@ p {
 
 #floating-legend {
     left: 0;
-    padding: 0px 8px;
+    padding: 0 8px;
 }
 
 #tooltip {
@@ -542,7 +529,7 @@ p {
 /* Section headings */
 #mainfilter-container h2 {
   font-size: 1em;
-  margin-bottom: 0em;
+  margin-bottom: 0;
   color: var(--grisfonce);
   letter-spacing: 0.01em;
 }
@@ -650,7 +637,6 @@ p {
   padding-bottom: 0;
 }
 
-
 .productpg-timeline-container {
   margin-top: 0.5rem;
   margin-bottom: 0;
@@ -682,13 +668,12 @@ p {
 .productpg-status-icon {
   width: 24px;
   text-align: center;
-  margin-right: 10px;
 }
 .productpg-status-label {
   font-size: 1.1em;
   font-weight: 500;
   color: var(--grisfonce);
-  padding: 0.5rem;
+  padding: 4px;
 }
 
 #tooltip.tooltip-rupture { border-left-color: var(--rupture); }
@@ -795,7 +780,7 @@ p {
 
     #report-title {
         font-size: 1rem;
-        margin-bottom: 0px;
+        margin-bottom: 0;
     }
 
     #title-legend {
@@ -829,7 +814,7 @@ p {
 
     #mainfilter-container {
       min-height: 150px;
-      margin: 0px;
+      margin: 0;
       width: 95%;
     }
 
@@ -972,7 +957,7 @@ p {
   color: var(--gristresfonce);
   font-size: 1.1rem;
   font-weight: 500;
-  margin-bottom: 0.5;
+  margin-bottom: 5px;
 }
 
 
