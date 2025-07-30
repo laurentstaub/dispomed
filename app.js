@@ -77,7 +77,6 @@ app.get("/", async (req, res) => {
     });
   } catch (error) {
     console.error("Error loading home page:", error);
-    // Check if it's a database connection error
     if (error.message && error.message.includes("database") && error.message.includes("does not exist")) {
       res.status(500).send(`
         <h1>Database Setup Required</h1>

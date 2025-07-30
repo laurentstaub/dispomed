@@ -551,7 +551,7 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 
     // Add white background rectangle
     const ruptureText = currentMonthData.rupture.toString();
-    const fontSize = labelFontSizeScale(windowWidth) + 2;
+    const fontSize = labelFontSizeScale(windowWidth);
     const textWidth = ruptureText.length * fontSize * 0.6; // Approximate text width
     const textHeight = fontSize;
 

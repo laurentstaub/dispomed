@@ -311,7 +311,7 @@ function drawProductTimeline(product, containerId) {
     // Add a header row for sales section
     salesRowsHtml += `
       <tr class="sales-header">
-        <td colspan="${years.length + 2}" class="sales-header-cell">Nombre de boîtes vendues</td>
+        <td colspan="${years.length + 2}" class="sales-header-cell">Nombre de boîtes vendues (2021 - 2024, source Open medic)</td>
       </tr>
     `;
 
@@ -574,18 +574,13 @@ async function main() {
               .then(emaIncidents => {
                 if (!emaIncidents.length) {
                   emaIncidentsDiv.innerHTML = `<div class="ema-incident-title">Aucun incident EMA lié</div>`;
-                  return;
-                }
+                } else if (emaIncidents.length > 0) {
+                  const statusTranslations = { 'Ongoing': 'En cours', 'Resolved': 'Terminé' };
 
-                const statusTranslations = {
-                  'Ongoing': 'En cours',
-                  'Resolved': 'Terminé'
-                };
-
-                emaIncidentsDiv.innerHTML = '<ul>' +
-                  emaIncidents.map(inc => {
-                    const translatedStatus = statusTranslations[inc.status] || inc.status;
-                    return `<li>
+                  emaIncidentsDiv.innerHTML = '<ul>' +
+                      emaIncidents.map(inc => {
+                        const translatedStatus = statusTranslations[inc.status] || inc.status;
+                        return `<li>
                       <div class="ema-incident-title">${inc.product_name || inc.title || inc.incident_id}</div>
                       <div class="ema-incident-status">${inc.status ? `<span>${translatedStatus}</span>` : ''}</div>
                       <div class="ema-incident-detail"><div class="ema-incident-label">Date de première publication</div><div class="ema-incident-value">${formatFrenchDate(inc.first_published) || 'N/A'}</div></div>
@@ -594,7 +589,8 @@ async function main() {
                       <div class="ema-incident-detail"><div class="ema-incident-label">Résolution attendue</div><div class="ema-incident-value">${formatFrenchDate(inc.expected_resolution) || 'N/A'}</div></div>
                       ${inc.summary_fr ? `<div class="ema-incident-summary"><div class="ema-incident-label">Résumé</div><div class="ema-incident-value">${inc.summary_fr}</div></div>` : ''}
                     </li>`
-                  }).join('') + '</ul>';
+                      }).join('') + '</ul>';
+                }
               })
               .catch(() => {
                 emaIncidentsDiv.innerHTML = 'Erreur lors de la récupération des incidents EMA.';
