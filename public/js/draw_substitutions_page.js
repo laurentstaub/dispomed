@@ -114,11 +114,9 @@ async function fetchAndDrawSubstitutions(cisCode) {
             // Original format for generics
             tr.innerHTML = `
               <td>
-                <a href="/product/${alternativeCis}">
                   <strong>${alternativeName}</strong>
                   <br>
                   <small>CIS: ${alternativeCis}</small>
-                </a>
               </td>
               <td>${(sub.score_similarite * 100).toFixed(0)}%</td>
               <td>${sub.raison || 'Non spécifié'}</td>
@@ -156,11 +154,9 @@ async function fetchAndDrawSubstitutions(cisCode) {
 
             tr.innerHTML = `
               <td>
-                <a href="/product/${alternativeCis}">
                   <strong>${alternativeName}</strong>
                   <br>
                   <small>CIS: ${alternativeCis}</small>
-                </a>
               </td>
               <td class="score-final-cell">${(sub.score_similarite * 100).toFixed(0)}%</td>
               <td>${scoreATC}</td>

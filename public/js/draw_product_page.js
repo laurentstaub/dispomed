@@ -97,10 +97,6 @@ function drawProductTimeline(product, containerId) {
     .attr('stroke-width', 1)
     .attr('stroke-dasharray', '3,3');
 
-  // Create a separate group for horizontal gridlines
-  const horizontalGridGroup = svg.append('g')
-    .attr('class', 'horizontal-grid-lines');
-
   // Add axis with more prominent styling
   const xAxisGroup = svg.append('g')
     .attr('class', 'x-axis')
@@ -537,7 +533,6 @@ async function main() {
 
               // Ajouter l'événement click pour le toggle
               toggleButton.addEventListener('click', () => {
-                const isExpanded = toggleButton.classList.contains('expanded');
                 toggleButton.classList.toggle('expanded');
                 contentDiv.classList.toggle('expanded');
               });

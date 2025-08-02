@@ -45,75 +45,74 @@ async function fetchConfig() {
 }
 
 export async function fetchTableChartData(
-  isInitialSetup,
-  monthsToShow = 12,
-  searchTerm = "",
-  atcClass = "",
-  molecule = "",
+    monthsToShow = 12,
+    searchTerm = "",
+    atcClass = "",
+    molecule = "",
 ) {
-  await fetchConfig();
-  const queryString = new URLSearchParams({
-    monthsToShow: monthsToShow,
-    product: searchTerm,
-    atcClass: atcClass,
-    ...(molecule ? { molecule: molecule } : {}),
-    ...(dataManager.getVaccinesOnly() ? { vaccinesOnly: 'true' } : {})
-  }).toString();
+    await fetchConfig();
+    const queryString = new URLSearchParams({
+        monthsToShow: monthsToShow,
+        product: searchTerm,
+        atcClass: atcClass,
+        ...(molecule ? { molecule: molecule } : {}),
+        ...(dataManager.getVaccinesOnly() ? { vaccinesOnly: 'true' } : {})
+    }).toString();
 
-  const url = `${API_BASE_URL}/api/incidents${queryString ? "?" + queryString : ""}`;
+    const url = `${API_BASE_URL}/api/incidents${queryString ? "?" + queryString : ""}`;
 
-  return fetch(url)
-    .then((response) => response.json())
-    .then((data) => {
-      const processedData = processDates(data);
-      const lastReportDate = Math.max(
-        dataManager.getDateReport(),
-        Math.max(...processedData.map((d) => new Date(d.calculated_end_date))),
-      );
-      const [startDate, endDate] = getDateRange(lastReportDate, monthsToShow);
-      dataManager.setDateReport(lastReportDate);
-      dataManager.setStartDate(startDate);
-      dataManager.setEndDate(endDate);
-      dataManager.setProducts(processedData);
-      dataManager.setAccentedProducts(processedData);
+    return fetch(url)
+        .then((response) => response.json())
+        .then((data) => {
+            const processedData = processDates(data);
+            const lastReportDate = Math.max(
+                dataManager.getDateReport(),
+                Math.max(...processedData.map((d) => new Date(d.calculated_end_date))),
+            );
+            const [startDate, endDate] = getDateRange(lastReportDate, monthsToShow);
+            dataManager.setDateReport(lastReportDate);
+            dataManager.setStartDate(startDate);
+            dataManager.setEndDate(endDate);
+            dataManager.setProducts(processedData);
+            dataManager.setAccentedProducts(processedData);
 
-      // We want to set a full map of atc/molecules from the initial fetch
-      // to populate the list of classes and molecules whatever the selections are
-      // We trigger an initial setup every time we change the period
-      if (isInitialSetup) {
-        const atcMoleculeFullMap = data.map((d) => {
-          return {
-            molecule: `${d.molecule_id} - ${d.molecule}`,
-            atcClass: d.atc_code,
-          };
+            // Check if molecule class map is empty to determine if this is initial setup
+            const isInitialSetup = dataManager.getMoleculeClassMap().length === 0;
+
+            if (isInitialSetup) {
+                const atcMoleculeFullMap = data.map((d) => {
+                    return {
+                        molecule: `${d.molecule_id} - ${d.molecule}`,
+                        atcClass: d.atc_code,
+                    };
+                });
+
+                // To get the unique atcClass/molecules couples
+                let mappedAtcMolecules = [
+                    ...new Map(
+                        atcMoleculeFullMap.map((line) => {
+                            return [line["molecule"], line["atcClass"]];
+                        }),
+                    ),
+                ];
+
+                let arrayAtcMolecules = mappedAtcMolecules.map((line) => {
+                    return {
+                        atcClass: line[1],
+                        moleculeName: line[0].split(" - ")[1],
+                        moleculeId: line[0].split(" - ")[0],
+                    };
+                });
+
+                let sortedAtcMolecules = arrayAtcMolecules.sort((a, b) => {
+                    return a.moleculeName.localeCompare(b.moleculeName);
+                });
+
+                dataManager.setMoleculeClassMap(sortedAtcMolecules);
+            }
+
+            return processedData;
         });
-
-        // To get the unique atcClass/molecules couples
-        let mappedAtcMolecules = [
-          ...new Map(
-            atcMoleculeFullMap.map((line) => {
-              return [line["molecule"], line["atcClass"]];
-            }),
-          ),
-        ];
-
-        let arrayAtcMolecules = mappedAtcMolecules.map((line) => {
-          return {
-            atcClass: line[1],
-            moleculeName: line[0].split(" - ")[1],
-            moleculeId: line[0].split(" - ")[0],
-          };
-        });
-
-        let sortedAtcMolecules = arrayAtcMolecules.sort((a, b) => {
-          return a.moleculeName.localeCompare(b.moleculeName);
-        });
-
-        dataManager.setMoleculeClassMap(sortedAtcMolecules);
-      }
-
-      return processedData;
-    });
 }
 
 function getDateRange(lastReportDate, monthsToShow) {
