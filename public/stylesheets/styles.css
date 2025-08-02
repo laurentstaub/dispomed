@@ -159,7 +159,7 @@ p {
 }
 
 #info-container {
-    padding: 0;
+    padding: 15px;
 }
 
 #source-info h2 {
@@ -220,6 +220,7 @@ p {
   font-size: 14px;
   height: 28px;
   width: 100%;
+    max-width: 220px;
   margin-bottom: 12px;
   display: block;
 }
@@ -227,10 +228,6 @@ p {
 #mainfilter-search-box {
   padding-left: 5px;
   box-sizing: border-box;
-}
-
-.mainfilter-selector {
-    max-width: 220px;
 }
 
 .mainfilter-checkbox-wrapper label {
@@ -923,6 +920,10 @@ p {
 }
 
 @media (max-width: 900px) {
+    .mainfilter-selector,
+    #mainfilter-search-box {
+        max-width: 100%;
+    }
   .productpg-score-flex {
     flex-direction: column;
   }

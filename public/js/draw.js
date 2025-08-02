@@ -2,11 +2,6 @@ import { dataManager } from "./01_store_data.js";
 import { fetchTableChartData } from "./00_fetch_data.js";
 import { getDaysBetween, formatDurationSince, getProductStatus } from "./utils.js";
 
-const HOURS_IN_DAY = 24;
-const MINS_IN_HOUR = 60;
-const SECS_IN_MIN = 60;
-const MS_IN_SEC = 1000;
-const MS_IN_DAY = HOURS_IN_DAY * MINS_IN_HOUR * SECS_IN_MIN * MS_IN_SEC;
 const ALL_TIME_START = new Date(2021, 4, 1);
 
 let rawData = [];
@@ -117,17 +112,6 @@ function getSpecialiteCount(product) {
   return 1;
 }
 
-// Get unique products count
-function getUniqueProductLength(eventList) {
-  let result = [];
-
-  eventList.forEach((event) => {
-    if (!result.includes(event.product)) result.push(event.product);
-  });
-
-  return result.length;
-}
-
 function formatDuration(years, months, days) {
   const parts = [];
   const pluralize = (value, singular, plural) =>
@@ -172,44 +156,52 @@ function debounce(func, delay) {
 
 function createDebouncedSearch(callback, delay = 400) {
   let debounceTimer;
-  return function (isInitialSetup, searchTerm) {
+  return function (searchTerm) {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
-      callback(isInitialSetup, searchTerm);
+      callback(searchTerm);
     }, delay);
   };
 }
 
-async function handleSearch(isInitialSetup, searchTerm) {
+async function handleSearch(searchTerm) {
   const monthsToShow = dataManager.getMonthsToShow();
   const atcClass = dataManager.getATCClass();
   const molecule = dataManager.getMolecule();
+  console.log(searchTerm, monthsToShow, atcClass, molecule);
 
-  rawData = await fetchTableChartData(isInitialSetup, monthsToShow,
+  rawData = await fetchTableChartData(monthsToShow,
     searchTerm, atcClass, molecule);
   monthlyData = dataManager.processDataMonthlyChart(rawData);
-  drawTableChart(rawData, false);
+  drawTableChart(rawData);
   drawSummaryChart(monthlyData, false);
 
-  // Only update the molecule dropdown when ATC class changes or on initial setup
+  // Only update the molecule dropdown when ATC class changes
   // This prevents the dropdown from disappearing when a molecule is selected
-  if (isInitialSetup || molecule === "") {
+  if (molecule === "") {
     updateMoleculeDropdown(atcClass);
   }
 }
 
 function updateMoleculeDropdown(atcClass) {
+    console.log('Run update')
   const moleculeSelect = d3.select("#molecule");
   const selectedMoleculeId = dataManager.getMolecule();
   let rawMolecules = dataManager.getMoleculeClassMap();
+  console.log(`raw from dataManager: ${rawMolecules[0].atcClass}`)
 
   if (atcClass !== "") {
-    rawMolecules = rawMolecules.filter((mol) => mol.atcClass === atcClass);
+    console.log(`atcClass: ${atcClass}`)
+    rawMolecules = rawMolecules.filter((mol) => mol.atcClass.slice(0, 1) === atcClass);
   }
+
+  console.log(rawMolecules)
 
   const molecules = rawMolecules.map((mol) => {
     return { code: mol.moleculeId, name: mol.moleculeName };
   });
+
+  console.log(molecules)
 
   // Update dropdown options
   const options = moleculeSelect.selectAll("option")
@@ -244,7 +236,7 @@ window.addEventListener(
   debounce(() => {
     windowWidth = getWindowWidth();
     monthlyData = dataManager.processDataMonthlyChart(rawData);
-    drawTableChart(rawData, false);
+    drawTableChart(rawData);
     drawSummaryChart(monthlyData, false);
   }, 250),
 );
@@ -269,7 +261,7 @@ d3.select("#atc").on("input", function () {
   dataManager.setMolecule("");
   d3.select("#molecule").property("value", "").dispatch("change");
 
-  handleSearch(false, dataManager.getSearchTerm());
+  handleSearch(dataManager.getSearchTerm());
 });
 
 d3.select("#molecule").on("input", function () {
@@ -283,12 +275,12 @@ d3.select("#molecule").on("input", function () {
   select.selectAll("option")
     .property("selected", d => d && d.code === molecule);
 
-  handleSearch(false, dataManager.getSearchTerm());
+  handleSearch(dataManager.getSearchTerm());
 });
 
 d3.select("#vaccines-filter").on("change", function() {
   dataManager.setVaccinesOnly(this.checked);
-  handleSearch(false, dataManager.getSearchTerm());
+  handleSearch(dataManager.getSearchTerm());
 });
 
 // Replace button click handlers with radio change handlers
@@ -298,10 +290,10 @@ periodRadios.forEach(radio => {
     const period = e.target.value;
     if (period === '12') {
   dataManager.setMonthsToShow(12);
-  handleSearch(true, dataManager.getSearchTerm());
+  handleSearch(dataManager.getSearchTerm());
     } else if (period === '24') {
   dataManager.setMonthsToShow(24);
-  handleSearch(true, dataManager.getSearchTerm());
+  handleSearch(dataManager.getSearchTerm());
     } else if (period === 'all') {
   const end = new Date(dataManager.getDateReport());
   const start = ALL_TIME_START;
@@ -310,7 +302,7 @@ periodRadios.forEach(radio => {
   const monthsDiff = yearsFromStart * 12 + monthsFromStart + 1;
 
   dataManager.setMonthsToShow(monthsDiff);
-  handleSearch(true, dataManager.getSearchTerm());
+  handleSearch(dataManager.getSearchTerm());
     }
 });
 });
@@ -319,14 +311,14 @@ periodRadios.forEach(radio => {
 document.getElementById('period-12').checked = true;
 
 async function initializeData() {
-  rawData = await fetchTableChartData(true);
+  rawData = await fetchTableChartData();
   monthlyData = dataManager.processDataMonthlyChart(rawData);
 
   d3.select("#mise-a-jour").text(
     `Mise à jour : ${formatDate(dataManager.getDateReport())}`,
   );
-  drawTableChart(rawData, true);
-  drawSummaryChart(monthlyData, true);
+  drawTableChart(rawData);
+  drawSummaryChart(monthlyData);
 }
 
 initializeData();
@@ -334,7 +326,7 @@ initializeData();
 /***********************************/
 /*    Draw the top summary chart   */
 /***********************************/
-function drawSummaryChart(monthlyChartData, isInitialSetup) {
+function drawSummaryChart(monthlyChartData) {
   const margin = { top: 70, right: 15, bottom: 35, left: 10 };
   const height = 380;
   const width = 600;
@@ -395,9 +387,11 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
       .y((d) => yScale(d.rupture))
       .defined((d) => d.rupture > 0);
 
-  // Create SVG
-  let svg;
-  if (isInitialSetup) {
+  // Create SVG if initial setup
+    let svg = d3.select("#summary svg");
+    const isInitialSetup = svg.empty();
+
+    if (isInitialSetup) {
     svg = d3.select("#summary")
         .append("svg")
         .attr("viewBox", `0 0 ${width} ${height}`)
@@ -541,7 +535,6 @@ function drawSummaryChart(monthlyChartData, isInitialSetup) {
 
   if (currentMonthData) {
     const dateObj = (dateReport instanceof Date ? dateReport : new Date(dateReport));
-    const dayOfMonth = dateObj.getDate();
 
     // Calculate fixed x position for current label
     const lastMonthStart = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
@@ -633,7 +626,7 @@ function getLabelWidth() {
   return parseInt(value, 10) || (isMobile ? 70 : 180); // fallback
 }
 
-function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
+function drawTableChart(rawData) {
   const dash = d3.select('#maintbl-dash');
   dash.html('');
 
@@ -800,7 +793,7 @@ function drawTableChart(rawData, isInitialSetup, highlightedProducts = []) {
     productIncidents.forEach(d => {
       const barStart = d.start_date > startDate ? d.start_date : startDate;
       const barEnd = d.status === 'Arret' && !d.end_date ? dateReport : d.calculated_end_date;
-      
+
       svg.append('rect')
         .attr('x', xScale(barStart))
         .attr('y', (rowHeight - barHeight) / 2)
