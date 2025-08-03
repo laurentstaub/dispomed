@@ -4,11 +4,12 @@ block scripts
   script(type="module",src="/js/draw.js")
 
 block content
-  div.main-container
-    div#title-container.flex-container
-      img#capsule-icon(src="/images/gris_carre_leger.png" alt="Icône de capsule")
-      div#title-text
-        h1#report-title Incidents de disponibilité des médicaments et vaccins
+  .main-container
+    #title-container.flex-container
+      .header-title
+        h1
+          .pill-icon 💊
+          #report-title INCIDENTS DE DISPONIBILITÉ des médicaments et vaccins
         h2#mise-a-jour
 
     div.flex-container

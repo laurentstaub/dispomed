@@ -73,10 +73,7 @@ function drawProductTimeline(product, containerId) {
 
   // Add timeline axis at the very top, shifted by labelWidth
   const xAxis = d3.axisTop(xScale)
-    .ticks(d3.timeYear.every(1))
-    .tickFormat(d3.timeFormat('%Y'))
-    .tickSizeOuter(4)
-    .tickPadding(8);
+    .tickFormat('');
 
   // Add vertical grid lines for quarters and years
   const gridGroup = svg.append('g')
@@ -104,21 +101,45 @@ function drawProductTimeline(product, containerId) {
 
   xAxisGroup.call(xAxis);
 
-  // Style the axis
-  xAxisGroup.select('.domain')
-    .attr('stroke', 'var(--grisfonce)')
-    .attr('stroke-width', 2);
+    // Add second year axis with background and centered labels
+    const secondAxisHeight = 25;
+    const secondAxisY = -15;
 
-  xAxisGroup.selectAll('.tick text')
-    .attr('fill', 'var(--grisfonce)')
-    .attr('font-size', '14px')
-    .attr('font-weight', 600);
+    // Add light grey background for the second axis
+    svg.append('rect')
+        .attr('x', labelWidth)
+        .attr('y', secondAxisY)
+        .attr('width', width - labelWidth)
+        .attr('height', secondAxisHeight)
+        .attr('fill', '#f5f5f5')
+        .attr('opacity', 0.7);
 
-  xAxisGroup.selectAll('.tick line')
-    .attr('stroke', 'var(--grisfonce)')
-    .attr('stroke-width', 2);
+    // Create year intervals for centered positioning
+    const yearTicks = xScale.ticks(d3.timeYear.every(1));
+    const secondAxisGroup = svg.append('g')
+        .attr('class', 'x-axis-secondary')
+        .attr('transform', `translate(${labelWidth},${secondAxisY + secondAxisHeight/2})`);
 
-  // Add horizontal grid lines for each row
+    // Add year labels centered between ticks
+    yearTicks.forEach((tick, index) => {
+        if (index < yearTicks.length - 1) {
+            const currentYear = xScale(tick);
+            const nextYear = xScale(yearTicks[index + 1]);
+            const centerX = (currentYear + nextYear) / 2;
+
+            secondAxisGroup.append('text')
+                .attr('x', centerX)
+                .attr('y', 2)
+                .attr('text-anchor', 'middle')
+                .attr('fill', 'var(--grisfonce)')
+                .attr('font-size', '12px')
+                .attr('font-weight', 500)
+                .text(d3.timeFormat('%Y')(tick));
+        }
+    });
+
+
+    // Add horizontal grid lines for each row
   product.incidents.forEach((incident, index) => {
     const start = new Date(Math.max(new Date(incident.start_date), timelineStart));
     const end = new Date(Math.min(new Date(incident.calculated_end_date || incident.end_date || timelineEnd), timelineEnd));
@@ -134,7 +155,8 @@ function drawProductTimeline(product, containerId) {
       .attr('width', width - labelWidth)
       .attr('height', barHeight)
       .attr('rx', 0)
-      .attr('fill', 'var(--blanc)');
+      .attr('fill', 'var(--gristrestresleger)')
+      .attr('opacity', 0.3);
 
     // 2. Add horizontal grid line
     svg.append('line')
@@ -229,30 +251,59 @@ function drawProductTimeline(product, containerId) {
   const scoreValue = parseFloat(score);
 
   // Donut chart values
-  const disponibleDays = totalDaysPeriod - ruptureDays - tensionDays - arretDays;
-  const disponiblePercent = ((disponibleDays / totalDaysPeriod) * 100).toFixed(1);
-  const donutSize = 70;
-  const donutStroke = 12;
-  const center = donutSize / 2;
-  const radius = (donutSize - donutStroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const scoreArc = scoreValue / 100 * circumference;
-  const donutSVG = `
-    <svg width="${donutSize}" height="${donutSize}" viewBox="0 0 ${donutSize} ${donutSize}">
-      <circle
-        cx="${center}" cy="${center}" r="${radius}"
-        fill="none" stroke="var(--gristrestresleger)" stroke-width="${donutStroke}"
-      />
-      <circle
-        cx="${center}" cy="${center}" r="${radius}"
-        fill="none" stroke="var(--grisfonce)" stroke-width="${donutStroke}"
-        stroke-dasharray="${scoreArc} ${circumference - scoreArc}"
-        stroke-dashoffset="${circumference / 4}"
-        style="transition: stroke-dasharray 0.5s;"
-      />
-      <text x="${center}" y="${center + 5}" text-anchor="middle" font-size="0.8rem" font-weight="600" fill="var(--grisfonce)">${score}%</text>
-    </svg>
-  `;
+  //     const disponibleDays = totalDaysPeriod - ruptureDays - tensionDays - arretDays;
+  //     const donutSize = 70;
+  //     const donutStroke = 12;
+  //     const center = donutSize / 2;
+  //     const radius = (donutSize - donutStroke) / 2;
+  //     const circumference = 2 * Math.PI * radius;
+  //     const scoreArc = scoreValue / 100 * circumference;
+  //     const donutSVG = `
+  //       <svg width="${donutSize}" height="${donutSize}" viewBox="0 0 ${donutSize} ${donutSize}">
+  //         <circle
+  //           cx="${center}" cy="${center}" r="${radius}"
+  //           fill="none" stroke="var(--gristrestresleger)" stroke-width="${donutStroke}"
+  //         />
+  //         <circle
+  //           cx="${center}" cy="${center}" r="${radius}"
+  //           fill="none" stroke="var(--grisfonce)" stroke-width="${donutStroke}"
+  //           stroke-dasharray="${scoreArc} ${circumference - scoreArc}"
+  //           stroke-dashoffset="${circumference / 4}"
+  //           style="transition: stroke-dasharray 0.5s;"
+  //         />
+  //         <text x="${center}" y="${center + 5}" text-anchor="middle" font-size="0.8rem" font-weight="600" fill="var(--grisfonce)">${score}%</text>
+  //       </svg>
+  //     `;
+
+    const disponibleDays = totalDaysPeriod - ruptureDays - tensionDays - arretDays;
+    const donutSize = 120;
+    const donutStroke = 6;
+    const center = donutSize / 2;
+    const radius = (donutSize - donutStroke) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const scoreArc = scoreValue / 100 * circumference;
+    const donutSVG = `
+  <svg width="${donutSize}" height="${donutSize}" viewBox="0 0 ${donutSize} ${donutSize}">
+    <defs>
+      <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" style="stop-color:#3b82f6"/>
+        <stop offset="100%" style="stop-color:#1d4ed8"/>
+      </linearGradient>
+    </defs>
+    <circle
+      cx="${center}" cy="${center}" r="${radius}"
+      fill="none" stroke="#f1f5f9" stroke-width="${donutStroke}"
+    />
+    <circle
+      cx="${center}" cy="${center}" r="${radius}"
+      fill="none" stroke="url(#progressGradient)" stroke-width="${donutStroke}"
+      stroke-dasharray="${scoreArc} ${circumference - scoreArc}"
+      stroke-dashoffset="${circumference / 4}"
+      style="transition: stroke-dasharray 0.6s ease;"
+    />
+    <text x="${center}" y="${center + 2}" text-anchor="middle" font-size="18px" font-weight="700" fill="#0f172a">${score}%</text>
+  </svg>
+`;
 
   // Add stats to the page above the timeline
   let statsContainer = document.getElementById('productpg-stats');
@@ -327,7 +378,7 @@ function drawProductTimeline(product, containerId) {
   }
 
   statsContainer.innerHTML = `
-    <div class="productpg-score-flex">
+ <div class="productpg-score-flex">
       <div class="productpg-score-stats">
         <div class="productpg-stats-title">Jours de disponibilité depuis avril 2021</div>
         <table class="productpg-stats-table">
@@ -339,17 +390,17 @@ function drawProductTimeline(product, containerId) {
             </tr>
           </thead>
           <tbody>
-            <tr>
+            <tr class="disponible-row">
               <td class="productpg-stats-label">Disponible</td>
               ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-disponible">${formatNumber(yearlyStats[y].total - yearlyStats[y].rupture - yearlyStats[y].tension - yearlyStats[y].arret)}</span></td>`).join('')}
               <td class="productpg-stats-value total-col"><span class="status-disponible">${formatNumber(disponibleDays)}</span></td>
             </tr>
-            <tr>
+            <tr class="tension-row">
               <td class="productpg-stats-label">Tension</td>
               ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-tension">${formatNumber(yearlyStats[y].tension)}</span></td>`).join('')}
               <td class="productpg-stats-value total-col"><span class="status-tension">${formatNumber(tensionDays)}</span></td>
             </tr>
-            <tr>
+            <tr class="rupture-row">
               <td class="productpg-stats-label">Rupture</td>
               ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-rupture">${formatNumber(yearlyStats[y].rupture)}</span></td>`).join('')}
               <td class="productpg-stats-value total-col"><span class="status-rupture">${formatNumber(ruptureDays)}</span></td>
@@ -453,11 +504,11 @@ async function main() {
             const atcCode = incidents[0].atc_code || '';
             const atcDescription = incidents[0].classe_atc || '';
 
-            const reportTitle = document.getElementById('report-title');
+            const reportTitle = document.getElementById('productpg-report-title');
             if (reportTitle) {
               reportTitle.textContent = accentedProductName;
             }
-            const infoSubtitle = document.getElementById('atc-description');
+            const infoSubtitle = document.getElementById('breadcrumb');
             if (infoSubtitle) {
               let subtitleText = '';
               if (atcDescription) { subtitleText += `${atcDescription} / `; }
