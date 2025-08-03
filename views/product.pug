@@ -4,15 +4,17 @@ block scripts
   script(type='module', src='/js/draw_product_page.js')
 
 block content
-  div.retour-container
+  .retour-container
     a.productpg-back-link(href="/")
       i(class="fa-solid fa-arrow-left")
       |  Retour à l'accueil
-  div.main-container
-    div#title-container.flex-container
-      img#capsule-icon(src="/images/gris_carre_leger.png" alt="Icône de capsule")
-      div#title-text
-        h1#report-title
+  .main-container
+    #title-container.flex-container
+      .header-title
+        #breadcrumb
+        h1
+          .pill-icon 💊
+          #productpg-report-title
         .productpg-status-row
           span.productpg-status-icon
             i(class="fa-solid fa-square-xmark rupture-icon")
@@ -20,7 +22,6 @@ block content
 
     div.flex-container
       .productpg-inner-wrapper
-        #atc-description
         .cis-list#cis-list
         h2.section-title Statistiques
         #productpg-stats
