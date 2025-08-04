@@ -250,34 +250,9 @@ function drawProductTimeline(product, containerId) {
   const score = (((totalDaysPeriod + totalScore) / totalDaysPeriod) * 100).toFixed(1);
   const scoreValue = parseFloat(score);
 
-  // Donut chart values
-  //     const disponibleDays = totalDaysPeriod - ruptureDays - tensionDays - arretDays;
-  //     const donutSize = 70;
-  //     const donutStroke = 12;
-  //     const center = donutSize / 2;
-  //     const radius = (donutSize - donutStroke) / 2;
-  //     const circumference = 2 * Math.PI * radius;
-  //     const scoreArc = scoreValue / 100 * circumference;
-  //     const donutSVG = `
-  //       <svg width="${donutSize}" height="${donutSize}" viewBox="0 0 ${donutSize} ${donutSize}">
-  //         <circle
-  //           cx="${center}" cy="${center}" r="${radius}"
-  //           fill="none" stroke="var(--gristrestresleger)" stroke-width="${donutStroke}"
-  //         />
-  //         <circle
-  //           cx="${center}" cy="${center}" r="${radius}"
-  //           fill="none" stroke="var(--grisfonce)" stroke-width="${donutStroke}"
-  //           stroke-dasharray="${scoreArc} ${circumference - scoreArc}"
-  //           stroke-dashoffset="${circumference / 4}"
-  //           style="transition: stroke-dasharray 0.5s;"
-  //         />
-  //         <text x="${center}" y="${center + 5}" text-anchor="middle" font-size="0.8rem" font-weight="600" fill="var(--grisfonce)">${score}%</text>
-  //       </svg>
-  //     `;
-
     const disponibleDays = totalDaysPeriod - ruptureDays - tensionDays - arretDays;
     const donutSize = 120;
-    const donutStroke = 6;
+    const donutStroke = 8;
     const center = donutSize / 2;
     const radius = (donutSize - donutStroke) / 2;
     const circumference = 2 * Math.PI * radius;
@@ -291,17 +266,18 @@ function drawProductTimeline(product, containerId) {
       </linearGradient>
     </defs>
     <circle
+      class="donut-background"
       cx="${center}" cy="${center}" r="${radius}"
-      fill="none" stroke="#f1f5f9" stroke-width="${donutStroke}"
+      stroke-width="${donutStroke}"
     />
     <circle
+      class="donut-progress"
       cx="${center}" cy="${center}" r="${radius}"
-      fill="none" stroke="url(#progressGradient)" stroke-width="${donutStroke}"
+      stroke-width="${donutStroke}"
       stroke-dasharray="${scoreArc} ${circumference - scoreArc}"
       stroke-dashoffset="${circumference / 4}"
-      style="transition: stroke-dasharray 0.6s ease;"
     />
-    <text x="${center}" y="${center + 2}" text-anchor="middle" font-size="18px" font-weight="700" fill="#0f172a">${score}%</text>
+    <text class="donut-text" x="${center}" y="${center + 7}">${score}%</text>
   </svg>
 `;
 
@@ -380,7 +356,7 @@ function drawProductTimeline(product, containerId) {
   statsContainer.innerHTML = `
  <div class="productpg-score-flex">
       <div class="productpg-score-stats">
-        <div class="productpg-stats-title">Jours de disponibilité depuis avril 2021</div>
+        <div class="card-title">Jours de disponibilité depuis avril 2021</div>
         <table class="productpg-stats-table">
           <thead>
             <tr>
@@ -391,23 +367,23 @@ function drawProductTimeline(product, containerId) {
           </thead>
           <tbody>
             <tr class="disponible-row">
-              <td class="productpg-stats-label">Disponible</td>
-              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-disponible">${formatNumber(yearlyStats[y].total - yearlyStats[y].rupture - yearlyStats[y].tension - yearlyStats[y].arret)}</span></td>`).join('')}
+              <td class="productpg-stats-label status-disponible">Disponible</td>
+              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span>${formatNumber(yearlyStats[y].total - yearlyStats[y].rupture - yearlyStats[y].tension - yearlyStats[y].arret)}</span></td>`).join('')}
               <td class="productpg-stats-value total-col"><span class="status-disponible">${formatNumber(disponibleDays)}</span></td>
             </tr>
             <tr class="tension-row">
-              <td class="productpg-stats-label">Tension</td>
-              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-tension">${formatNumber(yearlyStats[y].tension)}</span></td>`).join('')}
+              <td class="productpg-stats-label status-tension">Tension</td>
+              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><spang>${formatNumber(yearlyStats[y].tension)}</spang></td>`).join('')}
               <td class="productpg-stats-value total-col"><span class="status-tension">${formatNumber(tensionDays)}</span></td>
             </tr>
             <tr class="rupture-row">
-              <td class="productpg-stats-label">Rupture</td>
-              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-rupture">${formatNumber(yearlyStats[y].rupture)}</span></td>`).join('')}
+              <td class="productpg-stats-label status-rupture">Rupture</td>
+              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span>${formatNumber(yearlyStats[y].rupture)}</span></td>`).join('')}
               <td class="productpg-stats-value total-col"><span class="status-rupture">${formatNumber(ruptureDays)}</span></td>
             </tr>
             <tr>
-              <td class="productpg-stats-label">Arrêt</td>
-              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span class="status-arret">${formatNumber(yearlyStats[y].arret)}</span></td>`).join('')}
+              <td class="productpg-stats-label status-arret">Arrêt</td>
+              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span>${formatNumber(yearlyStats[y].arret)}</span></td>`).join('')}
               <td class="productpg-stats-value total-col"><span class="status-arret">${formatNumber(arretDays)}</span></td>
             </tr>
             <tr class="total-row">
@@ -420,7 +396,7 @@ function drawProductTimeline(product, containerId) {
         </table>
       </div>
       <div class="productpg-score-donut">
-        <div class="productpg-stats-title">Score de disponibilité</div>
+        <div class="card-title">Score de disponibilité</div>
         <span style="font-size:12px;">100% = toujours disponible<br>
         0% = toujours en rupture</span><br>
         ${donutSVG}
