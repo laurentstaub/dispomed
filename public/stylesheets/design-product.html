@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Pharmaceutique Moderne</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        color: #1e293b;
+        line-height: 1.6;
+        padding: 24px;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .header {
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+        margin-bottom: 24px;
+        border-left: 4px solid #3b82f6;
+      }
+
+      .header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .pill-icon {
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 16px;
+      }
+
+      .breadcrumb {
+        color: #64748b;
+        font-size: 14px;
+        margin-bottom: 16px;
+      }
+
+      .status-alert {
+        background: linear-gradient(135deg, #fef2f2, #fee2e2);
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .status-alert .icon {
+        width: 24px;
+        height: 24px;
+        background: #ef4444;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      .status-alert .text {
+        color: #dc2626;
+        font-weight: 600;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+        margin-bottom: 24px;
+      }
+
+      .card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+        border: 1px solid #f1f5f9;
+        transition: all 0.3s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      }
+
+      .card-header {
+        margin-bottom: 20px;
+      }
+
+      .card-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 4px;
+      }
+
+      .card-subtitle {
+        color: #64748b;
+        font-size: 14px;
+      }
+
+      .stats-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 16px;
+      }
+
+      .stats-table th {
+        background: #f8fafc;
+        padding: 12px 16px;
+        text-align: left;
+        font-weight: 600;
+        color: #475569;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .stats-table th:first-child {
+        border-radius: 8px 0 0 0;
+      }
+
+      .stats-table th:last-child {
+        border-radius: 0 8px 0 0;
+      }
+
+      .stats-table td {
+        padding: 16px;
+        border-bottom: 1px solid #f1f5f9;
+        font-weight: 500;
+      }
+
+      .stats-table tr:hover {
+        background: #f8fafc;
+      }
+
+      .status-disponible {
+        color: #059669;
+        background: #d1fae5;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .status-tension {
+        color: #d97706;
+        background: #fef3c7;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .status-rupture {
+        color: #dc2626;
+        background: #fee2e2;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .availability-score {
+        text-align: center;
+        padding: 32px;
+      }
+
+      .score-circle {
+        width: 160px;
+        height: 160px;
+        margin: 0 auto 24px;
+        position: relative;
+      }
+
+      .score-value {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 32px;
+        font-weight: 800;
+        color: #0f172a;
+      }
+
+      .score-label {
+        color: #64748b;
+        font-size: 14px;
+        margin-bottom: 12px;
+      }
+
+      .score-details {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #f1f5f9;
+      }
+
+      .score-detail {
+        text-align: center;
+      }
+
+      .score-detail-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: #64748b;
+      }
+
+      .score-detail-label {
+        font-size: 12px;
+        color: #94a3b8;
+        margin-top: 2px;
+      }
+
+      .timeline-card {
+        grid-column: 1 / -1;
+      }
+
+      .timeline {
+        position: relative;
+        margin-top: 24px;
+      }
+
+      .timeline-year {
+        display: flex;
+        align-items: center;
+        margin-bottom: 32px;
+        position: relative;
+      }
+
+      .year-label {
+        font-weight: 700;
+        color: #475569;
+        width: 80px;
+        font-size: 14px;
+      }
+
+      .timeline-events {
+        flex: 1;
+        position: relative;
+        height: 40px;
+        background: #f8fafc;
+        border-radius: 20px;
+        margin-left: 20px;
+      }
+
+      .event {
+        position: absolute;
+        height: 24px;
+        border-radius: 12px;
+        top: 8px;
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        font-size: 12px;
+        font-weight: 600;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .event:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .event-rupture {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+      }
+
+      .event-tension {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+      }
+
+      .sales-info {
+        background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+        border: 1px solid #bae6fd;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+      }
+
+      .sales-title {
+        font-weight: 700;
+        color: #0c4a6e;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .sales-data {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 16px;
+      }
+
+      .sales-item {
+        text-align: center;
+        padding: 12px;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e0f2fe;
+      }
+
+      .sales-value {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0c4a6e;
+      }
+
+      .sales-year {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 2px;
+      }
+
+      @media (max-width: 768px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .container {
+          padding: 16px;
+        }
+
+        .header {
+          padding: 24px;
+        }
+
+        .sales-data {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      /* Progress ring for availability score */
+      .progress-ring {
+        transform: rotate(-90deg);
+      }
+
+      .progress-ring-circle {
+        transition: stroke-dasharray 0.35s;
+        transform-origin: 50% 50%;
+      }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="breadcrumb">N - Système nerveux / N03AF01 / Carbamazépine</div>
+        <h1>
+            <div class="pill-icon">💊</div>
+            CARBAMAZÉPINE VIATRIS LP 400 mg
+        </h1>
+        <p style="color: #64748b; font-size: 16px;">Comprimé sécable à libération prolongée</p>
+
+        <div class="status-alert">
+            <div class="icon">!</div>
+            <div class="text">Statut actuel : Rupture de stock</div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Statistiques de disponibilité</h2>
+                <p class="card-subtitle">Données depuis avril 2021</p>
+            </div>
+
+            <table class="stats-table">
+                <thead>
+                <tr>
+                    <th>Statut</th>
+                    <th>2021</th>
+                    <th>2022</th>
+                    <th>2023</th>
+                    <th>2024</th>
+                    <th>2025</th>
+                    <th>Total</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td><span class="status-disponible">Disponible</span></td>
+                    <td>275</td>
+                    <td>365</td>
+                    <td>132</td>
+                    <td>-</td>
+                    <td>1</td>
+                    <td><strong>770</strong></td>
+                </tr>
+                <tr>
+                    <td><span class="status-tension">Tension</span></td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>95</td>
+                    <td>366</td>
+                    <td>183</td>
+                    <td><strong>645</strong></td>
+                </tr>
+                <tr>
+                    <td><span class="status-rupture">Rupture</span></td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>138</td>
+                    <td>-</td>
+                    <td>30</td>
+                    <td><strong>170</strong></td>
+                </tr>
+                <tr style="background: #f8fafc; font-weight: 600;">
+                    <td>Total</td>
+                    <td>275</td>
+                    <td>365</td>
+                    <td>365</td>
+                    <td>366</td>
+                    <td>214</td>
+                    <td><strong>1585</strong></td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="sales-info">
+                <div class="sales-title">
+                    📊 Nombre de boîtes vendues (2021-2024)
+                </div>
+                <div class="sales-data">
+                    <div class="sales-item">
+                        <div class="sales-value">37 815</div>
+                        <div class="sales-year">2021</div>
+                    </div>
+                    <div class="sales-item">
+                        <div class="sales-value">49 127</div>
+                        <div class="sales-year">2022</div>
+                    </div>
+                    <div class="sales-item">
+                        <div class="sales-value">56 725</div>
+                        <div class="sales-year">2023</div>
+                    </div>
+                    <div class="sales-item">
+                        <div class="sales-value">67 875</div>
+                        <div class="sales-year">2024</div>
+                    </div>
+                    <div class="sales-item" style="grid-column: span 2; background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+                        <div class="sales-value" style="color: #1d4ed8;">211 542</div>
+                        <div class="sales-year">Total</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="availability-score">
+                <div class="card-header">
+                    <h2 class="card-title">Score de disponibilité</h2>
+                    <p class="card-subtitle">Performance globale</p>
+                </div>
+
+                <div class="score-circle">
+                    <svg width="160" height="160" class="progress-ring">
+                        <circle cx="80" cy="80" r="70" fill="none" stroke="#f1f5f9" stroke-width="8"/>
+                        <circle cx="80" cy="80" r="70" fill="none" stroke="url(#gradient)" stroke-width="8"
+                                stroke-dasharray="303" stroke-dashoffset="94" class="progress-ring-circle"/>
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#3b82f6"/>
+                                <stop offset="100%" style="stop-color:#1d4ed8"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="score-value">68.9%</div>
+                </div>
+
+                <div class="score-details">
+                    <div class="score-detail">
+                        <div class="score-detail-value">100%</div>
+                        <div class="score-detail-label">Toujours disponible</div>
+                    </div>
+                    <div class="score-detail">
+                        <div class="score-detail-value">0%</div>
+                        <div class="score-detail-label">Toujours en rupture</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card timeline-card">
+        <div class="card-header">
+            <h2 class="card-title">Historique des incidents</h2>
+            <p class="card-subtitle">Chronologie des ruptures et tensions d'approvisionnement</p>
+        </div>
+
+        <div class="timeline">
+            <div class="timeline-year">
+                <div class="year-label">2022</div>
+                <div class="timeline-events">
+                    <!-- 2022 avait une bonne disponibilité -->
+                </div>
+            </div>
+
+            <div class="timeline-year">
+                <div class="year-label">2023</div>
+                <div class="timeline-events">
+                    <div class="event event-rupture" style="left: 20%; width: 25%;" title="Rupture 03/23 - 06/23">
+                        Rupture Q1-Q2
+                    </div>
+                    <div class="event event-rupture" style="left: 50%; width: 20%;" title="Rupture 07/23 - 09/23">
+                        Rupture Q3
+                    </div>
+                    <div class="event event-tension" style="left: 75%; width: 20%;" title="Tension 09/23 - 07/25">
+                        Début tension
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-year">
+                <div class="year-label">2024</div>
+                <div class="timeline-events">
+                    <div class="event event-tension" style="left: 0%; width: 95%;" title="Tension continue">
+                        Tension prolongée
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-year">
+                <div class="year-label">2025</div>
+                <div class="timeline-events">
+                    <div class="event event-tension" style="left: 0%; width: 70%;" title="Tension continue">
+                        Tension
+                    </div>
+                    <div class="event event-rupture" style="left: 75%; width: 25%;" title="Rupture 07/25 - 08/25">
+                        Rupture actuelle
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

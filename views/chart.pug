@@ -12,12 +12,11 @@ block content
           #report-title INCIDENTS DE DISPONIBILITÉ des médicaments et vaccins
         h2#mise-a-jour
 
-    div.flex-container
-      div#mainfilter-container
-        h2 Filtres
-        div.mainfilter-divider
-        input(type="text" id="mainfilter-search-box" placeholder="Recherche produit, molécule...")
-        div.mainfilter-atc-wrapper
+    .flex-container
+      #mainfilter-container
+        h2.card-title Filtres
+        .mainfilter-wrapper
+          input(type="text" id="mainfilter-search-box" placeholder="Recherche produit, molécule...")
           select.mainfilter-selector#atc(name="atc")
             option(value="" selected=selectedAtcClass === "") Choisir une classe ATC
             each atcClass in ATCClasses
@@ -26,11 +25,10 @@ block content
             option(value="") Choisir une molécule
             each molecule in molecules
               option(value=molecule.code)=`${molecule.name}`
-          div.mainfilter-checkbox-wrapper
+          .mainfilter-checkbox-wrapper
             input(type="checkbox" id="vaccines-filter")
             label(for="vaccines-filter") Vaccins uniquement (ATC J07)
-        div.mainfilter-divider
-        div.mainfilter-button-row(role="radiogroup" aria-label="Select time period")
+        .mainfilter-button-row(role="radiogroup" aria-label="Select time period")
           input(type="radio" id="period-12" name="period" value="12" class="mainfilter-radio" checked)
           label(for="period-12" class="mainfilter-button") 12 mois
           
@@ -40,9 +38,8 @@ block content
           input(type="radio" id="period-all" name="period" value="all" class="mainfilter-radio")
           label(for="period-all" class="mainfilter-button") Tout
         button#mainfilter-reset.mainfilter-button Réinitialiser
-        div.mainfilter-divider
-        div#legend-container
-          div#floating-legend
+        #legend-container
+          #floating-legend
             p#title-legend Légende
             .legend-item
               span.legend-color-box.legend-rupture
@@ -56,15 +53,12 @@ block content
             .legend-item
               span.legend-color-box.legend-disponible
               | Disponible
-      div#summary
-    div#recent-changes
-    div.table-section-header
-      h2 Détail des incidents: produits, statut et durée de chaque incident
-    div#maintbl-dash
-      div#tooltip
+      #summary
+    #maintbl-dash
+      #tooltip
 
-  div#source-info
-    div#info-container
+  #source-info
+    #info-container
       h2 Avertissement
       p Les données présentées sur ce site proviennent de sources gouvernementales publiques. Bien que nous nous efforcions de garantir l'exactitude et la fiabilité des informations affichées, ce site ne saurait être tenu responsable des erreurs, omissions ou interprétations des données. Ce site est une représentation visuelle des données et ne constitue pas une source officielle ou faisant autorité. Pour des informations certifiées, veuillez consulter directement les sources gouvernementales référencées sur #[a(href='https://ansm.sante.fr/disponibilites-des-produits-de-sante/medicaments') Disponibilité des produits de santé].
       p En utilisant ce site, vous acceptez ces conditions.

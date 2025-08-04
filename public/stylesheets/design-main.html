@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incidents de Disponibilité - Dashboard Moderne</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        color: #1e293b;
+        line-height: 1.6;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+
+      /* Header Section */
+      .header {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        margin-bottom: 32px;
+        border-left: 6px solid #3b82f6;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        border-radius: 50%;
+        opacity: 0.05;
+        transform: translate(50px, -50px);
+      }
+
+      .header-content {
+        position: relative;
+        z-index: 1;
+      }
+
+      .header h1 {
+        font-size: 32px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .header-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+      }
+
+      .header-subtitle {
+        color: #64748b;
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 24px;
+      }
+
+      .last-update {
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        border: 1px solid #93c5fd;
+        border-radius: 12px;
+        padding: 12px 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #1e40af;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      /* Main Layout */
+      .main-layout {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 32px;
+        align-items: start;
+      }
+
+      /* Filters Sidebar */
+      .filters-sidebar {
+        background: white;
+        border-radius: 20px;
+        padding: 32px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        border: 1px solid #f1f5f9;
+        position: sticky;
+        top: 24px;
+      }
+
+      .filters-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .filter-group {
+        margin-bottom: 24px;
+      }
+
+      .filter-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+        display: block;
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 16px;
+        background: #fafbfc;
+        transition: all 0.2s ease;
+      }
+
+      .search-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+      }
+
+      .select-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 16px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .select-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+      }
+
+      /* Time Filter Buttons */
+      .time-filters {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      .time-btn {
+        flex: 1;
+        padding: 10px 16px;
+        border: 2px solid #e2e8f0;
+        background: white;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: #64748b;
+      }
+
+      .time-btn.active {
+        background: #475569;
+        border-color: #475569;
+        color: white;
+        box-shadow: 0 4px 12px rgba(71, 85, 105, 0.3);
+      }
+
+      .time-btn:hover:not(.active) {
+        border-color: #cbd5e1;
+        background: #f8fafc;
+      }
+
+      /* Checkbox styling */
+      .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+      }
+
+      .checkbox-group input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #e2e8f0;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      .checkbox-group label {
+        font-size: 15px;
+        color: #374151;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      /* Reset button */
+      .reset-btn {
+        width: 100%;
+        padding: 12px 20px;
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: #475569;
+        margin-bottom: 24px;
+      }
+
+      .reset-btn:hover {
+        background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+        border-color: #cbd5e1;
+      }
+
+      /* Legend */
+      .legend {
+        margin-top: 24px;
+      }
+
+      .legend-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 16px;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+      }
+
+      .legend-color.rupture { background: #ef4444; }
+      .legend-color.tension { background: #f59e0b; }
+      .legend-color.arret { background: #6b7280; }
+      .legend-color.disponible { background: #10b981; }
+
+      .legend-text {
+        font-size: 14px;
+        font-weight: 500;
+        color: #374151;
+      }
+
+      /* Chart Section */
+      .chart-section {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        border: 1px solid #f1f5f9;
+        margin-bottom: 32px;
+      }
+
+      .chart-header {
+        margin-bottom: 32px;
+      }
+
+      .chart-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 8px;
+      }
+
+      .chart-subtitle {
+        color: #64748b;
+        font-size: 16px;
+        font-weight: 500;
+      }
+
+      .chart-container {
+        position: relative;
+        height: 400px;
+        margin: 24px 0;
+      }
+
+      /* Mock Chart Styling */
+      .mock-chart {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        background: linear-gradient(135deg, #fafbfc, #f8fafc);
+        border-radius: 16px;
+        overflow: hidden;
+      }
+
+      .chart-lines {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+
+      .tension-line {
+        position: absolute;
+        height: 3px;
+        background: linear-gradient(90deg, #f59e0b, #d97706);
+        border-radius: 2px;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+      }
+
+      .rupture-line {
+        position: absolute;
+        height: 3px;
+        background: linear-gradient(90deg, #ef4444, #dc2626);
+        border-radius: 2px;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+      }
+
+      .chart-point {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: white;
+        border: 3px solid;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      .chart-point.tension { border-color: #f59e0b; }
+      .chart-point.rupture { border-color: #ef4444; }
+
+      .chart-label {
+        position: absolute;
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+        background: white;
+        padding: 4px 8px;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Data Table Section */
+      .data-section {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        border: 1px solid #f1f5f9;
+      }
+
+      .data-header {
+        margin-bottom: 32px;
+      }
+
+      .data-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 8px;
+      }
+
+      .data-subtitle {
+        color: #64748b;
+        font-size: 16px;
+        font-weight: 500;
+      }
+
+      /* Modern Table */
+      .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 24px;
+      }
+
+      .modern-table th {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        padding: 16px 20px;
+        text-align: left;
+        font-weight: 700;
+        color: #374151;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e2e8f0;
+      }
+
+      .modern-table th:first-child {
+        border-radius: 12px 0 0 0;
+      }
+
+      .modern-table th:last-child {
+        border-radius: 0 12px 0 0;
+      }
+
+      .modern-table td {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f1f5f9;
+        font-weight: 500;
+        color: #475569;
+      }
+
+      .modern-table tr:hover {
+        background: #fafbfc;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      }
+
+      .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .status-badge.rupture {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+      }
+
+      .status-badge.tension {
+        background: linear-gradient(135deg, #fef3c7, #fed7aa);
+        color: #d97706;
+        border: 1px solid #fdba74;
+      }
+
+      .status-badge.disponible {
+        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+        color: #059669;
+        border: 1px solid #86efac;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 1024px) {
+        .main-layout {
+          grid-template-columns: 1fr;
+          gap: 24px;
+        }
+
+        .filters-sidebar {
+          position: static;
+        }
+
+        .container {
+          padding: 16px;
+        }
+
+        .header {
+          padding: 24px;
+        }
+
+        .header h1 {
+          font-size: 24px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .time-filters {
+          flex-direction: column;
+        }
+
+        .chart-container {
+          height: 300px;
+        }
+
+        .modern-table {
+          font-size: 14px;
+        }
+
+        .modern-table th,
+        .modern-table td {
+          padding: 12px 16px;
+        }
+      }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Header Section -->
+    <div class="header">
+        <div class="header-content">
+            <h1>
+                <div class="header-icon">💊</div>
+                INCIDENTS DE DISPONIBILITÉ des médicaments et vaccins
+            </h1>
+            <p class="header-subtitle">Surveillance en temps réel des ruptures et tensions d'approvisionnement</p>
+            <div class="last-update">
+                <span>🕒</span>
+                Mise à jour : 2 août 2025
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Filters Sidebar -->
+        <div class="filters-sidebar">
+            <h2 class="filters-title">
+                <span>🔍</span>
+                Filtres
+            </h2>
+
+            <div class="filter-group">
+                <label class="filter-label">Recherche</label>
+                <input type="text" class="search-input" placeholder="Recherche produit, molécule...">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Classe ATC</label>
+                <select class="select-input">
+                    <option>Choisir une classe ATC</option>
+                    <option>A - Système digestif et métabolisme</option>
+                    <option>B - Sang et organes hématopoïétiques</option>
+                    <option>C - Système cardiovasculaire</option>
+                    <option>N - Système nerveux</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Molécule</label>
+                <select class="select-input">
+                    <option>Choisir une molécule</option>
+                    <option>Amoxicilline</option>
+                    <option>Paracétamol</option>
+                    <option>Carbamazépine</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="vaccines">
+                    <label for="vaccines">Vaccins uniquement (ATC J07)</label>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Période</label>
+                <div class="time-filters">
+                    <button class="time-btn active">12 mois</button>
+                    <button class="time-btn">24 mois</button>
+                    <button class="time-btn">Tout</button>
+                </div>
+            </div>
+
+            <button class="reset-btn">Réinitialiser</button>
+
+            <div class="legend">
+                <h3 class="legend-title">Légende</h3>
+                <div class="legend-item">
+                    <div class="legend-color rupture"></div>
+                    <span class="legend-text">Rupture</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color tension"></div>
+                    <span class="legend-text">Tension</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color arret"></div>
+                    <span class="legend-text">Arrêt de commercialisation</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color disponible"></div>
+                    <span class="legend-text">Disponible</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Chart Section -->
+            <div class="chart-section">
+                <div class="chart-header">
+                    <h2 class="chart-title">Évolution des ruptures et tensions</h2>
+                    <p class="chart-subtitle">En nombre de spécialités (Codes CIS) manquantes le 1er de chaque période</p>
+                </div>
+
+                <div class="chart-container">
+                    <div class="mock-chart">
+                        <!-- Tension line -->
+                        <div class="tension-line" style="top: 25%; left: 5%; width: 85%; transform: rotate(2deg);"></div>
+
+                        <!-- Rupture line -->
+                        <div class="rupture-line" style="top: 70%; left: 5%; width: 85%; transform: rotate(-1deg);"></div>
+
+                        <!-- Chart points -->
+                        <div class="chart-point tension" style="top: 24%; left: 10%;"></div>
+                        <div class="chart-point tension" style="top: 22%; left: 20%;"></div>
+                        <div class="chart-point tension" style="top: 20%; left: 30%;"></div>
+                        <div class="chart-point tension" style="top: 18%; left: 40%;"></div>
+                        <div class="chart-point tension" style="top: 15%; left: 50%;"></div>
+                        <div class="chart-point tension" style="top: 13%; left: 60%;"></div>
+                        <div class="chart-point tension" style="top: 16%; left: 70%;"></div>
+                        <div class="chart-point tension" style="top: 18%; left: 80%;"></div>
+                        <div class="chart-point tension" style="top: 20%; left: 90%;"></div>
+
+                        <div class="chart-point rupture" style="top: 71%; left: 10%;"></div>
+                        <div class="chart-point rupture" style="top: 69%; left: 20%;"></div>
+                        <div class="chart-point rupture" style="top: 72%; left: 30%;"></div>
+                        <div class="chart-point rupture" style="top: 74%; left: 40%;"></div>
+                        <div class="chart-point rupture" style="top: 76%; left: 50%;"></div>
+                        <div class="chart-point rupture" style="top: 78%; left: 60%;"></div>
+                        <div class="chart-point rupture" style="top: 75%; left: 70%;"></div>
+                        <div class="chart-point rupture" style="top: 73%; left: 80%;"></div>
+                        <div class="chart-point rupture" style="top: 70%; left: 90%;"></div>
+
+                        <!-- Chart labels -->
+                        <div class="chart-label" style="top: 10%; left: 50%; color: #d97706;">775 Tensions</div>
+                        <div class="chart-label" style="top: 85%; left: 50%; color: #dc2626;">66 Ruptures</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Table Section -->
+            <div class="data-section">
+                <div class="data-header">
+                    <h2 class="data-title">Détail des incidents</h2>
+                    <p class="data-subtitle">Produits, statut et durée de chaque incident</p>
+                </div>
+
+                <table class="modern-table">
+                    <thead>
+                    <tr>
+                        <th>Produit</th>
+                        <th>Molécule</th>
+                        <th>Statut</th>
+                        <th>Début</th>
+                        <th>Fin prévue</th>
+                        <th>Durée</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><strong>CARBAMAZÉPINE VIATRIS LP 400 mg</strong></td>
+                        <td>Carbamazépine</td>
+                        <td><span class="status-badge rupture">Rupture</span></td>
+                        <td>15 juil. 2025</td>
+                        <td>15 sept. 2025</td>
+                        <td>62 jours</td>
+                    </tr>
+                    <tr>
+                        <td><strong>AMOXICILLINE BIOGARAN 500 mg</strong></td>
+                        <td>Amoxicilline</td>
+                        <td><span class="status-badge tension">Tension</span></td>
+                        <td>10 juin 2025</td>
+                        <td>30 août 2025</td>
+                        <td>81 jours</td>
+                    </tr>
+                    <tr>
+                        <td><strong>PARACÉTAMOL ZENTIVA 1000 mg</strong></td>
+                        <td>Paracétamol</td>
+                        <td><span class="status-badge disponible">Disponible</span></td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td><strong>DOLIPRANE 500 mg</strong></td>
+                        <td>Paracétamol</td>
+                        <td><span class="status-badge tension">Tension</span></td>
+                        <td>25 juil. 2025</td>
+                        <td>15 oct. 2025</td>
+                        <td>82 jours</td>
+                    </tr>
+                    <tr>
+                        <td><strong>VENTOLINE 100 µg</strong></td>
+                        <td>Salbutamol</td>
+                        <td><span class="status-badge rupture">Rupture</span></td>
+                        <td>01 août 2025</td>
+                        <td>20 sept. 2025</td>
+                        <td>50 jours</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -405,7 +405,7 @@ function drawSummaryChart(monthlyChartData) {
       .attr("transform", "translate(0, 0)");
 
   const titleText = svg.append("text")
-      .attr("class", "sumchart-chart-title")
+      .attr("class", "card-title")
       .attr("x", 10)
       .attr("y", 20)
       .attr("text-anchor", "start")
@@ -628,7 +628,7 @@ function getLabelWidth() {
 
 function drawTableChart(rawData) {
   const dash = d3.select('#maintbl-dash');
-  dash.html('');
+  dash.html('<h2 class="card-title">Détail des incidents: produits, statut et durée de chaque incident</h2>');
 
   // Dynamically measure container width after clearing
   let containerWidth = 900;
@@ -638,7 +638,7 @@ function drawTableChart(rawData) {
     if (measured && measured > 0) {
       containerWidth = measured;
     } else {
-      containerWidth = Math.min(900, window.innerWidth);
+      containerWidth = Math.min(containerWidth, window.innerWidth);
     }
   }
 
@@ -674,10 +674,15 @@ function drawTableChart(rawData) {
   const statusBoxWidth = isMobile ? 6 : 8;
   const gap = isMobile ? 6 : 12;
   const padding = 8;
-  const svgWidth = Math.max(
-    50,
-    containerWidth - iconWidth - labelWidth - statusBoxWidth - gap - padding
-  );
+  const totalPadding = padding * 2; // Left and right padding
+  const totalGaps = gap * 2; // Gaps between elements
+  const reservedWidth = iconWidth + labelWidth + statusBoxWidth + totalGaps + totalPadding;
+
+    const svgWidth = Math.max(
+        50,
+        Math.min(900, containerWidth) - reservedWidth
+    );
+
 
   // Add section title row before the first recently changed product
   let addedSectionTitle = false;
