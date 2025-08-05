@@ -20,12 +20,13 @@ block content
             i(class="fa-solid fa-square-xmark rupture-icon")
           span.productpg-status-label Statut actuel :
 
-    div.flex-container
+    .flex-container
       .productpg-inner-wrapper
         .cis-list#cis-list
         #productpg-stats
-    h2.card-title Historique des incidents
-    #productpg-timeline-container.productpg-timeline-container
+    .productpg-timeline-card
+      h2.card-title Historique des incidents
+      #productpg-timeline-container
     
     //- h2.section-title Alternatives thérapeutiques
     //- #alternatives-navigation-container.ema-incident-card
@@ -34,8 +35,9 @@ block content
     //-     select#cis-selector(name="cis")
     //-     button(type="submit") Voir les alternatives
 
-    h2.card-title Incidents au niveau européen (EMA) liés
-    #ema-incidents.ema-incident-card
+    .ema-incident-card
+      h2.card-title Incidents au niveau européen (EMA) liés
+      #ema-incidents
 
 block head
   script.

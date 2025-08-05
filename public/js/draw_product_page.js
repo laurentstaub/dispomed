@@ -356,7 +356,10 @@ function drawProductTimeline(product, containerId) {
   statsContainer.innerHTML = `
  <div class="productpg-score-flex">
       <div class="productpg-score-stats">
-        <div class="card-title">Jours de disponibilité depuis avril 2021</div>
+        <div class="card-header">
+          <div class="card-title">Jours de disponibilité</div>
+          <p class="card-subtitle">Données depuis avril 2021</p>
+        </div>
         <table class="productpg-stats-table">
           <thead>
             <tr>

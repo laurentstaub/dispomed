@@ -404,29 +404,20 @@ function drawSummaryChart(monthlyChartData) {
   const group = svg.append("g")
       .attr("transform", "translate(0, 0)");
 
-  const titleText = svg.append("text")
-      .attr("class", "card-title")
-      .attr("x", 10)
-      .attr("y", 20)
-      .attr("text-anchor", "start")
-      .text("Évolution des ruptures et tensions");
+  let titleContainer = d3.select("#summary .title-card");
 
-  const bbox = titleText.node().getBBox();
-  group.insert("rect", "text")
-      .attr("x", bbox.x - 10)
-      .attr("y", bbox.y - 5)
-      .attr("width", bbox.width + 20)
-      .attr("height", bbox.height + 10)
-      .style("fill", "var(--blanc")
-      .style("rx", 5) // Rounded corners
-      .style("ry", 5);
+  if (titleContainer.empty()) {
+    titleContainer = d3.select("#summary")
+        .insert("div", ":first-child")
+        .attr("class", "title-card");
 
-  group.append("text")
-      .attr("class", "sumchart-chart-subtitle")
-      .attr("x", 10)
-      .attr("y", 24 + bbox.height) // Position below the title with spacing
-      .attr("text-anchor", "start")
-      .text("En nombre de spécialités (Codes CIS) manquantes le 1er de chaque période");
+    titleContainer.html(`
+        <div class="card-header">
+          <h3 class="card-title">Évolution des ruptures et tensions</h3>
+          <p class="card-subtitle">En nombre de spécialités (Codes CIS) manquantes le 1er de chaque période</p>
+        </div>
+    `);
+  }
 
   const g = svg.append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -628,7 +619,7 @@ function getLabelWidth() {
 
 function drawTableChart(rawData) {
   const dash = d3.select('#maintbl-dash');
-  dash.html('<h2 class="card-title">Détail des incidents: produits, statut et durée de chaque incident</h2>');
+  dash.html('<div class="card-title">Détail des incidents: produits, statut et durée de chaque incident</div>');
 
   // Dynamically measure container width after clearing
   let containerWidth = 900;
