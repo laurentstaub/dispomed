@@ -15,44 +15,48 @@ block content
     .flex-container
       #mainfilter-container
         h2.card-title Filtres
-        .mainfilter-wrapper
+        .filter-group
           input(type="text" id="mainfilter-search-box" placeholder="Recherche produit, molécule...")
+        .filter-group
           select.mainfilter-selector#atc(name="atc")
             option(value="" selected=selectedAtcClass === "") Choisir une classe ATC
             each atcClass in ATCClasses
               option(value=atcClass.code, selected=atcClass.code === selectedAtcClass)= `${atcClass.code} - ${atcClass.description}`
+        .filter-group
           select.mainfilter-selector#molecule(name="molecule")
             option(value="") Choisir une molécule
             each molecule in molecules
               option(value=molecule.code)=`${molecule.name}`
-          .mainfilter-checkbox-wrapper
+        .filter-group
             input(type="checkbox" id="vaccines-filter")
-            label(for="vaccines-filter") Vaccins uniquement (ATC J07)
-        .mainfilter-button-row(role="radiogroup" aria-label="Select time period")
-          input(type="radio" id="period-12" name="period" value="12" class="mainfilter-radio" checked)
-          label(for="period-12" class="mainfilter-button") 12 mois
-          
-          input(type="radio" id="period-24" name="period" value="24" class="mainfilter-radio")
-          label(for="period-24" class="mainfilter-button") 24 mois
-          
-          input(type="radio" id="period-all" name="period" value="all" class="mainfilter-radio")
-          label(for="period-all" class="mainfilter-button") Tout
-        button#mainfilter-reset.mainfilter-button Réinitialiser
-        #legend-container
-          #floating-legend
-            p#title-legend Légende
-            .legend-item
-              span.legend-color-box.legend-rupture
-              | Rupture
-            .legend-item
-              span.legend-color-box.legend-tension
-              | Tension
-            .legend-item
-              span.legend-color-box.legend-arret
-              | Arrêt de commercialisation
-            .legend-item
-              span.legend-color-box.legend-disponible
-              | Disponible
+            label(for="vaccines-filter" class="card-subtitle") Vaccins uniquement (ATC J07)
+        .filter-group
+            .mainfilter-button-row(role="radiogroup" aria-label="Select time period")
+              input(type="radio" id="period-12" name="period" value="12" class="mainfilter-radio" checked)
+              label(for="period-12" class="mainfilter-button") 12 mois
+
+              input(type="radio" id="period-24" name="period" value="24" class="mainfilter-radio")
+              label(for="period-24" class="mainfilter-button") 24 mois
+
+              input(type="radio" id="period-all" name="period" value="all" class="mainfilter-radio")
+              label(for="period-all" class="mainfilter-button") Tout
+        button#mainfilter-reset Réinitialiser
+        .filter-group
+            #legend-container
+              #floating-legend
+                p#title-legend Légende
+                .legend-item
+                  span.legend-color-box.legend-rupture
+                  | Rupture
+                .legend-item
+                  span.legend-color-box.legend-tension
+                  | Tension
+                .legend-item
+                  span.legend-color-box.legend-arret
+                  | Arrêt de commercialisation
+                .legend-item
+                  span.legend-color-box.legend-disponible
+                  | Disponible
       #summary
     #maintbl-dash
       #tooltip
