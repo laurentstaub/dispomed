@@ -40,6 +40,7 @@ summary::-webkit-details-marker {
   --grisleger: rgb(170, 170, 170);
   --main-0: rgb(3, 95, 0);
   --rupture: rgb(213, 76, 117);
+  --rupturefonce: rgb(145, 30, 64);
   --tension: rgb(251, 184, 84);
   --tensionfonce: rgb(224, 130, 0);
   --tensionleger: rgb(255, 202, 100);
@@ -173,7 +174,7 @@ p {
 
 #source-info {
   background: var(--gristrestresleger);
-  border-radius: 12px;
+  border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   color: var(--grisfonce);
   line-height: 1.5;
@@ -289,7 +290,7 @@ p {
   padding: 12px 6px;
   border: 2px solid #e2e8f0;
   background: white;
-  border-radius: 10px;
+  border-radius: 8px;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
@@ -431,7 +432,7 @@ p {
   height: 14px;
   display: inline-block;
   margin-right: 5px;
-  border-radius: 2px;
+  border-radius: 4px;
   vertical-align: middle;
 }
 
@@ -523,10 +524,6 @@ p {
   font-size: 14px;
 }
 
-#cis-list {
-  margin-top: 8px;
-}
-
 .table-section-header {
   background: var(--blanc);
   border-bottom: 1px solid var(--gristresleger);
@@ -541,15 +538,19 @@ p {
   border-top: 1px solid var(--blanc);
   display: flex;
   align-items: center;
+  isolation: isolate;
   min-height: 23px;
+  position: relative;
+  z-index: 1;
+  transition: all 0.2s ease;
 }
 
 .maintbl-row-modern:hover,
 .maintbl-row-modern:focus-within {
   background: var(--blanc);
   font-weight: 400;
-  transform: scale(1.05, 1.05) !important;
-  z-index: 100 !important;
+  transform: scale(1.02, 1.02) !important;
+  z-index: 1000 !important;
   box-shadow: 0 8px 32px rgba(90, 90, 90, 0.18) !important;
 }
 
@@ -577,7 +578,7 @@ p {
   gap: 12px;
   background: linear-gradient(135deg, #f8fafc, #f1f5f9);
   border: 2px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 16px 20px;
   cursor: pointer;
   font-size: 15px;
@@ -585,7 +586,6 @@ p {
   color: #475569;
   transition: all 0.3s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-  margin-bottom: 8px;
 }
 
 .cis-toggle-button:hover {
@@ -663,7 +663,7 @@ p {
 }
 
 .cis-content {
-  border-radius: 12px;
+  border-radius: 8px;
   background: white;
   border: 1px solid #f1f5f9;
   margin-bottom: 16px;
@@ -689,7 +689,7 @@ p {
   padding: 12px 16px;
   background: linear-gradient(135deg, #fafbfc, #f8fafc);
   border: 1px solid #f1f5f9;
-  border-radius: 10px;
+  border-radius: 8px;
   margin-bottom: 8px;
   transition: all 0.2s ease;
 }
@@ -721,8 +721,7 @@ p {
 .cis-code {
   font-weight: 500;
   font-size: 14px;
-  color: #374151;
-  font-family: 'Monaco', 'Menlo', monospace;
+  color: #64748b;
   flex: 1;
 }
 
@@ -784,13 +783,6 @@ p {
   padding: 4px;
 }
 
-
-.cis-section {
-  margin-top: 0.5rem;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
 #breadcrumb {
   color: #64748b;
   font-size: 14px;
@@ -804,18 +796,18 @@ p {
   padding: 24px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
   border: 1px solid #f1f5f9;
+  margin-top: 16px;
 }
 
 .productpg-status-row {
   display: flex;
   align-items: center;
-  margin: 10px 10px 10px 0;
-  font-size: 0.9rem;
+  margin: 20px 0 8px 0;
+  font-size: 14px;
   min-width: 400px;
   max-width: 900px;
-  border-radius: 0.5rem;
-  padding: 5px;
-  background: var(--grisclair);
+  border-radius: 8px;
+  padding: 8px 4px;
   box-sizing: border-box;
   width: 100%;
 }
@@ -823,18 +815,19 @@ p {
 .productpg-status-row.status-disponible {
   background: var(--vertleger);
   border: 1px solid var(--disponible);
-  color: var(--disponible);
+  color: var(--disponiblefonce);
 }
 
 .productpg-status-row.status-tension {
   background: var(--tensiontresleger);
   border: 1px solid var(--tension);
-  color: var(--tension);
+  color: var(--tensionfonce);
 }
 
 .productpg-status-row.status-rupture {
   background: #fbe9ef;
   border: 1px solid var(--rupture);
+  color: var(--rupturefonce);
 
 }
 
@@ -846,7 +839,6 @@ p {
 .productpg-status-label {
   font-size: 1.1em;
   font-weight: 500;
-  color: var(--grisfonce);
   padding: 4px;
 }
 
@@ -1099,11 +1091,12 @@ p {
 }
 
 .productpg-score-flex {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(592px, 2fr) minmax(292px, 1fr);
   align-items: stretch;
   justify-content: space-between;
   gap: 16px;
-  margin: 0.5rem 0;
+  width: 100%;
 }
 
 .productpg-score-stats {
@@ -1252,7 +1245,7 @@ p {
 
 /* Body cells */
 .productpg-stats-table tbody td {
-  padding: 10px;
+  padding: 8px;
   border-bottom: 1px solid #f1f5f9;
   color: #475569;
   font-weight: 500;
@@ -1286,50 +1279,6 @@ p {
   fill: #0f172a;
 }
 
-.status-disponible {
-  background: #d1fae5;
-  color: #059669;
-  padding: 4px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  display: inline-block;
-}
-
-.status-tension {
-  background: #fef3c7;
-  color: #d97706;
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  display: inline-block;
-}
-
-.status-rupture {
-  background: #fee2e2;
-  color: #dc2626;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  display: inline-block;
-}
-
-.status-arret {
-  background: #f3f4f6;
-  color: #6b7280;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  display: inline-block;
-}
-
 /* Total row styling */
 .total-row {
   background: #f8fafc;
@@ -1359,51 +1308,182 @@ p {
   background: #f1f5f9 !important;
 }
 
-/* EMA Incident Card Styling */
+/* Content directly in #ema-incidents */
 .ema-incident-card {
-  flex: 2;
-  background: white;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-  border: 1px solid #f1f5f9;
+    flex: 2;
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    border: 1px solid #f1f5f9;
+    margin-top: 16px;
+  /* No additional padding since it's already in a card */
 }
 
+.ema-incidents-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.ema-incident-item {
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.ema-incident-item:hover {
+  border-color: #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Keep all the other styles the same */
 .ema-incident-title {
-  font-weight: 400;
-  font-size: 1.1rem;
-  margin-bottom: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 8px;
+  line-height: 1.4;
 }
 
 .ema-incident-status {
-  color: var(--gris);
-  font-size: 1rem;
-  margin-bottom: 6px;
+  margin-bottom: 16px;
 }
 
-.ema-incident-status span {
-  background: #eee;
-  border-radius: 6px;
-  padding: 2px 8px;
-  margin-right: 8px;
+.ema-status-badge {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
 }
 
-.ema-incident-detail {
-  font-size: 1rem;
-  color: var(--grisfonce);
-  margin-bottom: 4px;
+.ema-status-badge.ongoing {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.ema-status-badge.resolved {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.ema-detail-row {
+  display: flex;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.ema-detail-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  min-width: 160px;
+  flex-shrink: 0;
+}
+
+.ema-detail-value {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.4;
+  flex: 1;
 }
 
 .ema-incident-summary {
-  margin-top: 8px;
-  font-size: 1rem;
-  color: var(--grisfonce);
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
 }
 
-.ema-incident-label {
-  margin-top: 1rem;
+.ema-summary-label {
+  font-size: 14px;
   font-weight: 600;
+  color: #475569;
+  margin-bottom: 8px;
 }
+
+.ema-summary-value {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.ema-empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .ema-incident-item {
+    padding: 16px;
+  }
+
+  .ema-detail-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .ema-detail-label {
+    min-width: auto;
+    font-size: 13px;
+  }
+
+  .ema-detail-value {
+    font-size: 13px;
+  }
+}
+
+/*!* EMA Incident Card Styling *!*/
+/*.ema-incident-card {*/
+/*  flex: 2;*/
+/*  background: white;*/
+/*  border-radius: 8px;*/
+/*  padding: 24px;*/
+/*  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);*/
+/*  border: 1px solid #f1f5f9;*/
+/*}*/
+
+/*.ema-incident-title {*/
+/*  font-weight: 400;*/
+/*  font-size: 1.1rem;*/
+/*  margin-bottom: 4px;*/
+/*}*/
+
+/*.ema-incident-status {*/
+/*  color: var(--gris);*/
+/*  font-size: 1rem;*/
+/*  margin-bottom: 6px;*/
+/*}*/
+
+/*.ema-incident-status span {*/
+/*  background: #eee;*/
+/*  border-radius: 6px;*/
+/*  padding: 2px 8px;*/
+/*  margin-right: 8px;*/
+/*}*/
+
+/*.ema-incident-detail {*/
+/*  font-size: 1rem;*/
+/*  color: var(--grisfonce);*/
+/*  margin-bottom: 4px;*/
+/*}*/
+
+/*.ema-incident-summary {*/
+/*  margin-top: 8px;*/
+/*  font-size: 1rem;*/
+/*  color: var(--grisfonce);*/
+/*}*/
+
+/*.ema-incident-label {*/
+/*  margin-top: 1rem;*/
+/*  font-weight: 600;*/
+/*}*/
 
 /* Fix for Cumulative Layout Shift (CLS) */
 #maintbl-dash {
