@@ -97,7 +97,7 @@ let windowWidth = getWindowWidth();
 const labelFontSizeScale = d3
   .scaleLinear()
   .domain([400, 900])
-  .range([18, 11])
+  .range([18, 12])
   .clamp(true);
 
 /**
@@ -366,15 +366,17 @@ function drawSummaryChart(monthlyChartData) {
       .nice()
       .range([innerHeight, 0]);
 
-  const xAxis = d3.axisBottom(xScale)
-      .ticks(dataManager.getMonthsToShow() >= 24 ? d3.timeMonth.every(3) : d3.timeMonth.every(1))
-      .tickFormat((d) => {
-        if (d.getMonth() === 0) {
-          return d3.timeFormat("%Y")(d);
-        }
-        return formatDateShort(d);
-      })
-      .tickSize(4);
+    const xAxis = d3.axisBottom(xScale)
+        .ticks(dataManager.getMonthsToShow() >= 24 ? d3.timeMonth.every(3) : d3.timeMonth.every(1))
+        .tickFormat((d) => {
+            if (d.getMonth() === 0) {
+                return d3.timeFormat("%Y")(d);
+            }
+            return formatDateShort(d);
+        })
+        .tickSize(0) // Remove tick lines
+        .tickPadding(12);
+
 
   // Create line generators
   const lineTension = d3.line()
@@ -422,28 +424,21 @@ function drawSummaryChart(monthlyChartData) {
   const g = svg.append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-  g.append("rect")
-      .attr("width", "100%")
-      .attr("height", `${innerHeight}`)
-      .attr("fill", "white");
-
   g.append("g")
       .attr("class", "sumchart-x-axis")
       .attr("transform", `translate(0, ${innerHeight})`)
       .call(xAxis);
 
   // Style yearly tick
-  g.selectAll(".sumchart-x-axis .tick text")
+  g.selectAll(".sumchart-x-axis text")
       .filter((d) => d.getMonth() === 0)
       .style("font-weight", "bold")
-      .style("font-size", "11px")
-      .style("fill", "var(--grisfonce)");
+      .style("fill", "#64748b");
 
   // Style month labels differently
-  g.selectAll(".sumchart-x-axis .tick text")
+  g.selectAll(".sumchart-x-axis text")
       .filter((d) => d.getMonth() !== 0)
-      .style("font-size", "10px")
-      .style("fill", "var(--grisleger)");
+      .style("fill", "#64748b");
 
   g.selectAll(".sumchart-x-axis text")
       .style("font-size", `${labelFontSizeScale(windowWidth)}px`,
@@ -460,27 +455,75 @@ function drawSummaryChart(monthlyChartData) {
       .attr("class", "sumchart-rupture-line")
       .attr("d", lineRupture);
 
-  // Add marks (circles) for rupture data points - WITH FILTERING
-  g.selectAll(".sumchart-rupture-mark")
-      .data(lineData.filter((d) => d.rupture > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
-      .enter()
-      .append("circle")
-      .attr("class", "sumchart-rupture-mark")
-      .attr("cx", (d) => xScale(d.date))
-      .attr("cy", (d) => yScale(d.rupture))
-      .attr("r", 1)
+  // Add marks (circles) for rupture data points
+    g.selectAll(".sumchart-rupture-mark")
+        .data(lineData.filter((d) => d.rupture > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
+        .enter()
+        .append("circle")
+        .attr("class", "sumchart-rupture-mark")
+        .attr("cx", (d) => xScale(d.date))
+        .attr("cy", (d) => yScale(d.rupture))
+        .attr("r", 0) // Start at 0 for animation
+        .style("fill", "white")
+        .style("stroke", "#ef4444")
+        .style("stroke-width", 2)
+        .style("filter", "drop-shadow(0 4px 8px rgba(239, 68, 68, 0.2))")
+        .style("cursor", "pointer")
+        .on("mouseover", function(event, d) {
+            d3.select(this)
+                .transition()
+                .duration(100)
+                .attr("r", 8)
+                .style("stroke-width", 4);
+        })
+        .on("mouseout", function(event, d) {
+            d3.select(this)
+                .transition()
+                .duration(100)
+                .attr("r", 6)
+                .style("stroke-width", 3);
+        })
+        .transition()
+        .delay((d, i) => i * 50) // Staggered animation
+        .duration(600)
+        .ease(d3.easeBounceOut)
+        .attr("r", 6);
 
-  // Add marks (circles) for tension data points - WITH FILTERING
-  g.selectAll(".sumchart-tension-mark")
-      .data(lineData.filter((d) => d.tension > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
-      .enter()
-      .append("circle")
-      .attr("class", "sumchart-tension-mark")
-      .attr("cx", (d) => xScale(d.date))
-      .attr("cy", (d) => yScale(d.tension))
-      .attr("r", 1)
+  // Add marks (circles) for tension data points
+    g.selectAll(".sumchart-tension-mark")
+        .data(lineData.filter((d) => d.tension > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
+        .enter()
+        .append("circle")
+        .attr("class", "sumchart-tension-mark")
+        .attr("cx", (d) => xScale(d.date))
+        .attr("cy", (d) => yScale(d.tension))
+        .attr("r", 0) // Start at 0 for animation
+        .style("fill", "white")
+        .style("stroke", "#f59e0b")
+        .style("stroke-width", 2)
+        .style("filter", "drop-shadow(0 4px 8px rgba(245, 158, 11, 0.2))")
+        .style("cursor", "pointer")
+        .on("mouseover", function(event, d) {
+            d3.select(this)
+                .transition()
+                .duration(200)
+                .attr("r", 8)
+                .style("stroke-width", 4);
+        })
+        .on("mouseout", function(event, d) {
+            d3.select(this)
+                .transition()
+                .duration(200)
+                .attr("r", 6)
+                .style("stroke-width", 3);
+        })
+        .transition()
+        .delay((d, i) => i * 50) // Staggered animation
+        .duration(600)
+        .ease(d3.easeBounceOut)
+        .attr("r", 6);
 
-  // Add labels for rupture data points - WITH FILTERING
+  // Add labels for rupture data points
   g.selectAll(".sumchart-rupture-label")
       .data(lineData.filter((d) => d.rupture > 0 && shouldShowMarkForMonth(d.date, dataManager.getMonthsToShow())))
       .enter()
