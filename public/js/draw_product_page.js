@@ -513,61 +513,102 @@ async function main() {
             incidents.flatMap(incident => incident.cis_codes || [])
           ));
 
-          const cisNamesMap = {};
+            const cisNamesMap = {};
             incidents.forEach(incident => {
                 if (incident.cis_names) {
-                Object.assign(cisNamesMap, incident.cis_names);
+                    Object.assign(cisNamesMap, incident.cis_names);
                 }
             });
 
-          if (cisListDiv) {
-            cisListDiv.innerHTML = '';
-            if (allCisCodes.length > 0) {
-              const cisSection = document.createElement('div');
-              cisSection.className = 'cis-section';
+            if (cisListDiv) {
+                cisListDiv.innerHTML = '';
+                if (allCisCodes.length > 0) {
+                    const cisSection = document.createElement('div');
+                    cisSection.className = 'cis-section';
 
-              // Créer le bouton toggle
-              const toggleButton = document.createElement('button');
-              toggleButton.className = 'cis-toggle-button';
-              toggleButton.innerHTML = `
-                <i class="fa-solid fa-chevron-down"></i>
-                <span>Codes CIS concernés (${allCisCodes.length})</span>
-              `;
+                    // Create modern toggle button
+                    const toggleButton = document.createElement('button');
+                    toggleButton.className = 'cis-toggle-button';
 
-              // Créer le conteneur pour le contenu
-              const contentDiv = document.createElement('div');
-              contentDiv.className = 'cis-content';
+                    // Create button structure with modern layout
+                    const buttonContent = document.createElement('div');
+                    buttonContent.className = 'cis-button-content';
 
-              // Créer un objet qui mappe les codes CIS à leurs dénomination
-              const listContainer = document.createElement('div');
-              listContainer.className = 'cis-list-container';
+                    const cisIcon = document.createElement('div');
+                    cisIcon.className = 'cis-icon';
+                    cisIcon.innerHTML = '🔍';
 
-              allCisCodes.forEach(code => {
-                const item = document.createElement('div');
-                item.className = 'cis-item';
+                    const buttonText = document.createElement('div');
+                    buttonText.className = 'cis-button-text';
 
-                const codeSpan = document.createElement('span');
-                codeSpan.className = 'cis-code';
-                codeSpan.textContent = `${code} - ${cisNamesMap[code] || 'Dénomination non disponible'}`;
+                    const buttonTitle = document.createElement('span');
+                    buttonTitle.className = 'cis-button-title';
+                    buttonTitle.textContent = 'Codes CIS concernés';
 
-                item.appendChild(codeSpan);
-                listContainer.appendChild(item);
-              });
+                    const buttonCount = document.createElement('span');
+                    buttonCount.className = 'cis-button-count';
+                    buttonCount.textContent = `(${allCisCodes.length} spécialité${allCisCodes.length > 1 ? 's' : ''})`;
 
-              contentDiv.appendChild(listContainer);
+                    buttonText.appendChild(buttonTitle);
+                    buttonText.appendChild(buttonCount);
 
-              // Ajouter les éléments à la section
-              cisSection.appendChild(toggleButton);
-              cisSection.appendChild(contentDiv);
-              cisListDiv.appendChild(cisSection);
+                    const chevronContainer = document.createElement('div');
+                    chevronContainer.className = 'cis-chevron';
+                    chevronContainer.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
 
-              // Ajouter l'événement click pour le toggle
-              toggleButton.addEventListener('click', () => {
-                toggleButton.classList.toggle('expanded');
-                contentDiv.classList.toggle('expanded');
-              });
+                    buttonContent.appendChild(cisIcon);
+                    buttonContent.appendChild(buttonText);
+
+                    toggleButton.appendChild(buttonContent);
+                    toggleButton.appendChild(chevronContainer);
+
+                    // Create content container
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'cis-content';
+
+                    const listContainer = document.createElement('div');
+                    listContainer.className = 'cis-list-container';
+
+                    allCisCodes.forEach(code => {
+                        const item = document.createElement('div');
+                        item.className = 'cis-item';
+
+                        const codeIcon = document.createElement('div');
+                        codeIcon.className = 'cis-code-icon';
+                        codeIcon.textContent = 'C';
+
+                        const codeSpan = document.createElement('span');
+                        codeSpan.className = 'cis-code';
+                        codeSpan.textContent = `${code} - ${cisNamesMap[code] || 'Dénomination non disponible'}`;
+
+                        item.appendChild(codeIcon);
+                        item.appendChild(codeSpan);
+                        listContainer.appendChild(item);
+                    });
+
+                    contentDiv.appendChild(listContainer);
+
+                    // Add elements to section
+                    cisSection.appendChild(toggleButton);
+                    cisSection.appendChild(contentDiv);
+                    cisListDiv.appendChild(cisSection);
+
+                    // Add modern click event with animation
+                    toggleButton.addEventListener('click', () => {
+                        const isExpanded = toggleButton.classList.contains('expanded');
+
+                        if (isExpanded) {
+                            // Collapse
+                            toggleButton.classList.remove('expanded');
+                            contentDiv.classList.remove('expanded');
+                        } else {
+                            // Expand
+                            toggleButton.classList.add('expanded');
+                            contentDiv.classList.add('expanded');
+                        }
+                    });
+                }
             }
-          }
 
           // Fetch sales data by CIS codes
           let salesData = [];
