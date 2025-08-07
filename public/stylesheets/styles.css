@@ -376,12 +376,6 @@ p {
   stroke-width: 1px;
 }
 
-.sumchart-chart-subtitle {
-  font-size: 0.7rem;
-  font-weight: 500;
-  fill: var(--grisleger);
-}
-
 .sumchart-tension-line {
   fill: none;
   stroke: var(--tension);
@@ -443,18 +437,6 @@ p {
   min-height: 400px;
 }
 
-.selector[open] {
-  background-color: var(--gris);
-}
-
-.atc-option {
-  font-size: 12px;
-  margin-bottom: 5px;
-}
-
-.atc-option label {
-  margin-left: 5px;
-}
 
 #vaccines-filter {
   cursor: pointer;
@@ -935,10 +917,6 @@ p {
   padding: 0 0 2px 0;
 }
 
-#title-legend {
-  font-weight: bold;
-  margin-bottom: 8px;
-}
 
 @media (max-width: 700px) {
   .main-container {
@@ -1157,6 +1135,8 @@ p {
   padding-left: 12px;
 }
 
+
+
 @media (max-width: 900px) {
   .mainfilter-selector,
   #mainfilter-search-box {
@@ -1279,33 +1259,12 @@ p {
   fill: #0f172a;
 }
 
-/* Total row styling */
-.total-row {
-  background: #f8fafc;
-  font-weight: 700;
-  border-top: 2px solid #e2e8f0;
-}
 
-.total-row td {
-  color: #1e293b;
-  font-weight: 700;
-}
-
-/* Total column styling */
-.total-col {
-  background: #f1f5f9;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-
-/* Row hover effects */
-.productpg-stats-table tbody tr:hover {
-  background: #fafbfc;
-}
-
-.total-row:hover {
-  background: #f1f5f9 !important;
+/* Incidents details table*/
+.productpg-incident-label {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 /* Content directly in #ema-incidents */
@@ -1439,52 +1398,6 @@ p {
   }
 }
 
-/*!* EMA Incident Card Styling *!*/
-/*.ema-incident-card {*/
-/*  flex: 2;*/
-/*  background: white;*/
-/*  border-radius: 8px;*/
-/*  padding: 24px;*/
-/*  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);*/
-/*  border: 1px solid #f1f5f9;*/
-/*}*/
-
-/*.ema-incident-title {*/
-/*  font-weight: 400;*/
-/*  font-size: 1.1rem;*/
-/*  margin-bottom: 4px;*/
-/*}*/
-
-/*.ema-incident-status {*/
-/*  color: var(--gris);*/
-/*  font-size: 1rem;*/
-/*  margin-bottom: 6px;*/
-/*}*/
-
-/*.ema-incident-status span {*/
-/*  background: #eee;*/
-/*  border-radius: 6px;*/
-/*  padding: 2px 8px;*/
-/*  margin-right: 8px;*/
-/*}*/
-
-/*.ema-incident-detail {*/
-/*  font-size: 1rem;*/
-/*  color: var(--grisfonce);*/
-/*  margin-bottom: 4px;*/
-/*}*/
-
-/*.ema-incident-summary {*/
-/*  margin-top: 8px;*/
-/*  font-size: 1rem;*/
-/*  color: var(--grisfonce);*/
-/*}*/
-
-/*.ema-incident-label {*/
-/*  margin-top: 1rem;*/
-/*  font-weight: 600;*/
-/*}*/
-
 /* Fix for Cumulative Layout Shift (CLS) */
 #maintbl-dash {
   min-height: 600px; /* Predetermine height to prevent CLS */
@@ -1553,4 +1466,212 @@ p {
 
 #source-info {
   min-height: 150px; /* Fixed height for source info section */
+}
+
+/* Timeline Card Structure */
+.timeline-card {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f1f5f9;
+  margin-bottom: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.timeline-card::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 140px;
+  height: 140px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-radius: 50%;
+  opacity: 0.05;
+}
+
+.timeline-header {
+  margin-bottom: 32px;
+  position: relative;
+  z-index: 2;
+}
+
+.timeline-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.timeline-subtitle {
+  color: #64748b;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.timeline-container {
+  position: relative;
+  background: linear-gradient(135deg, #fafbfc, #f8fafc);
+  border-radius: 16px;
+  padding: 32px;
+  border: 1px solid #f1f5f9;
+}
+
+.timeline-years-container {
+  position: relative;
+  margin-bottom: 32px;
+}
+
+.timeline-baseline {
+  position: absolute;
+  top: 35px;
+  left: 200px;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #e2e8f0, #cbd5e1);
+  border-radius: 1px;
+}
+
+.timeline-years {
+  display: flex;
+  justify-content: space-between;
+  margin-left: 200px;
+  position: relative;
+  z-index: 2;
+}
+
+.timeline-year {
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+  background: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
+}
+
+.timeline-year:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+.timeline-year::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 16px;
+  background: #94a3b8;
+  border-radius: 1px;
+}
+
+.timeline-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.timeline-row {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  padding: 2px 0;
+}
+
+.timeline-row:hover {
+  transform: translateX(4px);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.timeline-label {
+  width: 200px;
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timeline-status-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: white;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.timeline-status-icon.tension {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.timeline-status-icon.rupture {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.timeline-bars {
+  flex: 1;
+  position: relative;
+  height: 32px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #f1f5f9;
+  overflow: hidden;
+}
+
+.timeline-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.timeline-grid-line {
+  position: absolute;
+  width: 1px;
+  height: 100%;
+  background: #f1f5f9;
+  opacity: 0.8;
+}
+
+.timeline-bar {
+  position: absolute;
+  height: 20px;
+  top: 6px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.timeline-bar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.timeline-bar.tension {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.timeline-bar.rupture {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
 }

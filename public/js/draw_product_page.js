@@ -181,9 +181,7 @@ function drawProductTimeline(product, containerId) {
         svg.append('text')
             .attr('x', 0)
             .attr('y', y + barHeight - 2)
-            .attr('fill', 'var(--grisfonce)')
-            .attr('font-size', 15)
-            .attr('font-family', 'inherit')
+            .attr('class', 'productpg-incident-label')
             .attr('alignment-baseline', 'middle')
             .text(`${incident.status} ${formatDate(start)} - ${formatDate(end)}`);
     });
