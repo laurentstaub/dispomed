@@ -315,6 +315,24 @@
   text-decoration: underline;
 }
 
+/* Sales Card Styling */
+.productpg-sales-card {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f1f5f9;
+  margin-top: 16px;
+}
+
+.productpg-sales-card-content {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f1f5f9;
+}
+
 /* Product Stats Table */
 .productpg-stats-table {
   width: 100%;
@@ -741,7 +759,9 @@
   .productpg-timeline-card,
   .ema-incident-card,
   .productpg-score-stats,
-  .productpg-score-donut {
+  .productpg-score-donut,
+  .productpg-sales-card,
+  .productpg-sales-card-content {
     margin: 16px 0 0 0;
     width: 100%;
     max-width: 100%;
@@ -828,7 +848,9 @@
 @media (max-width: 500px) {
   /* Extra small screen adjustments for product page - reduce padding to save space */
   .productpg-timeline-card,
-  .ema-incident-card {
+  .ema-incident-card,
+  .productpg-sales-card,
+  .productpg-sales-card-content {
     margin: 16px 0 0 0;
     width: 100%;
     padding: 16px;
