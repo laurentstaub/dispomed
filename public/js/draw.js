@@ -168,7 +168,6 @@ async function handleSearch(searchTerm) {
   const monthsToShow = dataManager.getMonthsToShow();
   const atcClass = dataManager.getATCClass();
   const molecule = dataManager.getMolecule();
-  console.log(searchTerm, monthsToShow, atcClass, molecule);
 
   rawData = await fetchTableChartData(monthsToShow,
     searchTerm, atcClass, molecule);
@@ -184,24 +183,17 @@ async function handleSearch(searchTerm) {
 }
 
 function updateMoleculeDropdown(atcClass) {
-    console.log('Run update')
   const moleculeSelect = d3.select("#molecule");
   const selectedMoleculeId = dataManager.getMolecule();
   let rawMolecules = dataManager.getMoleculeClassMap();
-  console.log(`raw from dataManager: ${rawMolecules[0].atcClass}`)
 
   if (atcClass !== "") {
-    console.log(`atcClass: ${atcClass}`)
     rawMolecules = rawMolecules.filter((mol) => mol.atcClass.slice(0, 1) === atcClass);
   }
-
-  console.log(rawMolecules)
 
   const molecules = rawMolecules.map((mol) => {
     return { code: mol.moleculeId, name: mol.moleculeName };
   });
-
-  console.log(molecules)
 
   // Update dropdown options
   const options = moleculeSelect.selectAll("option")
@@ -252,7 +244,7 @@ d3.select("#mainfilter-reset").on("click", function () {
 d3.select("#mainfilter-search-box").on("input", function () {
   const searchTerm = removeAccents(this.value.toLowerCase());
   dataManager.setSearchTerm(searchTerm);
-  debouncedSearch(false, searchTerm);
+  debouncedSearch(searchTerm);
 });
 
 

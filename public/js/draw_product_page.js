@@ -100,19 +100,24 @@ function drawProductTimeline(product, containerId) {
         .attr('transform', `translate(${labelWidth},10)`);
 
     xAxisGroup.call(xAxis);
+    
+    // Style the main axis line with darker color and 2px width
+    xAxisGroup.select('.domain')
+        .attr('stroke', '#64748b')
+        .attr('stroke-width', 2);
 
     // Add second year axis with background and centered labels
     const secondAxisHeight = 25;
     const secondAxisY = -15;
 
-    // Add light grey background for the second axis
+    // Add grey/blue background matching table style
     svg.append('rect')
         .attr('x', labelWidth)
         .attr('y', secondAxisY)
         .attr('width', width - labelWidth)
         .attr('height', secondAxisHeight)
-        .attr('fill', '#f5f5f5')
-        .attr('opacity', 0.7);
+        .attr('fill', '#f8fafc')
+        .attr('opacity', 1);
 
     // Create year intervals for centered positioning
     const yearTicks = xScale.ticks(d3.timeYear.every(1));
@@ -148,15 +153,7 @@ function drawProductTimeline(product, containerId) {
         const barWidth = Math.max(2, xEnd - xStart);
         const y = barY + index * (barHeight + barGap);
 
-        // 1. Add background for the bar row first
-        svg.append('rect')
-            .attr('x', labelWidth)
-            .attr('y', y)
-            .attr('width', width - labelWidth)
-            .attr('height', barHeight)
-            .attr('rx', 0)
-            .attr('fill', 'var(--gristrestresleger)')
-            .attr('opacity', 0.3);
+        // 1. Background removed for cleaner look
 
         // 2. Add horizontal grid line
         svg.append('line')

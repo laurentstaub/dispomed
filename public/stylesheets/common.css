@@ -341,15 +341,16 @@ footer a:focus {
 
 .mainfilter-button {
   flex: 1;
-  padding: 12px 6px;
+  cursor: pointer;
   border: 2px solid #e2e8f0;
   background: white;
   border-radius: 8px;
+  color: #64748b;
   font-weight: 600;
   font-size: 14px;
-  cursor: pointer;
+  padding: 12px 6px;
+  text-align: center;
   transition: all 0.2s ease;
-  color: #64748b;
 }
 
 .mainfilter-button:hover {
@@ -830,7 +831,7 @@ footer a:focus {
 
   /* All containers reset to full width within the 8px body padding */
   .main-container {
-    margin: 20px auto 0 auto;
+    margin: 4px auto 0 auto;
     width: 100%;
     max-width: 100%;
     padding: 0;
@@ -883,16 +884,23 @@ footer a:focus {
     box-sizing: border-box;
   }
 
-  /* Typography adjustments */
+  /* Typography adjustments - reduce title size and spacing */
   #capsule-icon {
-    margin-left: 10px;
-    width: 50px;
-    height: auto;
+    margin-left: 8px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .pill-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
   }
 
   #mise-a-jour {
-    font-size: 14px;
-    padding-bottom: 5px;
+    font-size: 13px;
+    padding-bottom: 3px;
+    margin-bottom: 8px;
   }
 
   #report-title {
@@ -900,12 +908,43 @@ footer a:focus {
     margin-bottom: 0;
   }
 
-  /* Filter adjustments */
+  #title-container {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .header-title h1 {
+    margin: 8px 0 5px;
+    gap: 8px;
+  }
+
+  /* Filter adjustments - reduce height and spacing */
+  #mainfilter-container {
+    padding: 8px;
+    min-height: 120px;
+  }
+
+  .filter-group {
+    margin-bottom: 10px;
+  }
+
   .mainfilter-selector,
   #mainfilter-search-box {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+
+  .mainfilter-button {
+    padding: 8px 4px;
+    font-size: 13px;
+  }
+
+  #mainfilter-reset {
+    padding: 8px 16px;
+    margin-bottom: 8px;
   }
 
   /* Legend adjustments */
@@ -922,19 +961,15 @@ footer a:focus {
   .legend-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+
+  .legend-color-box {
+    margin-right: 0;
   }
 
   /* Hide elements that don't work well on mobile */
-  .mainfilter-button {
-    display: none;
-  }
-
-  .mainfilter-divider {
-    display: none;
-  }
-
   .selector {
     max-width: 100%;
   }
@@ -955,15 +990,65 @@ footer a:focus {
 
   /* Extra small screen adjustments - reduce padding to save space */
   #source-info {
-    padding: 16px;
-  }
-
-  #title-container {
     padding: 12px;
   }
 
+  #title-container {
+    padding: 8px;
+    margin-bottom: 8px;
+  }
+
+  .header-title h1 {
+    margin: 4px 0 2px;
+    gap: 6px;
+  }
+
+  #capsule-icon {
+    width: 32px;
+    height: 32px;
+    margin-left: 4px;
+  }
+
+  .pill-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+
+  #mise-a-jour {
+    font-size: 12px;
+    padding-bottom: 2px;
+    margin-bottom: 4px;
+  }
+
   #summary {
-    padding: 16px;
+    padding: 14px;
+  }
+
+  #mainfilter-container {
+    padding: 6px;
+    min-height: 100px;
+  }
+
+  .filter-group {
+    margin-bottom: 8px;
+  }
+
+  .mainfilter-button {
+    padding: 6px 4px;
+    font-size: 12px;
+  }
+
+  #mainfilter-reset {
+    padding: 6px 12px;
+    margin-bottom: 6px;
+    font-size: 12px;
+  }
+
+  .mainfilter-selector,
+  #mainfilter-search-box {
+    padding: 4px 6px;
+    font-size: 12px;
   }
 }
 
