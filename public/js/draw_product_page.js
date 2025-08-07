@@ -322,22 +322,16 @@ function drawProductTimeline(product, containerId) {
         });
     }
 
-    // Generate sales rows HTML
-    let salesRowsHtml = '';
+    // Generate sales card HTML
+    let salesCardHtml = '';
 
     if (Object.keys(salesByCis).length > 0) {
-        // Add a header row for sales section
-        salesRowsHtml += `
-      <tr class="sales-header">
-        <td colspan="${years.length + 2}" class="sales-header-cell">Nombre de boîtes vendues (2021 - 2024, source Open medic)</td>
-      </tr>
-    `;
-
-        // Add rows for each CIS code
+        // Create the sales card content
+        let salesTableRows = '';
         Object.values(salesByCis).forEach(cisSales => {
             // Add rows for each CIP13 within this CIS
             Object.values(cisSales.cip13Sales).forEach(cip13Sale => {
-                salesRowsHtml += `
+                salesTableRows += `
           <tr class="cip13-row">
             <td class="productpg-stats-label">${cip13Sale.label || cip13Sale.cip13}</td>
             ${years.map(year => `<td class="${year === 2021 ? 'year-start-col' : ''}">${formatNumber(cip13Sale.byYear[year] || 0)}</td>`).join('')}
@@ -346,6 +340,25 @@ function drawProductTimeline(product, containerId) {
         `;
             });
         });
+
+        salesCardHtml = `
+        <div class="card-header">
+          <div class="card-title">Nombre de boîtes vendues par présentation (code CIP)</div>
+          <p class="card-subtitle">Données 2021-2024, source Open medic</p>
+        </div>
+        <table class="productpg-stats-table">
+          <thead>
+            <tr>
+              <th></th>
+              ${years.map((y, i) => `<th class="${i === 0 ? 'year-start-col' : ''}">${y}</th>`).join('')}
+              <th class="total-col">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${salesTableRows}
+          </tbody>
+        </table>
+    `;
     }
 
     statsContainer.innerHTML = `
@@ -371,7 +384,7 @@ function drawProductTimeline(product, containerId) {
             </tr>
             <tr class="tension-row">
               <td class="productpg-stats-label status-tension">Tension</td>
-              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><spang>${formatNumber(yearlyStats[y].tension)}</spang></td>`).join('')}
+              ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}"><span>${formatNumber(yearlyStats[y].tension)}</span></td>`).join('')}
               <td class="productpg-stats-value total-col"><span class="status-tension">${formatNumber(tensionDays)}</span></td>
             </tr>
             <tr class="rupture-row">
@@ -389,7 +402,6 @@ function drawProductTimeline(product, containerId) {
               ${years.map((y, i) => `<td class="${i === 0 ? 'year-start-col' : ''}">${formatNumber(yearlyStats[y].total)}</td>`).join('')}
               <td class="productpg-stats-value total-col">${formatNumber(totalDaysPeriod)}</td>
             </tr>
-            ${salesRowsHtml}
           </tbody>
         </table>
       </div>
@@ -401,6 +413,23 @@ function drawProductTimeline(product, containerId) {
       </div>
     </div>
   `;
+
+    // Add the sales card to the dedicated container
+    const salesCardContainer = document.getElementById('productpg-sales-card');
+    if (salesCardContainer) {
+        if (salesCardHtml) {
+            salesCardContainer.innerHTML = salesCardHtml;
+        } else {
+            // Show message when no sales data is available
+            salesCardContainer.innerHTML = `
+                <div class="card-header">
+                    <div class="card-title">Nombre de boîtes vendues par présentation (code CIP)</div>
+                    <p class="card-subtitle">Données 2021-2024, source Open medic</p>
+                </div>
+                <div class="ema-empty-state">Pas de données pour ce produit dans la base Open Medic</div>
+            `;
+        }
+    }
 }
 
 // Helper to get color for status
