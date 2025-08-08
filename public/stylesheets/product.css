@@ -63,6 +63,12 @@
   color: var(--rupturefonce);
 }
 
+.productpg-status-row.status-arret {
+  background: rgba(150, 150, 150, 0.1);
+  border: 1px solid var(--arret-bg);
+  color: #333;
+}
+
 .productpg-status-icon {
   width: 24px;
   text-align: center;

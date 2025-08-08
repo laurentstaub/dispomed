@@ -147,7 +147,14 @@ function drawProductTimeline(product, containerId) {
     // Add horizontal grid lines for each row
     product.incidents.forEach((incident, index) => {
         const start = new Date(Math.max(new Date(incident.start_date), timelineStart));
-        const end = new Date(Math.min(new Date(incident.calculated_end_date || incident.end_date || timelineEnd), timelineEnd));
+        // For Arret status with no end_date, extend to timeline end
+        let incidentEndDate;
+        if (incident.status === 'Arret' && !incident.end_date) {
+            incidentEndDate = timelineEnd;
+        } else {
+            incidentEndDate = new Date(incident.calculated_end_date || incident.end_date || timelineEnd);
+        }
+        const end = new Date(Math.min(incidentEndDate, timelineEnd));
         const xStart = xScale(start);
         const xEnd = xScale(end);
         const barWidth = Math.max(2, xEnd - xStart);
@@ -202,7 +209,13 @@ function drawProductTimeline(product, containerId) {
 
     product.incidents.forEach(incident => {
         const incidentStart = new Date(incident.start_date);
-        const incidentEnd = new Date(incident.calculated_end_date || incident.end_date || timelineEnd);
+        // For Arret status with no end_date, extend to timeline end
+        let incidentEnd;
+        if (incident.status === 'Arret' && !incident.end_date) {
+            incidentEnd = timelineEnd;
+        } else {
+            incidentEnd = new Date(incident.calculated_end_date || incident.end_date || timelineEnd);
+        }
 
         years.forEach(year => {
             const yearStart = new Date(year, 0, 1);
@@ -225,7 +238,7 @@ function drawProductTimeline(product, containerId) {
 
         // Also update total counts for the entire period
         const start = new Date(Math.max(new Date(incident.start_date), timelineStart));
-        const end = new Date(Math.min(new Date(incident.calculated_end_date || incident.end_date || timelineEnd), timelineEnd));
+        const end = new Date(Math.min(incidentEnd, timelineEnd));
         if (end > start) {
             const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
             if (incident.status === 'Rupture') {
@@ -732,13 +745,13 @@ async function main() {
 
             // Update status label and icon
             if (statusLabel && statusIcon && statusRow) {
-                statusRow.classList.remove('status-disponible', 'status-tension', 'status-rupture');
+                statusRow.classList.remove('status-disponible', 'status-tension', 'status-rupture', 'status-arret');
                 if (status.shorthand === 'rupture') {
                     statusRow.classList.add('status-rupture');
                 } else if (status.shorthand === 'tension') {
                     statusRow.classList.add('status-tension');
                 } else if (status.shorthand === 'arret') {
-                    statusRow.classList.add('status-rupture');
+                    statusRow.classList.add('status-arret');
                 } else {
                     statusRow.classList.add('status-disponible');
                 }
