@@ -141,3 +141,24 @@ export async function fetchSubstitutions(code_cis) {
     return []; // Return empty array on error
   }
 }
+
+export async function fetchSearchSuggestions(searchTerm, monthsToShow = 12) {
+  await fetchConfig();
+  const queryString = new URLSearchParams({
+    searchTerm: searchTerm,
+    monthsToShow: monthsToShow
+  }).toString();
+  
+  const url = `${API_BASE_URL}/api/search?${queryString}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Failed to fetch search suggestions:`, error);
+    return [];
+  }
+}

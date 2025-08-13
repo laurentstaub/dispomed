@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-const { Client } = pg;
+const { Client, Pool } = pg;
 
 // Get the directory name of the current module
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -20,13 +20,32 @@ export function loadSqlFile(filePath) {
 
 const isProduction = process.env.NODE_ENV === "production";
 
-const CONNECTION = {
+const CONNECTION_CONFIG = {
   connectionString: process.env.DATABASE_URL,
   ssl: isProduction ? { rejectUnauthorized: false } : false,
+  // Connection pool configuration
+  max: 20, // Maximum number of clients in the pool
+  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+  connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection cannot be established
 };
 
+// Create a connection pool for better performance
+let pool = null;
+
+function getPool() {
+  if (!pool) {
+    pool = new Pool(CONNECTION_CONFIG);
+    
+    // Handle pool errors
+    pool.on('error', (err, client) => {
+      console.error('Unexpected error on idle client', err);
+    });
+  }
+  return pool;
+}
+
 /**
- * Executes a SQL query against the database
+ * Executes a SQL query against the database using connection pooling
  * @param {string} statement - The SQL query to execute
  * @param {...any} parameters - The parameters to pass to the query
  * @returns {Promise<{rows: Array<Object>, rowCount: number}>} - The query result object
@@ -34,10 +53,10 @@ const CONNECTION = {
  *   where each object has properties corresponding to the column names in the query
  */
 export async function dbQuery(statement, ...parameters) {
-  const client = new Client(CONNECTION);
+  const poolInstance = getPool();
+  const client = await poolInstance.connect();
 
   try {
-    await client.connect();
     logQuery(statement, parameters);
     return await client.query(statement, parameters);
   } catch (error) {
@@ -56,7 +75,18 @@ export async function dbQuery(statement, ...parameters) {
 
     throw error;
   } finally {
-    await client.end();
+    client.release();
+  }
+}
+
+/**
+ * Gracefully closes the connection pool
+ * Should be called on application shutdown
+ */
+export async function closePool() {
+  if (pool) {
+    await pool.end();
+    pool = null;
   }
 }
 
@@ -70,6 +100,7 @@ function logQuery(statement, parameters) {
 // Optional: Log the current configuration
 console.log("Database Configuration:", {
   isProduction,
-  connectionString: CONNECTION.connectionString,
-  sslEnabled: !!CONNECTION.ssl,
+  connectionString: CONNECTION_CONFIG.connectionString,
+  sslEnabled: !!CONNECTION_CONFIG.ssl,
+  poolSize: CONNECTION_CONFIG.max,
 });

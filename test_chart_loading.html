@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Chart Loading</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>Testing Chart Loading Fix</h1>
+    <div id="results"></div>
+    
+    <script>
+        const resultsDiv = document.getElementById('results');
+        
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.textContent = message;
+            resultsDiv.appendChild(div);
+        }
+        
+        async function testChartLoading() {
+            addResult('Starting chart loading test...', 'info');
+            
+            try {
+                // Test 1: Check if server is running
+                const response = await fetch('http://localhost:3000/api/config');
+                if (response.ok) {
+                    addResult('✓ Server is running and responding', 'success');
+                } else {
+                    addResult('✗ Server not responding properly', 'error');
+                    return;
+                }
+                
+                // Test 2: Load the main page
+                const mainPageResponse = await fetch('http://localhost:3000/');
+                if (mainPageResponse.ok) {
+                    addResult('✓ Main page loads successfully', 'success');
+                } else {
+                    addResult('✗ Main page failed to load', 'error');
+                    return;
+                }
+                
+                // Test 3: Check data endpoint
+                const dataResponse = await fetch('http://localhost:3000/api/incidents?monthsToShow=12');
+                if (dataResponse.ok) {
+                    const data = await dataResponse.json();
+                    addResult(`✓ Data endpoint works - received ${data.length} incidents`, 'success');
+                } else {
+                    addResult('✗ Data endpoint failed', 'error');
+                    return;
+                }
+                
+                addResult('All tests passed! The fix should work.', 'success');
+                addResult('Please open http://localhost:3000 in a new browser tab to verify the chart loads on first visit.', 'info');
+                
+            } catch (error) {
+                addResult(`✗ Test failed with error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Run tests when page loads
+        testChartLoading();
+    </script>
+</body>
+</html>

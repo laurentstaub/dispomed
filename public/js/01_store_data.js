@@ -3,7 +3,7 @@ class ConfigManager {
 
   static getInstance() {
     if (!ConfigManager.instance) {
-      config.instance = new ConfigManager();
+      ConfigManager.instance = new ConfigManager();
     }
     return ConfigManager.instance;
   }
@@ -32,6 +32,9 @@ class ConfigManager {
     this.moleculeClassMap = [];
     this.vaccinesOnly = false;
     this.displayState = 'initial'; // 'initial', 'filtered', or 'no_results'
+    // Cache properties for performance
+    this._monthlyChartCache = null;
+    this._monthlyChartCacheKey = null;
   }
 
   setStartDate(date) { this.startDate = date; }
@@ -89,6 +92,15 @@ class ConfigManager {
   }
 
   processDataMonthlyChart(data) {
+    // Create a cache key based on data characteristics
+    const cacheKey = `${this.startDate?.getTime()}-${this.endDate?.getTime()}-${data.length}`;
+    
+    // Check if we have cached results for this exact data
+    if (this._monthlyChartCache && 
+        this._monthlyChartCacheKey === cacheKey) {
+      return this._monthlyChartCache;
+    }
+    
     const allMonths = d3.timeMonth
       .range(this.startDate, this.endDate)
       .map((d) => new Date(d.getFullYear(), d.getMonth(), 1));
@@ -101,7 +113,7 @@ class ConfigManager {
       return 1;
     };
 
-    return allMonths.map((monthDate) => {
+    const result = allMonths.map((monthDate) => {
       let rupture = 0;
       let tension = 0;
 
@@ -118,6 +130,12 @@ class ConfigManager {
 
       return { date: d3.timeFormat("%Y-%m-%d")(monthDate), rupture, tension };
     });
+    
+    // Cache the results
+    this._monthlyChartCache = result;
+    this._monthlyChartCacheKey = cacheKey;
+    
+    return result;
   }
 }
 

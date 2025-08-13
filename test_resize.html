@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Window Resize</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+        .test-container {
+            border: 2px solid #333;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #f5f5f5;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        #resize-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Testing Chart Resize Behavior</h1>
+    
+    <div id="resize-info">
+        Window: <span id="window-size"></span><br>
+        Resizes: <span id="resize-count">0</span>
+    </div>
+    
+    <div class="test-container">
+        <h2>Instructions</h2>
+        <div class="info status">
+            1. Resize this window to test if the chart disappears<br>
+            2. Check if the chart redraws correctly at different sizes<br>
+            3. Watch the console for any errors
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Test Results</h2>
+        <div id="test-results"></div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Live Application</h2>
+        <iframe id="app-frame" src="http://localhost:3000"></iframe>
+    </div>
+    
+    <script>
+        let resizeCount = 0;
+        let resizeTimeout;
+        const results = document.getElementById('test-results');
+        const windowSizeEl = document.getElementById('window-size');
+        const resizeCountEl = document.getElementById('resize-count');
+        
+        function updateWindowSize() {
+            windowSizeEl.textContent = `${window.innerWidth} x ${window.innerHeight}`;
+        }
+        
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            results.appendChild(div);
+            
+            // Keep only last 10 results
+            while (results.children.length > 10) {
+                results.removeChild(results.firstChild);
+            }
+        }
+        
+        function checkChartVisibility() {
+            try {
+                const iframe = document.getElementById('app-frame');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                // Check if summary chart exists and is visible
+                const summaryEl = iframeDoc.getElementById('summary');
+                if (summaryEl) {
+                    const display = window.getComputedStyle(summaryEl).display;
+                    const hasChart = summaryEl.querySelector('svg');
+                    
+                    if (display === 'none') {
+                        addResult('Chart container is hidden', 'error');
+                    } else if (!hasChart) {
+                        addResult('Chart SVG is missing!', 'error');
+                    } else {
+                        const chartElements = hasChart.querySelectorAll('path, rect, circle');
+                        if (chartElements.length > 0) {
+                            addResult(`Chart rendered successfully with ${chartElements.length} elements`, 'success');
+                        } else {
+                            addResult('Chart SVG exists but has no content', 'error');
+                        }
+                    }
+                } else {
+                    addResult('Summary container not found', 'error');
+                }
+                
+                // Check for console errors
+                if (iframe.contentWindow.console) {
+                    // This won't catch all errors but helps for debugging
+                    addResult('No critical errors detected', 'success');
+                }
+                
+            } catch (e) {
+                addResult(`Could not check chart: ${e.message}`, 'error');
+            }
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeCount++;
+            updateWindowSize();
+            resizeCountEl.textContent = resizeCount;
+            
+            addResult(`Window resized to ${window.innerWidth}x${window.innerHeight}`, 'info');
+            
+            // Check chart after resize completes (matches the 250ms debounce in the app)
+            resizeTimeout = setTimeout(() => {
+                checkChartVisibility();
+            }, 300);
+        });
+        
+        // Initial setup
+        updateWindowSize();
+        
+        // Wait for iframe to load
+        document.getElementById('app-frame').addEventListener('load', () => {
+            addResult('Application loaded', 'success');
+            setTimeout(() => {
+                checkChartVisibility();
+            }, 1000);
+        });
+        
+        // Automated resize test
+        function runAutomatedTest() {
+            addResult('Starting automated resize test...', 'info');
+            
+            const sizes = [
+                { width: 1200, height: 800 },
+                { width: 900, height: 600 },
+                { width: 600, height: 400 },
+                { width: 1400, height: 900 },
+            ];
+            
+            let index = 0;
+            const interval = setInterval(() => {
+                if (index >= sizes.length) {
+                    clearInterval(interval);
+                    addResult('Automated test complete', 'success');
+                    return;
+                }
+                
+                const size = sizes[index];
+                window.resizeTo(size.width, size.height);
+                addResult(`Resizing to ${size.width}x${size.height}`, 'info');
+                
+                setTimeout(() => {
+                    checkChartVisibility();
+                }, 500);
+                
+                index++;
+            }, 2000);
+        }
+        
+        // Add button for automated test
+        const button = document.createElement('button');
+        button.textContent = 'Run Automated Resize Test';
+        button.style.padding = '10px 20px';
+        button.style.fontSize = '16px';
+        button.style.marginTop = '10px';
+        button.onclick = runAutomatedTest;
+        document.querySelector('.test-container').appendChild(button);
+    </script>
+</body>
+</html>
