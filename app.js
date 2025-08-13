@@ -257,6 +257,76 @@ app.get("/api/incidents", async (req, res) => {
 });
 
 /**
+ * API endpoint for searching products without time filter
+ * 
+ * Searches for products across the entire database without time constraints
+ * Returns product information including whether they're in the current filter range
+ * 
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ * @param {Object} req.query - Query parameters
+ * @param {string} req.query.searchTerm - Search term for product/molecule name
+ * @param {string} req.query.monthsToShow - Current filter months to determine if results are in range
+ * @returns {Promise<void>} - Sends a JSON response with search results
+ */
+app.get("/api/search", async (req, res) => {
+  const { searchTerm, monthsToShow = 12 } = req.query;
+  
+  if (!searchTerm || searchTerm.length < 2) {
+    return res.json([]);
+  }
+
+  try {
+    // Query for all matching products without time filter
+    const searchQuery = `
+      WITH max_date AS (
+        SELECT MAX(calculated_end_date) AS max_date FROM incidents
+      ),
+      search_results AS (
+        SELECT DISTINCT
+          p.id AS product_id,
+          p.name AS product,
+          p.accented_name AS accented_product,
+          MAX(i.calculated_end_date) AS latest_end_date,
+          MAX(i.start_date) AS latest_start_date,
+          STRING_AGG(DISTINCT i.status, ', ' ORDER BY i.status) AS statuses,
+          bool_or(i.status = 'Arret' AND i.end_date IS NULL) AS is_discontinued,
+          bool_or(i.calculated_end_date >= (md.max_date - INTERVAL '1 month' * $2)) AS in_current_filter
+        FROM produits p
+        LEFT JOIN incidents i ON p.id = i.product_id
+        LEFT JOIN produits_molecules pm ON p.id = pm.produit_id
+        LEFT JOIN molecules m ON pm.molecule_id = m.id
+        CROSS JOIN max_date md
+        WHERE (p.name ILIKE $1 OR p.accented_name ILIKE $1 OR m.name ILIKE $1)
+        GROUP BY p.id, p.name, p.accented_name
+      ),
+      with_current_status AS (
+        SELECT *,
+          CASE
+            WHEN is_discontinued THEN 'Arret'
+            WHEN statuses LIKE '%Rupture%' AND in_current_filter THEN 'Rupture'
+            WHEN statuses LIKE '%Tension%' AND in_current_filter THEN 'Tension'
+            ELSE 'Disponible'
+          END AS current_status
+        FROM search_results
+      )
+      SELECT * FROM with_current_status
+      ORDER BY 
+        in_current_filter DESC,
+        is_discontinued ASC,
+        product ASC
+      LIMIT 20
+    `;
+    
+    const { rows } = await dbQuery(searchQuery, `%${searchTerm}%`, monthsToShow);
+    res.json(rows);
+  } catch (error) {
+    console.error("Error in search:", error);
+    res.status(500).json({ error: "Search failed", details: error.message });
+  }
+});
+
+/**
  * API endpoint for fetching therapeutic substitutions for a medication
  * 
  * Retrieves potential therapeutic substitutions for a given medication
@@ -543,6 +613,25 @@ app.get("/substitutions/:cis_code", async (req, res) => {
  * @listens {number} PORT - The port number to listen on
  * @returns {import('http').Server} - The HTTP server instance
  */
-app.listen(PORT, () =>
+const server = app.listen(PORT, () =>
   console.log(`Server running on http://localhost:${PORT}`),
 );
+
+// Graceful shutdown
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
+
+async function shutdown() {
+  console.log('Received shutdown signal, closing connections...');
+  
+  server.close(() => {
+    console.log('HTTP server closed');
+  });
+  
+  // Close database connection pool
+  const { closePool } = await import('./database/connect_db.js');
+  await closePool();
+  console.log('Database connection pool closed');
+  
+  process.exit(0);
+}

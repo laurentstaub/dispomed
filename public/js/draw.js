@@ -1,5 +1,5 @@
 import { dataManager } from "./01_store_data.js";
-import { fetchTableChartData } from "./00_fetch_data.js";
+import { fetchTableChartData, fetchSearchSuggestions } from "./00_fetch_data.js";
 import { getDaysBetween, formatDurationSince, getProductStatus } from "./utils.js";
 
 const ALL_TIME_START = new Date(2021, 4, 1);
@@ -173,7 +173,7 @@ async function handleSearch(searchTerm) {
     searchTerm, atcClass, molecule);
   monthlyData = dataManager.processDataMonthlyChart(rawData);
   drawTableChart(rawData);
-  drawSummaryChart(monthlyData, false);
+  drawSummaryChart(monthlyData);
 
   // Only update the molecule dropdown when ATC class changes
   // This prevents the dropdown from disappearing when a molecule is selected
@@ -227,9 +227,9 @@ window.addEventListener(
   "resize",
   debounce(() => {
     windowWidth = getWindowWidth();
-    monthlyData = dataManager.processDataMonthlyChart(rawData);
+    // No need to reprocess data on resize - just redraw with existing data
     drawTableChart(rawData);
-    drawSummaryChart(monthlyData, false);
+    drawSummaryChart(monthlyData);
   }, 250),
 );
 
@@ -240,11 +240,237 @@ d3.select("#mainfilter-reset").on("click", function () {
   location.reload();
 });
 
+// Search dropdown functionality
+let searchDropdown = null;
+let isDropdownVisible = false;
+
+function createSearchDropdown() {
+  if (searchDropdown) return searchDropdown;
+
+  // Create dropdown container
+  const searchContainer = document.querySelector('#mainfilter-search-box').parentElement;
+  searchContainer.style.position = 'relative';
+
+  searchDropdown = document.createElement('div');
+  searchDropdown.id = 'search-dropdown';
+  searchDropdown.className = 'search-dropdown hidden';
+  searchContainer.appendChild(searchDropdown);
+
+  return searchDropdown;
+}
+
+function hideSearchDropdown() {
+  if (searchDropdown) {
+    searchDropdown.classList.add('hidden');
+    isDropdownVisible = false;
+  }
+}
+
+function showSearchDropdown() {
+  if (searchDropdown) {
+    searchDropdown.classList.remove('hidden');
+    isDropdownVisible = true;
+  }
+}
+
+async function updateSearchDropdown(searchTerm) {
+  if (!searchTerm || searchTerm.length < 2) {
+    hideSearchDropdown();
+    return;
+  }
+
+  const dropdown = createSearchDropdown();
+  const monthsToShow = dataManager.getMonthsToShow();
+  
+  try {
+    const suggestions = await fetchSearchSuggestions(searchTerm, monthsToShow);
+    
+    if (suggestions.length === 0) {
+      dropdown.innerHTML = '<div class="search-no-results">Aucun résultat trouvé</div>';
+    } else {
+      dropdown.innerHTML = suggestions.map(suggestion => {
+        const statusBadge = getStatusBadgeHTML(suggestion);
+        const filterBadge = suggestion.in_current_filter ? 
+          '' : 
+          '<span class="search-filter-badge">En dehors du filtre actuel</span>';
+        
+        return `
+          <div class="search-suggestion" data-product-id="${suggestion.product_id}" data-in-filter="${suggestion.in_current_filter}">
+            <div class="search-suggestion-content">
+              <span class="search-suggestion-name">${suggestion.accented_product || suggestion.product}</span>
+              ${statusBadge}
+              ${filterBadge}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Add click handlers to suggestions
+      dropdown.querySelectorAll('.search-suggestion').forEach(item => {
+        item.addEventListener('click', async (e) => {
+          const productName = item.querySelector('.search-suggestion-name').textContent;
+          const inCurrentFilter = item.dataset.inFilter === 'true';
+          
+          // Update search box
+          document.querySelector('#mainfilter-search-box').value = productName;
+          dataManager.setSearchTerm(removeAccents(productName.toLowerCase()));
+          
+          // Update filter states
+          updateFilterStates();
+          
+          // If product is outside current filter, switch to "All time" and show notification
+          if (!inCurrentFilter) {
+            await switchToAllTimeFilter(productName);
+          } else {
+            // Just perform normal search
+            handleSearch(dataManager.getSearchTerm());
+          }
+          
+          hideSearchDropdown();
+        });
+      });
+    }
+    
+    showSearchDropdown();
+  } catch (error) {
+    console.error('Error fetching search suggestions:', error);
+    hideSearchDropdown();
+  }
+}
+
+function getStatusBadgeHTML(suggestion) {
+  // If we have current_status from API, use it
+  if (suggestion.current_status) {
+    const currentStatus = suggestion.current_status;
+    return `<span class="search-status-badge status-${currentStatus.toLowerCase()}">${currentStatus}</span>`;
+  }
+  
+  // Otherwise, calculate from the statuses string (fallback logic)
+  if (!suggestion.statuses) {
+    return '<span class="search-status-badge status-disponible">Disponible</span>';
+  }
+  
+  const statuses = suggestion.statuses.split(', ');
+  
+  // Priority logic: Arret > Rupture > Tension > Disponible
+  let primaryStatus = 'Disponible';
+  if (statuses.includes('Arret')) {
+    primaryStatus = 'Arret';
+  } else if (statuses.includes('Rupture') && suggestion.in_current_filter) {
+    primaryStatus = 'Rupture';
+  } else if (statuses.includes('Tension') && suggestion.in_current_filter) {
+    primaryStatus = 'Tension';
+  }
+  
+  return `<span class="search-status-badge status-${primaryStatus.toLowerCase()}">${primaryStatus}</span>`;
+}
+
+async function switchToAllTimeFilter(productName) {
+  // Change to "All time" filter (maximum months)
+  dataManager.setMonthsToShow(60); // Large number to get all data
+  
+  // Try to find and update the time filter selector
+  // Note: We need to check if there's a time filter selector in the UI
+  // If not, the filter change will still work through dataManager
+  
+  // Show notification
+  showFilterChangeNotification(`Filtre étendu pour afficher "${productName}"`);
+  
+  // Perform search with new filter
+  handleSearch(dataManager.getSearchTerm());
+}
+
+function showFilterChangeNotification(message) {
+  // Create or update notification
+  let notification = document.getElementById('filter-change-notification');
+  if (!notification) {
+    notification = document.createElement('div');
+    notification.id = 'filter-change-notification';
+    notification.className = 'filter-notification';
+    document.body.appendChild(notification);
+  }
+  
+  notification.innerHTML = `
+    <div class="notification-content">
+      <i class="fa-solid fa-info-circle"></i>
+      <span>${message}</span>
+      <button class="notification-close" onclick="this.parentElement.parentElement.classList.add('hidden')">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+  `;
+  
+  notification.classList.remove('hidden');
+  
+  // Auto-hide after 5 seconds
+  setTimeout(() => {
+    notification.classList.add('hidden');
+  }, 5000);
+}
+
+// Set up debounced search to avoid querying too often
+const debouncedDropdownUpdate = createDebouncedSearch(updateSearchDropdown);
+
+function updateFilterStates() {
+  const hasSearchTerm = dataManager.getSearchTerm().length > 0;
+  const atcSelect = d3.select("#atc");
+  const moleculeSelect = d3.select("#molecule");
+  
+  if (hasSearchTerm) {
+    // Disable ATC and molecule filters when search is active
+    atcSelect.property("disabled", true)
+      .style("opacity", "0.5")
+      .style("cursor", "not-allowed");
+    
+    moleculeSelect.property("disabled", true)
+      .style("opacity", "0.5")
+      .style("cursor", "not-allowed");
+      
+    // Reset their values
+    dataManager.setATCClass("");
+    dataManager.setMolecule("");
+    atcSelect.property("value", "");
+    moleculeSelect.property("value", "");
+  } else {
+    // Enable ATC and molecule filters when search is cleared
+    atcSelect.property("disabled", false)
+      .style("opacity", "1")
+      .style("cursor", "pointer");
+    
+    moleculeSelect.property("disabled", false)
+      .style("opacity", "1")
+      .style("cursor", "pointer");
+  }
+}
+
 // Event listeners for search
 d3.select("#mainfilter-search-box").on("input", function () {
   const searchTerm = removeAccents(this.value.toLowerCase());
   dataManager.setSearchTerm(searchTerm);
+  
+  // Update filter states based on search
+  updateFilterStates();
+  
+  // Update dropdown with suggestions
+  debouncedDropdownUpdate(searchTerm);
+  
+  // Also update the main results with original behavior
   debouncedSearch(searchTerm);
+});
+
+// Hide dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#mainfilter-search-box') && !e.target.closest('#search-dropdown')) {
+    hideSearchDropdown();
+  }
+});
+
+// Show dropdown when focusing on search box
+d3.select("#mainfilter-search-box").on("focus", function () {
+  const searchTerm = this.value.trim();
+  if (searchTerm.length >= 2) {
+    updateSearchDropdown(removeAccents(searchTerm.toLowerCase()));
+  }
 });
 
 
@@ -313,7 +539,72 @@ async function initializeData() {
   drawSummaryChart(monthlyData);
 }
 
-initializeData();
+// Wait for DOM to be ready before initializing
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeData);
+} else {
+  // DOM is already ready
+  initializeData();
+}
+
+function showArretOnlyMessage(arretProducts) {
+  // Show the summary container but display a custom message instead of chart
+  d3.select("#summary").style("display", "block");
+  
+  // Clear any existing content
+  d3.select("#summary").selectAll("*").remove();
+  
+  // Find the earliest Arret date
+  const earliestArret = arretProducts.reduce((earliest, product) => {
+    const productDate = new Date(product.start_date);
+    return !earliest || productDate < earliest ? productDate : earliest;
+  }, null);
+  
+  const arretDate = formatDate(earliestArret);
+  const productCount = arretProducts.length;
+  const productLabel = productCount === 1 ? 'Le produit a été arrêté' : 'Les produits ont été arrêtés';
+  
+  // Create message container
+  const messageContainer = d3.select("#summary")
+    .append("div")
+    .attr("class", "arret-only-message")
+    .style("text-align", "center")
+    .style("padding", "40px 20px")
+    .style("color", "var(--grisfonce)")
+    .style("background", "rgba(150, 150, 150, 0.05)")
+    .style("border-radius", "8px")
+    .style("border", "1px solid rgba(150, 150, 150, 0.2)");
+  
+  // Add icon
+  messageContainer.append("div")
+    .style("font-size", "48px")
+    .style("margin-bottom", "16px")
+    .style("color", "var(--arret-bg)")
+    .html("&#9888;"); // Warning triangle
+  
+  // Add title
+  messageContainer.append("h3")
+    .style("margin", "0 0 12px 0")
+    .style("color", "var(--grisfonce)")
+    .style("font-size", "18px")
+    .text("Arrêt de commercialisation");
+  
+  // Add message
+  messageContainer.append("p")
+    .style("margin", "0")
+    .style("font-size", "16px")
+    .style("line-height", "1.4")
+    .html(`${productLabel} depuis le <strong>${arretDate}</strong>`);
+  
+  // Add note if multiple products
+  if (productCount > 1) {
+    messageContainer.append("p")
+      .style("margin", "8px 0 0 0")
+      .style("font-size", "14px")
+      .style("color", "var(--gris)")
+      .text(`${productCount} produits concernés par cet arrêt`);
+  }
+}
 
 /***********************************/
 /*    Draw the top summary chart   */
@@ -328,9 +619,21 @@ function drawSummaryChart(monthlyChartData) {
   const startDate = dataManager.getStartDate();
   const endDate = dataManager.getEndDate();
   const parseDate = d3.timeParse("%Y-%m-%d");
-  monthlyChartData.forEach((d) => (d.date = parseDate(d.date)));
+  
+  // Parse dates only if they're strings (not already Date objects)
+  monthlyChartData.forEach((d) => {
+    if (typeof d.date === 'string') {
+      d.date = parseDate(d.date);
+    }
+  });
 
   const dateReport = dataManager.getDateReport();
+
+  // Early return if no data
+  if (!monthlyChartData || monthlyChartData.length === 0) {
+    d3.select("#summary").style("display", "none");
+    return;
+  }
 
   // Filter out months with no data
   const filteredData = monthlyChartData.filter(
@@ -343,10 +646,21 @@ function drawSummaryChart(monthlyChartData) {
     lineData = filteredData.filter(d => [0, 3, 6, 9].includes(d.date.getMonth()));
   }
 
-  if (monthlyChartData.length === 0) {
-    d3.select("#summary").style("display", "none");
-    return;
+  // Check if we only have "Arret" products (no ruptures or tensions)
+  if (filteredData.length === 0) {
+    // Check if there are any Arret products in the raw data
+    const arretProducts = rawData.filter(d => d.status === 'Arret');
+    if (arretProducts.length > 0) {
+      showArretOnlyMessage(arretProducts);
+      return;
+    } else {
+      d3.select("#summary").style("display", "none");
+      return;
+    }
   }
+
+  // Show the summary container if we have data to display
+  d3.select("#summary").style("display", "block");
 
   // Create scales
   const xScale = d3.scaleTime()
@@ -391,7 +705,7 @@ function drawSummaryChart(monthlyChartData) {
         .attr("viewBox", `0 0 ${width} ${height}`)
         .attr("preserveAspectRatio", "xMidYMid meet");
   } else {
-    svg = d3.select("#summary svg");
+    // svg is already selected, just clear its contents
     svg.selectAll("*").remove();
   }
 
