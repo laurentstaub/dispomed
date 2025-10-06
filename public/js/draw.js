@@ -775,14 +775,14 @@ function drawSummaryChart(monthlyChartData) {
         .style("stroke-width", 2)
         .style("filter", "drop-shadow(0 4px 8px rgba(239, 68, 68, 0.2))")
         .style("cursor", "pointer")
-        .on("mouseover", function(event, d) {
+        .on("mouseover", function() {
             d3.select(this)
                 .transition()
                 .duration(100)
                 .attr("r", 8)
                 .style("stroke-width", 4);
         })
-        .on("mouseout", function(event, d) {
+        .on("mouseout", function() {
             d3.select(this)
                 .transition()
                 .duration(100)
@@ -809,14 +809,14 @@ function drawSummaryChart(monthlyChartData) {
         .style("stroke-width", 2)
         .style("filter", "drop-shadow(0 4px 8px rgba(245, 158, 11, 0.2))")
         .style("cursor", "pointer")
-        .on("mouseover", function(event, d) {
+        .on("mouseover", function() {
             d3.select(this)
                 .transition()
                 .duration(200)
                 .attr("r", 8)
                 .style("stroke-width", 4);
         })
-        .on("mouseout", function(event, d) {
+        .on("mouseout", function() {
             d3.select(this)
                 .transition()
                 .duration(200)
@@ -1146,7 +1146,7 @@ function drawTableChart(rawData) {
         .attr('height', barHeight)
         .attr('class', `bar ${d.status}-fill`.toLowerCase())
         .style('cursor', 'pointer')
-        .on('mousemove', function (event) {
+        .on('mousemove', function () {
           let tooltipHTML = `
             <div class="tooltip-title">${d.accented_product || d.product}</div>
             <div class="tooltip-dci">DCI: ${d.molecule || ''}</div>
