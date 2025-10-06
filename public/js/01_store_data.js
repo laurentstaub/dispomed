@@ -27,8 +27,6 @@ class ConfigManager {
     this.searchTerm = "";
     this.monthsToShow = 12;
     this.atcCode = "";
-    this.xScale = null;
-    this.yScale = null;
     this.moleculeClassMap = [];
     this.vaccinesOnly = false;
     this.displayState = 'initial'; // 'initial', 'filtered', or 'no_results'
