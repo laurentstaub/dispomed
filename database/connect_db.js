@@ -91,16 +91,35 @@ export async function closePool() {
 }
 
 function logQuery(statement, parameters) {
+  // Avoid logging SQL and its parameters in production: it is noisy and the
+  // parameters may contain sensitive data.
+  if (isProduction) return;
+
   console.log("Executing query:", statement);
   if (parameters.length > 0) {
     console.log("Parameters:", parameters);
   }
 }
 
-// Optional: Log the current configuration
-console.log("Database Configuration:", {
-  isProduction,
-  connectionString: CONNECTION_CONFIG.connectionString,
-  sslEnabled: !!CONNECTION_CONFIG.ssl,
-  poolSize: CONNECTION_CONFIG.max,
-});
+/**
+ * Masks the password in a Postgres connection string for safe logging.
+ * e.g. postgres://user:secret@host:5432/db -> postgres://user:****@host:5432/db
+ *
+ * @param {string|undefined} connectionString - The raw connection string
+ * @returns {string} The connection string with any password replaced by ****
+ */
+function maskConnectionString(connectionString) {
+  if (!connectionString) return "(not set)";
+  return connectionString.replace(/(:\/\/[^:/?#]+:)[^@]+@/, "$1****@");
+}
+
+// Log the current configuration in development only. The connection string is
+// masked so the database password is never written to logs.
+if (!isProduction) {
+  console.log("Database Configuration:", {
+    isProduction,
+    connectionString: maskConnectionString(CONNECTION_CONFIG.connectionString),
+    sslEnabled: !!CONNECTION_CONFIG.ssl,
+    poolSize: CONNECTION_CONFIG.max,
+  });
+}
