@@ -25,7 +25,6 @@ The application will display helpful error messages if the database is not set u
 ### Backend (Express.js + PostgreSQL)
 - **app.js**: Main Express server with API routes and page rendering
 - **database/connect_db.js**: Database connection utilities and SQL file loading
-- **database/init_db.js**: Database schema initialization
 - **sql/**: SQL queries organized by domain (incidents, products, atc_classes, ema, substitutions)
 
 ### Frontend (Vanilla JS + D3.js)
