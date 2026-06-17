@@ -191,7 +191,13 @@ function drawProductTimeline(product, containerId) {
     });
 
     // --- Add stats per year and total since April 2021 ---
-    const years = [2021, 2022, 2023, 2024, 2025];
+    // Years run from the data start (2021) to the current year, so the
+    // "Jours de disponibilité" table extends automatically each January.
+    const FIRST_YEAR = 2021;
+    const years = Array.from(
+        { length: new Date().getFullYear() - FIRST_YEAR + 1 },
+        (_, i) => FIRST_YEAR + i
+    );
     const yearlyStats = {};
     years.forEach(year => {
         yearlyStats[year] = {rupture: 0, tension: 0, arret: 0, total: 0};
@@ -339,6 +345,11 @@ function drawProductTimeline(product, containerId) {
     let salesCardHtml = '';
 
     if (Object.keys(salesByCis).length > 0) {
+        // Sales columns follow the years actually present in Open Medic data
+        // (independent of the availability years above), so no empty trailing
+        // columns when Open Medic lags the current year.
+        const salesYears = [...new Set(salesData.map(s => Number(s.year)))].sort((a, b) => a - b);
+
         // Create the sales card content
         let salesTableRows = '';
         Object.values(salesByCis).forEach(cisSales => {
@@ -347,7 +358,7 @@ function drawProductTimeline(product, containerId) {
                 salesTableRows += `
           <tr class="cip13-row">
             <td class="productpg-stats-label">${cip13Sale.label || cip13Sale.cip13}</td>
-            ${years.map(year => `<td class="${year === 2021 ? 'year-start-col' : ''}">${formatNumber(cip13Sale.byYear[year] || 0)}</td>`).join('')}
+            ${salesYears.map((year, i) => `<td class="${i === 0 ? 'year-start-col' : ''}">${formatNumber(cip13Sale.byYear[year] || 0)}</td>`).join('')}
             <td class="productpg-stats-value total-col">${formatNumber(Object.values(cip13Sale.byYear).reduce((sum, val) => sum + Number(val), 0))}</td>
           </tr>
         `;
@@ -357,13 +368,13 @@ function drawProductTimeline(product, containerId) {
         salesCardHtml = `
         <div class="card-header">
           <div class="card-title">Nombre de boîtes vendues par présentation (code CIP)</div>
-          <p class="card-subtitle">Données 2021-2024, source Open medic</p>
+          <p class="card-subtitle">Données ${salesYears[0]}-${salesYears[salesYears.length - 1]}, source Open medic</p>
         </div>
         <table class="productpg-stats-table">
           <thead>
             <tr>
               <th></th>
-              ${years.map((y, i) => `<th class="${i === 0 ? 'year-start-col' : ''}">${y}</th>`).join('')}
+              ${salesYears.map((y, i) => `<th class="${i === 0 ? 'year-start-col' : ''}">${y}</th>`).join('')}
               <th class="total-col">Total</th>
             </tr>
           </thead>
