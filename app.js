@@ -106,7 +106,7 @@ app.get("/product/:productId", asyncHandler(async (req, res) => {
   const reportData = reportRows[0] || {};
   const globalReportDate = reportData.max_report_date;
 
-  res.render('product', { productId, globalReportDate });
+  res.render('product', { productId, globalReportDate, embed: req.query.embed === '1' });
 }));
 
 /**
@@ -402,6 +402,17 @@ app.get('/api/ema-incidents', asyncHandler(async (req, res) => {
 }));
 
 /**
+ * API endpoint for the available sales year range.
+ *
+ * Returns the min/max year present in public.product_sales, so the UI can show
+ * the real data span dynamically (rather than a hardcoded range).
+ */
+app.get('/api/sales-years', asyncHandler(async (req, res) => {
+  const { rows } = await dbQuery(loadSqlFile('sql/products/get_sales_year_range.sql'));
+  res.json(rows[0] || { min_year: null, max_year: null });
+}));
+
+/**
  * API endpoint for fetching sales data by CIS codes
  *
  * Retrieves sales data for each CIP13 per year (2021-2024) associated with
@@ -418,6 +429,64 @@ app.get('/api/sales-by-cis', asyncHandler(async (req, res) => {
   const query = loadSqlFile('sql/products/get_sales_by_cis_codes.sql');
   const { rows } = await dbQuery(query, [codes]);
   res.json(rows);
+}));
+
+/**
+ * API endpoint for the ANSM availability details (linked pages) by CIS codes.
+ *
+ * Reads the public.ansm_info cache table (populated by the incident_scraper
+ * step 05_fetch_ansm_details.js). Returns [] when the table does not exist yet
+ * so the product page degrades gracefully.
+ */
+/**
+ * CIS codes with an ONGOING EMA incident. Preloaded by the main page to flag
+ * products with a European-level shortage (🇪🇺 marker). Returns [] when the
+ * schema is absent so the page degrades gracefully.
+ */
+app.get('/api/ema-active-cis', asyncHandler(async (req, res) => {
+  try {
+    const { rows } = await dbQuery(loadSqlFile('sql/ema/get_active_ema_cis.sql'));
+    res.json(rows.map(r => r.cis_code));
+  } catch (err) {
+    if (err && /incidents_ema|does not exist|n'existe pas/i.test(err.message || '')) {
+      return res.json([]);
+    }
+    throw err;
+  }
+}));
+
+/**
+ * All ANSM availability details at once (small cache table). Used by the main
+ * page to enrich the product tooltip without per-hover fetches.
+ */
+app.get('/api/ansm-info/all', asyncHandler(async (req, res) => {
+  try {
+    const { rows } = await dbQuery(loadSqlFile('sql/products/get_ansm_info_all.sql'));
+    res.json(rows);
+  } catch (err) {
+    if (err && /ansm_info.*does not exist|relation .* n'existe pas/i.test(err.message || '')) {
+      return res.json([]);
+    }
+    throw err;
+  }
+}));
+
+app.get('/api/ansm-info', asyncHandler(async (req, res) => {
+  const { cis_codes } = req.query;
+  if (!cis_codes) {
+    return res.status(400).json({ error: 'cis_codes query param required' });
+  }
+  const codes = cis_codes.split(',').map(code => code.trim());
+  try {
+    const query = loadSqlFile('sql/products/get_ansm_info_by_cis_codes.sql');
+    const { rows } = await dbQuery(query, [codes]);
+    res.json(rows);
+  } catch (err) {
+    if (err && /ansm_info.*does not exist|relation .* n'existe pas/i.test(err.message || '')) {
+      return res.json([]);   // cache pas encore chargé : pas de carte, pas d'erreur
+    }
+    throw err;
+  }
 }));
 
 /**
