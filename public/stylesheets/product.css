@@ -2,7 +2,7 @@
 
 /* Product page title and status */
 #productpg-report-title {
-  color: #0f172a;
+  color: #475569;
   font-size: 1.5rem;
   font-weight: 700;
   text-align: left;
@@ -87,29 +87,29 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-  border: 2px solid #e2e8f0;
+  background: white;
+  border: 1px solid #f1f5f9;
   border-radius: 8px;
-  padding: 16px 20px;
+  padding: 10px 14px;
   cursor: pointer;
   font-size: 15px;
   font-weight: 600;
   color: #475569;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
 }
 
 .cis-toggle-button:hover {
-  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
-  border-color: #cbd5e1;
+  background: #f8fafc;
+  border-color: #e2e8f0;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .cis-toggle-button.expanded {
-  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-  border-color: #93c5fd;
-  color: #1e40af;
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #334155;
 }
 
 .cis-button-content {
@@ -120,16 +120,17 @@
 }
 
 .cis-icon {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #f1f5f9, #cbd5e1);
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 14px;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+  color: #475569;
+  font-size: 13px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
 .cis-button-text {
@@ -155,7 +156,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(100, 116, 139, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -163,12 +164,12 @@
 }
 
 .cis-toggle-button.expanded .cis-chevron {
-  background: rgba(59, 130, 246, 0.2);
+  background: rgba(100, 116, 139, 0.15);
   transform: rotate(180deg);
 }
 
 .cis-chevron i {
-  color: #3b82f6;
+  color: #64748b;
   font-size: 12px;
   transition: transform 0.3s ease;
 }
@@ -187,21 +188,24 @@
 .cis-content.expanded {
   max-height: 400px;
   border-color: #e2e8f0;
+  /* listes longues (génériques : 10-20 CIS) : on défile dans le volet */
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .cis-list-container {
-  padding: 20px;
+  padding: 10px 12px;
 }
 
 .cis-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 10px;
+  padding: 6px 12px;
   background: linear-gradient(135deg, #fafbfc, #f8fafc);
   border: 1px solid #f1f5f9;
   border-radius: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   transition: all 0.2s ease;
 }
 
@@ -216,8 +220,8 @@
 }
 
 .cis-code-icon {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   background: linear-gradient(135deg, #10b981, #059669);
   border-radius: 6px;
   display: flex;
@@ -234,6 +238,13 @@
   font-size: 14px;
   color: #64748b;
   flex: 1;
+}
+
+/* Le wrapper (volet CIS + stats) doit remplir la ligne : sans largeur explicite,
+   un enfant flex se cale sur son contenu et casse l'alignement du bord droit. */
+.productpg-inner-wrapper {
+  width: 100%;
+  min-width: 0;
 }
 
 /* Product Statistics Components */
@@ -874,4 +885,50 @@
     width: 100%;
     box-sizing: border-box;
   }
+}
+/* ---------------------------------------------------------------------------
+   Tableaux sur mobile : défilement horizontal DANS la carte, première colonne
+   (libellés) figée pour garder le contexte pendant le scroll.
+--------------------------------------------------------------------------- */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll .productpg-stats-table {
+  min-width: 540px;   /* en dessous, les chiffres deviennent illisibles */
+}
+
+.table-scroll .productpg-stats-table th:first-child,
+.table-scroll .productpg-stats-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: white;
+  box-shadow: 2px 0 4px rgba(15, 23, 42, 0.04);
+}
+
+.table-scroll .productpg-stats-table thead th:first-child {
+  background: #fafafa;
+}
+
+.table-scroll .productpg-stats-table .total-row td:first-child {
+  background: #f8fafc;
+}
+
+@media (max-width: 700px) {
+  .productpg-stats-table {
+    font-size: 13px;
+  }
+
+  .productpg-stats-table th,
+  .productpg-stats-table td {
+    padding: 6px 8px;
+  }
+}
+
+/* Pastilles H/V/EU dans le fil d'Ariane de la fiche produit */
+#breadcrumb .type-marker {
+  vertical-align: middle;
+  margin-left: 2px;
 }

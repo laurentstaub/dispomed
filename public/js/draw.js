@@ -7,8 +7,63 @@ const ALL_TIME_START = new Date(2021, 4, 1);
 let rawData = [];
 let monthlyData = [];
 
+// Situation ANSM (fiches liées) : préchargée une fois au chargement, indexée par
+// CIS. Le tooltip produit s'en sert sans fetch au survol. Dégrade proprement.
+let ansmInfoByCis = new Map();
+fetch('/api/ansm-info/all')
+  .then(r => (r.ok ? r.json() : []))
+  .then(rows => {
+    const map = new Map();
+    rows.forEach(row => (row.cis || []).forEach(c => map.set(String(c), row)));
+    ansmInfoByCis = map;
+  })
+  .catch(() => { /* tooltip sans volet ANSM */ });
+
+// CIS avec incident EMA EN COURS : drapeau 🇪🇺 sur les lignes concernées.
+let emaActiveCis = new Set();
+fetch('/api/ema-active-cis')
+  .then(r => (r.ok ? r.json() : []))
+  .then(codes => { emaActiveCis = new Set(codes.map(String)); })
+  .catch(() => { /* pas de drapeau si indispo */ });
+
 function removeAccents(str) {
   return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+/**
+ * Ouvre la fiche produit en OVERLAY par-dessus la liste : la vraie page
+ * /product/:id est charg\u00e9e en iframe (?embed=1 masque son lien retour).
+ * L'URL est pouss\u00e9e dans l'historique -> partageable, et Pr\u00e9c\u00e9dent / \u00c9chap /
+ * clic sur le fond / bouton \u00d7 referment l'overlay sans quitter la liste.
+ * Cmd/Ctrl-clic et clic-molette conservent l'ouverture en onglet.
+ */
+function openProductOverlay(href) {
+  if (document.querySelector('.product-overlay-backdrop')) return;
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'product-overlay-backdrop';
+  backdrop.innerHTML = `
+    <div class="product-overlay" role="dialog" aria-modal="true">
+      <button class="product-overlay-close" title="Fermer (\u00c9chap)">&times;</button>
+      <iframe class="product-overlay-frame" allowtransparency="true" src="${href}${href.includes('?') ? '&' : '?'}embed=1"></iframe>
+    </div>`;
+  document.body.appendChild(backdrop);
+  document.body.style.overflow = 'hidden';
+
+  const teardown = () => {
+    backdrop.remove();
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', onKey);
+    window.removeEventListener('popstate', onPop);
+  };
+  const onPop = () => teardown();
+  const onKey = e => { if (e.key === 'Escape') history.back(); };
+
+  history.pushState({ productOverlay: true }, '', href);
+  window.addEventListener('popstate', onPop);
+  document.addEventListener('keydown', onKey);
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) history.back(); });
+  backdrop.querySelector('.product-overlay-close').addEventListener('click', () => history.back());
 }
 
 const frFr = d3.timeFormatLocale({
@@ -1077,10 +1132,31 @@ function drawTableChart(rawData) {
     if (commaCount === 1) {
       shortLabel = label.split(',')[0];
     }
+    // Marqueurs de nature (hors langage statut) : H = réserve hospitalière, V = vaccin
+    const typeMarkers = [];
+    if (mainIncident.reserve_hospitaliere === true) {
+      typeMarkers.push('<span class="type-marker type-marker-h" title="Réserve hospitalière">H</span>');
+    }
+    if ((mainIncident.atc_code || '').toUpperCase().startsWith('J07')) {
+      typeMarkers.push('<span class="type-marker type-marker-v" title="Vaccin">V</span>');
+    }
+    // Drapeau : la pénurie est aussi suivie au niveau européen (incident EMA en cours)
+    if ((mainIncident.cis_codes || []).some(c => emaActiveCis.has(String(c)))) {
+      typeMarkers.push('<span class="type-marker type-marker-eu" title="Incident européen en cours (EMA)">EU</span>');
+    }
+    const safeLabel = shortLabel.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
     row.append('a')
     .attr('class', 'maintbl-row-label')
     .attr('href', `/product/${mainIncident.product_id}`)
-    .text(shortLabel)
+    .html(`<span class="maintbl-row-name">${safeLabel}</span>${typeMarkers.join('')}`)
+      .on('click', function (event) {
+        // clic simple -> overlay ; Cmd/Ctrl/Shift/molette -> comportement natif (onglet)
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+        event.preventDefault();
+        tooltip.style('opacity', 0);
+        openProductOverlay(this.getAttribute('href'));
+      })
       .on('mouseover', function () {
         let tooltipContent = `<div class="tooltip-title">${accentedProducts[i]}</div>`;
         tooltipContent += `<div class="tooltip-dci">DCI: ${mainIncident.molecule || ''} / ATC: ${mainIncident.atc_code || ''}</div>`;
@@ -1092,6 +1168,30 @@ function drawTableChart(rawData) {
         } else {
           tooltipContent += `<div class="tooltip-status ${status.shorthand}"><i class="${status.icon}"></i> ${status.text}</div>`;
         }
+        // Situation ANSM (fiche liée) : 2 lignes compactes quand une fiche existe
+        const ansmRow = (mainIncident.cis_codes || [])
+          .map(c => ansmInfoByCis.get(String(c))).find(Boolean);
+        if (ansmRow) {
+          const pick = re => {
+            const line = (ansmRow.observations || '').split(/\n+/).find(l => re.test(l));
+            if (!line) return '';
+            const m = line.match(/:\s*(.+?)[;\s]*$/);
+            return m ? m[1].trim() : '';
+          };
+          const ville = pick(/situation en ville/i);
+          const hopital = pick(/situation à l'h[ôo]pital/i);
+          const parts = [];
+          if (ville) parts.push(`Ville : ${ville}`);
+          if (hopital) parts.push(`Hôpital : ${hopital}`);
+          if (parts.length) {
+            tooltipContent += `<div class="tooltip-dci">ANSM — ${parts.join(' · ')}</div>`;
+          }
+          if (ansmRow.date_remise) {
+            const d = new Date(ansmRow.date_remise);
+            if (!isNaN(d)) tooltipContent += `<div class="tooltip-dci">Remise à disposition prévue : ${d.toLocaleDateString('fr-FR')}</div>`;
+          }
+        }
+
         // Add CIS codes list as last item
         if (mainIncident.cis_codes && mainIncident.cis_codes.length > 0) {
           tooltipContent += '<div class="tooltip-cis-list"><b>Codes CIS concernés :</b><ul>';

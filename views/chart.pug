@@ -7,10 +7,11 @@ block content
   .main-container
     #title-container.flex-container
       .header-title
-        h1
+        .header-flex
           .pill-icon 💊
-          #report-title INCIDENTS DE DISPONIBILITÉ des médicaments (MITM) et vaccins
-        h2#mise-a-jour
+          .header-text
+            h1#report-title INCIDENTS DE DISPONIBILITÉ des médicaments (MITM) et vaccins
+            h2#mise-a-jour
 
     .flex-container
       #mainfilter-container
@@ -46,17 +47,26 @@ block content
               #floating-legend
                 p#title-legend Légende
                 .legend-item
-                  span.legend-color-box.legend-rupture
+                  i.fa-solid.fa-square-xmark.legend-icon(style="color: var(--rupture)")
                   | Rupture
                 .legend-item
-                  span.legend-color-box.legend-tension
+                  i.fa-solid.fa-square-minus.legend-icon(style="color: var(--tension)")
                   | Tension
                 .legend-item
-                  span.legend-color-box.legend-arret
+                  i.fa-solid.fa-square-xmark.legend-icon(style="color: var(--arret-bg)")
                   | Arrêt de commercialisation
                 .legend-item
-                  span.legend-color-box.legend-disponible
+                  i.fa-solid.fa-square-check.legend-icon(style="color: var(--disponible)")
                   | Disponible
+                .legend-item
+                  span.type-marker.type-marker-h H
+                  | Réserve hospitalière
+                .legend-item
+                  span.type-marker.type-marker-v V
+                  | Vaccin
+                .legend-item
+                  span.type-marker.type-marker-eu EU
+                  | Incident européen (EMA)
       #summary
     #maintbl-dash
       #tooltip

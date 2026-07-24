@@ -2,15 +2,51 @@ extends layout
 
 block stylesheets
   link(rel="stylesheet", href="/stylesheets/product.css")
+  if embed
+    //- Mode overlay : en-tête de modale épuré (le titre n'est plus une carte),
+    //- contenu pleine largeur, espacements resserrés. Le panneau opaque de
+    //- l'overlay fournit le fond ; la page devient transparente.
+    style.
+      html, body { background: transparent !important; }
+      .main-container {
+        max-width: none;
+        width: 100%;
+        margin: 0;
+        padding: 18px 22px 22px;
+        min-height: 0;
+      }
+      /* Titre : carte -> simple en-tête (sans liseré bleu ni ombre) */
+      #title-container {
+        background: transparent;
+        box-shadow: none;
+        border-left: none;
+        border-radius: 0;
+        padding: 0;
+        margin-bottom: 8px;
+        min-height: 0;
+      }
+      /* seule la 1re ligne (fil d'Ariane) doit éviter le bouton × */
+      #breadcrumb { padding-right: 44px; }
+      .header-title h1 { font-size: 22px; margin: 4px 0 8px; }
+      .productpg-status-row { margin-bottom: 0; max-width: none; }
+      /* Cartes : respiration réduite, ombres plus discrètes */
+      .productpg-timeline-card,
+      .productpg-sales-card {
+        padding: 18px 20px;
+        margin-top: 12px;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
+      }
 
 block scripts
   script(type='module', src='/js/draw_product_page.js')
 
 block content
-  .retour-container
-    a.productpg-back-link(href="/")
-      i(class="fa-solid fa-arrow-left")
-      |  Retour à l'accueil
+  //- embed=1 : page affichée dans l'overlay de la liste -> pas de lien retour
+  if !embed
+    .retour-container
+      a.productpg-back-link(href="/")
+        i(class="fa-solid fa-arrow-left")
+        |  Retour à l'accueil
   .main-container
     #title-container.flex-container
       .header-title
@@ -28,6 +64,7 @@ block content
         .cis-list#cis-list
         #productpg-stats
     
+    .productpg-sales-card#productpg-ansm-card(style="display:none")
     .productpg-sales-card#productpg-sales-card
     .productpg-timeline-card
       h2.card-title Historique des incidents

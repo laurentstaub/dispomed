@@ -63,11 +63,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .header-title h1 {
-  color: #0f172a;
+  color: #475569;
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 15px 0 10px;
+  gap: 10px;
+  margin: 6px 0 6px;
+  font-size: 24px;
 }
 
 p {
@@ -92,13 +93,12 @@ p {
   margin: 10px;
 }
 
+/* En-tête plat : le titre n'est pas une carte de données — pas de fond blanc,
+   d'ombre ni de liseré. La hiérarchie vient de la typographie seule. */
 #title-container {
-  background: white;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-  margin-bottom: 16px;
-  border-left: 6px solid #3b82f6;
+  background: transparent;
+  padding: 10px 0 14px;
+  margin-bottom: 8px;
 }
 
 /* Card Components */
@@ -123,15 +123,17 @@ p {
 }
 
 .pill-icon {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  width: 34px;
+  height: 34px;
+  /* gamme grise des marqueurs : l'icône s'accorde au header épuré */
+  background: linear-gradient(135deg, #f1f5f9, #cbd5e1);
+  border: 1px solid #cbd5e1;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
   font-size: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
 #capsule-icon {
@@ -143,19 +145,34 @@ p {
 }
 
 #report-title {
-  color: #0f172a;
+  color: #475569;
   font-size: 1.5rem;
   font-weight: 700;
   text-align: left;
   width: 100%;
 }
 
+/* Pilule à gauche, bloc texte (titre + mise à jour) resserré à sa droite */
+.header-flex {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-text {
+  min-width: 0;
+}
+
+.header-text h1 {
+  margin: 0;
+}
+
 #mise-a-jour {
   color: #64748b;
   font-size: 14px;
   font-weight: 400;
-  margin-bottom: 16px;
-  padding-top: 7px;
+  margin: 2px 0 0;
+  padding: 0;
   text-align: left;
 }
 
@@ -285,13 +302,12 @@ footer a:focus {
   flex-direction: column;
   padding: 10px;
   min-width: 200px;
-  min-height: 300px;
   max-width: 100%;
   width: 220px;
 }
 
 .filter-group {
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 #mainfilter-search-box,
@@ -348,7 +364,7 @@ footer a:focus {
   color: #64748b;
   font-weight: 600;
   font-size: 14px;
-  padding: 12px 6px;
+  padding: 7px 6px;
   text-align: center;
   transition: all 0.2s ease;
 }
@@ -360,7 +376,7 @@ footer a:focus {
 
 #mainfilter-reset {
   width: 100%;
-  padding: 12px 20px;
+  padding: 8px 20px;
   background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
   border: 2px solid #e2e8f0;
   border-radius: 8px;
@@ -481,7 +497,7 @@ footer a:focus {
   color: var(--grisfonce);
   display: flex;
   font-size: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 .legend-color-box {
@@ -506,10 +522,10 @@ footer a:focus {
 }
 
 #title-legend {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: #0f172a;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 #floating-legend {
@@ -795,7 +811,7 @@ footer a:focus {
 }
 
 #title-container {
-  min-height: 80px;
+  min-height: 0;
 }
 
 #capsule-icon {
@@ -1229,4 +1245,139 @@ footer a:focus {
   .chart text {
     font-size: 18px !important;
   }
+}
+/* ---------------------------------------------------------------------------
+   Overlay fiche produit — ouverte au clic depuis la liste principale.
+   La fiche est la vraie page /product/:id (iframe, ?embed=1 masque son chrome).
+--------------------------------------------------------------------------- */
+.product-overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.35);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: product-overlay-fade 0.15s ease-out;
+}
+
+@keyframes product-overlay-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.product-overlay {
+  position: relative;
+  width: min(980px, 92vw);
+  height: 86vh;
+  background: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+}
+
+.product-overlay-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.product-overlay-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #334155;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.product-overlay-close:hover {
+  background: #f1f5f9;
+}
+
+@media (max-width: 700px) {
+  .product-overlay {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Marqueurs de nature du produit (H = réserve hospitalière, V = vaccin).
+   Couleurs neutres, volontairement hors du langage statut (rouge/orange/vert).
+--------------------------------------------------------------------------- */
+.maintbl-row-label {
+  display: flex;
+  align-items: center;
+}
+
+.maintbl-row-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.type-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  margin-left: 5px;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+/* Dégradés de gris : les marqueurs de nature restent en retrait du langage
+   couleur statut. H (hospitalier) plus soutenu, V (vaccin) plus clair. */
+.type-marker-h {
+  background: #e2e8f0;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}
+
+.type-marker-v {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.legend-item .type-marker {
+  margin-left: 0;
+  margin-right: 5px;
+}
+
+/* Icônes de la légende : identiques à celles de la liste (Font Awesome) */
+.legend-item .legend-icon {
+  font-size: 14px;
+  margin-right: 5px;
+  flex-shrink: 0;
+}
+
+/* Pastille EU : incident EMA en cours — blanc sur bleu européen (#003399).
+   Seule pastille colorée : signal d'ampleur, pas une propriété du produit. */
+.type-marker-eu {
+  background: #039;
+  color: white;
+  border: 1px solid #039;
+  width: 24px;
+  font-size: 9px;
+  letter-spacing: 0.4px;
 }

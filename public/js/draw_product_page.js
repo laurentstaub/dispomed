@@ -370,6 +370,7 @@ function drawProductTimeline(product, containerId) {
           <div class="card-title">Nombre de boîtes vendues par présentation (code CIP)</div>
           <p class="card-subtitle">Données ${salesYears[0]}-${salesYears[salesYears.length - 1]}, source Open medic</p>
         </div>
+        <div class="table-scroll">
         <table class="productpg-stats-table">
           <thead>
             <tr>
@@ -382,6 +383,7 @@ function drawProductTimeline(product, containerId) {
             ${salesTableRows}
           </tbody>
         </table>
+        </div>
     `;
     }
 
@@ -392,6 +394,7 @@ function drawProductTimeline(product, containerId) {
           <div class="card-title">Jours de disponibilité</div>
           <p class="card-subtitle">Données depuis avril 2021</p>
         </div>
+        <div class="table-scroll">
         <table class="productpg-stats-table">
           <thead>
             <tr>
@@ -428,6 +431,7 @@ function drawProductTimeline(product, containerId) {
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
       <div class="productpg-score-donut">
         <div class="card-title">Score de disponibilité</div>
@@ -444,16 +448,116 @@ function drawProductTimeline(product, containerId) {
         if (salesCardHtml) {
             salesCardContainer.innerHTML = salesCardHtml;
         } else {
-            // Show message when no sales data is available
+            // Show message when no sales data is available. The data span comes
+            // from the global range (/api/sales-years), so it reflects the latest
+            // pulled data dynamically.
+            const range = window.salesYearRange;
+            const span = (range && range.min_year && range.max_year)
+                ? `Données ${range.min_year}-${range.max_year}, ` : '';
+            // Message ciblé si le produit est à réserve hospitalière (flag issu du CPD),
+            // sinon message générique honnête.
+            const reserve = product.incidents && product.incidents[0]
+                && product.incidents[0].reserve_hospitaliere === true;
+            const emptyMsg = reserve
+                ? `Produit à <strong>réserve hospitalière</strong> : administré à l'hôpital et non délivré
+                   en officine de ville. Ses ventes ne sont donc pas suivies par Open Medic
+                   (qui ne couvre que le remboursement en ville).`
+                : `Pas de données de vente en ville dans Open Medic pour ce produit.
+                   C'est le cas normal des produits à <strong>réserve hospitalière</strong> ou en
+                   rétrocession &mdash; Open Medic ne suit que le remboursement en officine de ville.
+                   Cela peut aussi concerner un produit peu vendu en ville ou récemment commercialisé.`;
             salesCardContainer.innerHTML = `
                 <div class="card-header">
                     <div class="card-title">Nombre de boîtes vendues par présentation (code CIP)</div>
-                    <p class="card-subtitle">Données 2021-2024, source Open medic</p>
+                    <p class="card-subtitle">${span}source Open Medic (ventes en ville)</p>
                 </div>
-                <div class="ema-empty-state">Pas de données pour ce produit dans la base Open Medic</div>
+                <div class="ema-empty-state">${emptyMsg}</div>
             `;
         }
     }
+}
+
+/**
+ * Renders the "Situation ANSM" card from public.ansm_info rows (linked ANSM
+ * availability pages). Mirrors the EMA card design system: .card-header,
+ * .ema-incident-item blocks, .ema-detail-row label/value lines, .ema-status-badge
+ * tinted with the app's status colors (--rupture / --tension). Hidden when empty.
+ *
+ * @param {Array} rows - rows from /api/ansm-info (link, statut, dates, observations…)
+ */
+function drawAnsmInfoCard(rows) {
+    const container = document.getElementById('productpg-ansm-card');
+    if (!container) return;
+    if (!rows || !rows.length) { container.style.display = 'none'; return; }
+
+    const frDate = iso => {
+        if (!iso) return '';
+        const d = new Date(iso);
+        return isNaN(d) ? '' : d.toLocaleDateString('fr-FR');
+    };
+    const esc = s => (s == null ? '' : String(s))
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    // Badge teinté avec les couleurs de statut de l'app (mêmes que la timeline).
+    const badgeStyle = statut => {
+        if (/rupture/i.test(statut)) return 'background:rgba(213,76,117,.15);color:var(--rupturefonce);';
+        if (/tension/i.test(statut)) return 'background:var(--tensiontresleger);color:var(--tensionfonce);';
+        if (/remise/i.test(statut)) return 'background:#d1fae5;color:#059669;';
+        return '';
+    };
+
+    const blocks = rows.map(row => {
+        const statut = row.statut_page || row.statut || '';
+        const when = frDate(row.statut_date || row.date_maj);
+        const remise = frDate(row.date_remise);
+
+        // Observations "label : valeur" -> lignes détail (même rendu que la carte EMA).
+        const detailRows = [];
+        (row.observations || '').split(/\n+/).forEach(line => {
+            const t = line.replace(/^[-•;\s]+|[;\s]+$/g, '').trim();
+            if (!t) return;
+            const m = t.match(/^(.{3,45}?)\s*:\s*(.+)$/);
+            if (m) {
+                detailRows.push(`
+                  <div class="ema-detail-row">
+                    <div class="ema-detail-label">${esc(m[1])}</div>
+                    <div class="ema-detail-value">${esc(m[2])}</div>
+                  </div>`);
+            } else {
+                detailRows.push(`
+                  <div class="ema-detail-row">
+                    <div class="ema-detail-value">${esc(t)}</div>
+                  </div>`);
+            }
+        });
+        if (remise) {
+            detailRows.push(`
+              <div class="ema-detail-row">
+                <div class="ema-detail-label">Remise à disposition</div>
+                <div class="ema-detail-value">prévue le ${remise}</div>
+              </div>`);
+        }
+
+        return `
+          <div class="ema-incident-item">
+            <div class="ema-incident-status">
+              <span class="ema-status-badge" style="${badgeStyle(statut)}">${esc(statut)}${when ? ` · ${when}` : ''}</span>
+            </div>
+            ${detailRows.join('')}
+            <div class="ema-detail-row">
+              <div class="ema-detail-value"><a href="${esc(row.link)}" target="_blank" rel="noopener">Voir la fiche ANSM&nbsp;↗</a></div>
+            </div>
+          </div>`;
+    }).join('');
+
+    container.innerHTML = `
+        <div class="card-header">
+          <div class="card-title">Situation ANSM</div>
+          <p class="card-subtitle">Détail officiel publié sur ansm.sante.fr${rows[0].publie_le ? ` · publié le ${frDate(rows[0].publie_le)}` : ''}</p>
+        </div>
+        ${blocks}
+    `;
+    container.style.display = '';
 }
 
 // Helper to get color for status
@@ -508,6 +612,14 @@ function debounce(func, delay) {
 async function main() {
     if (window.productId) {
         try {
+            // Fetch the global sales year range (min/max year present in the data),
+            // so the sales card can show the real span even when this product has
+            // no sales — also a quick signal that the front end is reading live data.
+            fetch('/api/sales-years')
+                .then(res => res.json())
+                .then(range => { window.salesYearRange = range; })
+                .catch(() => {});
+
             // Fetch all incidents for this product by ID
             const incidents = await fetchProductIncidents(window.productId);
             window.productIncidents = incidents; // Store for resize
@@ -548,7 +660,16 @@ async function main() {
                         subtitleText += `${moleculeName}`;
                     }
 
-                    infoSubtitle.innerHTML = subtitleText;
+                    // Mêmes pastilles que la liste principale (H / V ; EU ajoutée
+                    // plus bas quand les incidents EMA sont chargés).
+                    let markers = '';
+                    if (incidents[0].reserve_hospitaliere === true) {
+                        markers += ' <span class="type-marker type-marker-h" title="Réserve hospitalière — ventes ville non suivies par Open Medic">H</span>';
+                    }
+                    if ((incidents[0].atc_code || '').toUpperCase().startsWith('J07')) {
+                        markers += ' <span class="type-marker type-marker-v" title="Vaccin">V</span>';
+                    }
+                    infoSubtitle.innerHTML = subtitleText + markers;
                 }
                 document.title = accentedProductName + ' - Détails du produit';
             }
@@ -627,15 +748,10 @@ async function main() {
                         const item = document.createElement('div');
                         item.className = 'cis-item';
 
-                        const codeIcon = document.createElement('div');
-                        codeIcon.className = 'cis-code-icon';
-                        codeIcon.textContent = 'C';
-
                         const codeSpan = document.createElement('span');
                         codeSpan.className = 'cis-code';
                         codeSpan.textContent = `${code} - ${cisNamesMap[code] || 'Dénomination non disponible'}`;
 
-                        item.appendChild(codeIcon);
                         item.appendChild(codeSpan);
                         listContainer.appendChild(item);
                     });
@@ -662,6 +778,14 @@ async function main() {
                         }
                     });
                 }
+            }
+
+            // Situation ANSM (détail des fiches liées, cache public.ansm_info)
+            if (allCisCodes.length > 0) {
+                fetch(`/api/ansm-info?cis_codes=${allCisCodes.join(',')}`)
+                    .then(res => res.ok ? res.json() : [])
+                    .then(rows => drawAnsmInfoCard(rows))
+                    .catch(() => { /* pas de carte si indispo */ });
             }
 
             // Fetch sales data by CIS codes
@@ -692,6 +816,13 @@ async function main() {
                 fetch(`/api/ema-incidents?cis_codes=${allCisCodes.join(',')}`)
                     .then(res => res.json())
                     .then(emaIncidents => {
+                        // Pastille EU dans l'en-tête si un incident EMA est en cours
+                        const breadcrumbEl = document.getElementById('breadcrumb');
+                        if (breadcrumbEl && !breadcrumbEl.querySelector('.type-marker-eu')
+                            && emaIncidents.some(inc => inc.status === 'Ongoing')) {
+                            breadcrumbEl.insertAdjacentHTML('beforeend',
+                                ' <span class="type-marker type-marker-eu" title="Incident européen en cours (EMA)">EU</span>');
+                        }
                         if (!emaIncidents.length) {
                             emaIncidentsDiv.innerHTML = `
                               <div class="ema-empty-state">Aucun incident EMA lié trouvé pour ce produit.</div>
