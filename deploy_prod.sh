@@ -31,11 +31,14 @@ if [[ -z "$DB_URL" || "$DB_URL" != postgres* ]]; then
 fi
 echo "✓ Base prod identifiée pour « $APP »."
 
-# 2. Dump de la base locale
-echo "— Dump de $LOCAL_DB (sans open_medic ni tables __prev)…"
+# 2. Dump de la base locale.
+#    Exclusions : open_medic (préparation), tables __prev (sauvegardes loader),
+#    et dbpm.cis_documents — 1,2 Go de HTML jamais lu par l'app (90 % du dump !).
+echo "— Dump de $LOCAL_DB (sans open_medic, __prev, cis_documents)…"
 pg_dump -Fc --no-owner --no-acl \
   --exclude-schema=open_medic \
   --exclude-table='dbpm.*__prev' \
+  --exclude-table-data='dbpm.cis_documents' \
   -d "$LOCAL_DB" -f "$DUMP"
 echo "✓ Dump créé : $DUMP ($(du -h "$DUMP" | cut -f1))"
 
