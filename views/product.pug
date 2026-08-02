@@ -52,12 +52,13 @@ block content
       .header-title
         #breadcrumb
         h1
-          .pill-icon 💊
           #productpg-report-title
         .productpg-status-row
           span.productpg-status-icon
             i(class="fa-solid fa-square-xmark rupture-icon")
           span.productpg-status-label Statut actuel :
+          //- Rempli par drawSubstitutesCard() : « · 5 substituts disponibles »
+          span.productpg-status-substitutes#productpg-status-substitutes
 
     .flex-container
       .productpg-inner-wrapper

@@ -29,6 +29,7 @@ class ConfigManager {
     this.atcCode = "";
     this.moleculeClassMap = [];
     this.vaccinesOnly = false;
+    this.essentialsOnly = false;
     this.displayState = 'initial'; // 'initial', 'filtered', or 'no_results'
     // Cache properties for performance
     this._monthlyChartCache = null;
@@ -81,6 +82,9 @@ class ConfigManager {
 
   setVaccinesOnly(value) { this.vaccinesOnly = value; }
   getVaccinesOnly() { return this.vaccinesOnly; }
+
+  setEssentialsOnly(value) { this.essentialsOnly = value; }
+  getEssentialsOnly() { return this.essentialsOnly; }
 
   setDisplayState(state) { 
     this.displayState = state; 

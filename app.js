@@ -169,6 +169,7 @@ async function attachCisNames(incidents) {
  * @param {string} [req.query.atcClass] - Optional ATC class code filter
  * @param {string} [req.query.molecule] - Optional molecule ID filter (can be comma-separated)
  * @param {string} [req.query.vaccinesOnly] - If 'true', filters for vaccines only (ATC code J07)
+ * @param {string} [req.query.essentialsOnly] - If 'true', keeps only DGS essential medicines
  * @returns {Promise<void>} - Sends a JSON response with incident data
  */
 app.get("/api/incidents", asyncHandler(async (req, res) => {
@@ -187,6 +188,10 @@ app.get("/api/incidents", asyncHandler(async (req, res) => {
 
   if (req.query.vaccinesOnly === 'true') {
     additionalFilters += ` AND p.atc_code LIKE 'J07%'`;
+  }
+
+  if (req.query.essentialsOnly === 'true') {
+    additionalFilters += ` AND p.essentiel = true`;
   }
 
   if (atcClass) {
@@ -308,6 +313,35 @@ app.get('/api/substitutions/:code_cis', asyncHandler(async (req, res) => {
   `;
 
   const result = await dbQuery(query, code_cis);
+  res.json(result.rows);
+}));
+
+/**
+ * API endpoint : substituts officiels d'un produit et leur disponibilité.
+ *
+ * Membres du/des groupe(s) générique(s) BDPM du produit (substitution de droit),
+ * chacun avec son statut du jour. Aucun score algorithmique : que du réglementaire.
+ *
+ * @param {string} req.params.productId - produits.id
+ * @returns {Promise<void>} - JSON : une ligne par spécialité du groupe
+ */
+app.get('/api/substitutes/:productId', asyncHandler(async (req, res) => {
+  const query = loadSqlFile('sql/substitutions/get_generic_group_availability.sql');
+  const result = await dbQuery(query, req.params.productId);
+  res.json(result.rows);
+}));
+
+/**
+ * API endpoint : décompte des substituts officiels pour tous les produits.
+ *
+ * Une seule requête, préchargée par la liste principale (aperçu au survol) —
+ * plutôt qu'un appel par ligne.
+ *
+ * @returns {Promise<void>} - JSON : [{ product_id, total, dispo }]
+ */
+app.get('/api/substitutes-counts', asyncHandler(async (req, res) => {
+  const query = loadSqlFile('sql/substitutions/get_substitute_counts.sql');
+  const result = await dbQuery(query);
   res.json(result.rows);
 }));
 

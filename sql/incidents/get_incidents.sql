@@ -19,6 +19,7 @@ incidents_with_sorting AS (
         ca.code || ' - ' || ca.description AS classe_atc,
         p.atc_code AS atc_code,
         p.reserve_hospitaliere AS reserve_hospitaliere,
+        p.essentiel AS essentiel,
         CASE
             -- Un incident est actif s'il est en Arret sans end_date
             WHEN i.status = 'Arret' AND i.end_date IS NULL THEN 1
@@ -77,6 +78,7 @@ incidents_with_sorting AS (
       p.accented_name,
       p.cis_codes,
       p.reserve_hospitaliere,
+      p.essentiel,
       i.status,
       i.start_date,
       i.end_date,

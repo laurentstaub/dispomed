@@ -26,6 +26,25 @@ fetch('/api/ema-active-cis')
   .then(codes => { emaActiveCis = new Set(codes.map(String)); })
   .catch(() => { /* pas de drapeau si indispo */ });
 
+// Substituts officiels (groupe générique BDPM) : décompte par produit, préchargé
+// en une requête. Alimente l'aperçu au survol dans la liste — pas d'appel par ligne.
+// substitutesLoaded distingue « aucun substitut » de « donnée indisponible » :
+// sans ce drapeau, un échec de la requête ferait afficher « pas de médicament
+// substituable » sur TOUTES les lignes, ce qui est faux et trompeur au comptoir.
+let substitutesByProduct = new Map();
+let substitutesLoaded = false;
+fetch('/api/substitutes-counts')
+  .then(async r => {
+    if (!r.ok) throw new Error(`HTTP ${r.status} — ${(await r.text()).slice(0, 200)}`);
+    return r.json();
+  })
+  .then(rows => {
+    substitutesByProduct = new Map(rows.map(r => [String(r.product_id), r]));
+    substitutesLoaded = true;
+    console.info(`[substituts] décomptes chargés pour ${rows.length} produit(s)`);
+  })
+  .catch(err => console.warn('[substituts] décomptes indisponibles :', err.message));
+
 function removeAccents(str) {
   return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
@@ -556,6 +575,11 @@ d3.select("#vaccines-filter").on("change", function() {
   handleSearch(dataManager.getSearchTerm());
 });
 
+d3.select("#essentials-filter").on("change", function() {
+  dataManager.setEssentialsOnly(this.checked);
+  handleSearch(dataManager.getSearchTerm());
+});
+
 // Replace button click handlers with radio change handlers
 const periodRadios = document.querySelectorAll('.mainfilter-radio');
 periodRadios.forEach(radio => {
@@ -587,8 +611,12 @@ async function initializeData() {
   rawData = await fetchTableChartData();
   monthlyData = dataManager.processDataMonthlyChart(rawData);
 
+  // Ligne unique de métadonnées : source et date. On décrit la SOURCE, pas un
+  // périmètre : le suivi reprend ce que l'ANSM publie, soit très majoritairement
+  // des MITM et des vaccins (~83 % des produits), mais pas uniquement — annoncer
+  // « MITM et vaccins » serait inexact.
   d3.select("#mise-a-jour").text(
-    `Mise à jour : ${formatDate(dataManager.getDateReport())}`,
+    `Signalements de rupture et de tension publiés par l'ANSM · mise à jour le ${formatDate(dataManager.getDateReport())}`,
   );
   drawTableChart(rawData);
   drawSummaryChart(monthlyData);
@@ -1111,8 +1139,15 @@ function drawTableChart(rawData) {
 
     // Row container: use recentBlock for recently changed, dash for others
     const parent = isRecentlyChanged && recentBlock ? recentBlock : dash;
+    // Caractère essentiel (liste DGS) : ~60 % des produits. Aucun marquage par
+    // rangée pour l'instant (pastille, accent typo et filet gauche ont tous été
+    // écartés : à ce taux, marquer revient à marquer toute la liste). L'info reste
+    // disponible via le tooltip, le filtre « Essentiels uniquement » et la page produit.
+    const isEssential = mainIncident.essentiel === true;
+
     const row = parent.append('div')
-      .attr('class', `maintbl-row-modern hover-${status.shorthand}${isRecentlyChanged ? ' recently-changed-row' : ''}`)
+      .attr('class', `maintbl-row-modern hover-${status.shorthand}` +
+        `${isRecentlyChanged ? ' recently-changed-row' : ''}`)
       .style('display', 'flex')
       .style('align-items', 'center')
       .style('min-height', rowHeight + 'px')
@@ -1158,17 +1193,44 @@ function drawTableChart(rawData) {
         openProductOverlay(this.getAttribute('href'));
       })
       .on('mouseover', function () {
-        let tooltipContent = `<div class="tooltip-title">${accentedProducts[i]}</div>`;
-        tooltipContent += `<div class="tooltip-dci">DCI: ${mainIncident.molecule || ''} / ATC: ${mainIncident.atc_code || ''}</div>`;
-        if (status.shorthand === 'rupture' || status.shorthand === 'tension') {
-          if (mainIncident.start_date <= dateReport && mainIncident.calculated_end_date >= dateReport) {
-            const diffInDays = getDaysBetween(mainIncident.start_date, dateReport);
-            tooltipContent += `<div class="tooltip-status ${status.shorthand}"><i class="${status.icon}"></i> ${status.text} ${formatDurationSince(diffInDays)}</div>`;
-          }
-        } else {
-          tooltipContent += `<div class="tooltip-status ${status.shorthand}"><i class="${status.icon}"></i> ${status.text}</div>`;
+        // Aperçu construit sur l'anatomie de la fiche produit : fil d'Ariane,
+        // titre, bandeau de statut teinté, puis lignes label/valeur et volet CIS.
+        // Même vocabulaire visuel d'un écran à l'autre — l'aperçu est une fiche
+        // réduite, pas un composant à part.
+        const esc = s => (s == null ? '' : String(s))
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        const fil = [mainIncident.atc_code, mainIncident.molecule].filter(Boolean).map(esc).join(' · ');
+        let tooltipContent = `
+          <div class="tt-head">
+            ${fil ? `<div class="tt-breadcrumb">${fil}</div>` : ''}
+            <div class="tt-title">${esc(accentedProducts[i])}</div>
+          </div>`;
+
+        // Bandeau de statut : mêmes teintes que .productpg-status-row
+        let statusText = status.text;
+        if ((status.shorthand === 'rupture' || status.shorthand === 'tension')
+          && mainIncident.start_date <= dateReport && mainIncident.calculated_end_date >= dateReport) {
+          statusText += ' ' + formatDurationSince(getDaysBetween(mainIncident.start_date, dateReport));
         }
-        // Situation ANSM (fiche liée) : 2 lignes compactes quand une fiche existe
+        tooltipContent += `
+          <div class="tt-status status-${status.shorthand}">
+            <i class="${status.icon}"></i>
+            <span class="tt-status-label">${esc(statusText)}</span>
+          </div>`;
+
+        // Lignes label / valeur, dans l'ordre de décision du comptoir
+        const rows = [];
+        // La ligne est toujours présente ; c'est sa VALEUR qui dit l'incertitude.
+        // Tant que les décomptes ne sont pas chargés, on annonce « donnée
+        // indisponible » plutôt qu'une absence de substitut non vérifiée.
+        const subs = substitutesByProduct.get(String(mainIncident.product_id));
+        rows.push(['Substituts', !substitutesLoaded
+          ? 'donnée indisponible'
+          : (!subs || !subs.total)
+              ? 'Pas de médicament substituable'
+              : `${subs.dispo} sans signalement sur ${subs.total}`]);
+
         const ansmRow = (mainIncident.cis_codes || [])
           .map(c => ansmInfoByCis.get(String(c))).find(Boolean);
         if (ansmRow) {
@@ -1180,27 +1242,35 @@ function drawTableChart(rawData) {
           };
           const ville = pick(/situation en ville/i);
           const hopital = pick(/situation à l'h[ôo]pital/i);
-          const parts = [];
-          if (ville) parts.push(`Ville : ${ville}`);
-          if (hopital) parts.push(`Hôpital : ${hopital}`);
-          if (parts.length) {
-            tooltipContent += `<div class="tooltip-dci">ANSM — ${parts.join(' · ')}</div>`;
-          }
+          if (ville) rows.push(['Ville (ANSM)', ville]);
+          if (hopital) rows.push(['Hôpital (ANSM)', hopital]);
           if (ansmRow.date_remise) {
             const d = new Date(ansmRow.date_remise);
-            if (!isNaN(d)) tooltipContent += `<div class="tooltip-dci">Remise à disposition prévue : ${d.toLocaleDateString('fr-FR')}</div>`;
+            if (!isNaN(d)) rows.push(['Remise à disposition', `prévue le ${d.toLocaleDateString('fr-FR')}`]);
           }
         }
+        if (isEssential) rows.push(['Liste DGS', 'Médicament essentiel']);
 
-        // Add CIS codes list as last item
-        if (mainIncident.cis_codes && mainIncident.cis_codes.length > 0) {
-          tooltipContent += '<div class="tooltip-cis-list"><b>Codes CIS concernés :</b><ul>';
-          mainIncident.cis_codes.forEach(code => {
-            const name = mainIncident.cis_names && mainIncident.cis_names[code] ? mainIncident.cis_names[code] : '';
-            tooltipContent += `<li class="tooltip-cis-item">${code}${name ? ': ' + name : ''}</li>`;
-          });
-          tooltipContent += '</ul></div>';
+        tooltipContent += '<div class="tt-rows">' + rows.map(([l, v]) => `
+            <div class="tt-row">
+              <div class="tt-label">${esc(l)}</div>
+              <div class="tt-value">${esc(v)}</div>
+            </div>`).join('') + '</div>';
+
+        // Volet CIS : même présentation que l'accordéon de la fiche produit
+        const cis = mainIncident.cis_codes || [];
+        if (cis.length) {
+          tooltipContent += `
+            <div class="tt-cis">
+              <div class="tt-cis-title">Codes CIS concernés (${cis.length})</div>
+              ${cis.slice(0, 4).map(code => {
+            const name = (mainIncident.cis_names && mainIncident.cis_names[code]) || '';
+            return `<div class="tt-cis-item">${esc(code)}${name ? ' — ' + esc(name) : ''}</div>`;
+          }).join('')}
+              ${cis.length > 4 ? `<div class="tt-cis-more">+ ${cis.length - 4} autre${cis.length - 4 > 1 ? 's' : ''}</div>` : ''}
+            </div>`;
         }
+
         tooltip.transition().duration(200).style('opacity', 1);
         tooltip.html(tooltipContent).attr('class', status.class);
         const labelBox = this.getBoundingClientRect();
@@ -1247,9 +1317,13 @@ function drawTableChart(rawData) {
         .attr('class', `bar ${d.status}-fill`.toLowerCase())
         .style('cursor', 'pointer')
         .on('mousemove', function () {
+          // Même anatomie que l'aperçu de la ligne : fil d'Ariane, titre, bandeau
+          // de statut teinté, puis lignes label/valeur.
           let tooltipHTML = `
-            <div class="tooltip-title">${d.accented_product || d.product}</div>
-            <div class="tooltip-dci">DCI: ${d.molecule || ''}</div>
+            <div class="tt-head">
+              ${d.molecule ? `<div class="tt-breadcrumb">${d.molecule}</div>` : ''}
+              <div class="tt-title">${d.accented_product || d.product}</div>
+            </div>
           `;
 
           const isOngoing = !d.end_date || (d.calculated_end_date && d.calculated_end_date >= dateReport);
@@ -1261,32 +1335,27 @@ function drawTableChart(rawData) {
           const diffDays = getDaysBetween(startDateObj, endDateObj);
           const duration = daysToYearsMonths(diffDays);
 
-          if (d.status === 'Arret') {
+          const libelle = d.status === 'Arret' ? 'Arrêt de commercialisation' : d.status;
+          const classe = d.status.toLowerCase();
+          const icone = { rupture: 'fa-square-xmark', tension: 'fa-square-minus', arret: 'fa-square-xmark' }[classe]
+            || 'fa-square-check';
+          tooltipHTML += `
+            <div class="tt-status status-${classe}">
+              <i class="fa-solid ${icone}"></i>
+              <span class="tt-status-label">${libelle}${d.status === 'Disponible' ? '' : ` · ${isOngoing ? 'en cours' : 'terminé'}`}</span>
+            </div>`;
+          if (d.status !== 'Disponible') {
             tooltipHTML += `
-              <div class="tooltip-status arret">
-                Arrêt de commercialisation / ${isOngoing ? 'En cours' : 'Terminé'}<br>
-                ${isOngoing
-                  ? `Depuis le ${start}`
-                  : `Du ${start} au ${end}`
-                } (${duration})
-              </div>
-            `;
-          } else if (d.status === 'Rupture' || d.status === 'Tension') {
-            tooltipHTML += `
-              <div class="tooltip-status ${d.status.toLowerCase()}">
-                ${d.status} / ${isOngoing ? 'En cours' : 'Terminé'}<br>
-                ${isOngoing
-                  ? `Depuis le ${start}`
-                  : `Du ${start} au ${end}`
-                } (${duration})
-              </div>
-            `;
-          } else if (d.status === 'Disponible') {
-            tooltipHTML += `
-              <div class="tooltip-status disponible">
-                Disponible
-              </div>
-            `;
+              <div class="tt-rows">
+                <div class="tt-row">
+                  <div class="tt-label">Période</div>
+                  <div class="tt-value">${isOngoing ? `depuis le ${start}` : `du ${start} au ${end}`}</div>
+                </div>
+                <div class="tt-row">
+                  <div class="tt-label">Durée</div>
+                  <div class="tt-value">${duration}</div>
+                </div>
+              </div>`;
           }
 
           tooltip.html(tooltipHTML).attr('class', `tooltip-${d.status.toLowerCase()}`);

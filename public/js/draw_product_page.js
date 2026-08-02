@@ -560,6 +560,123 @@ function drawAnsmInfoCard(rows) {
     container.style.display = '';
 }
 
+/**
+ * Carte « Substituts officiels » : les autres spécialités du/des groupe(s)
+ * générique(s) BDPM du produit, avec leur disponibilité du jour.
+ *
+ * Périmètre assumé : uniquement le groupe générique, où la substitution est de
+ * droit. Pas de score de similitude thérapeutique — la question au comptoir est
+ * « par quoi je remplace légalement, et est-ce dispo ? ».
+ */
+function drawSubstitutesCard(rows) {
+    const cisListDiv = document.getElementById('cis-list');
+    if (!cisListDiv) return;
+
+    // Les CIS du produit lui-même ne sont pas des alternatives.
+    const all = rows || [];
+    const others = all.filter(r => !r.est_ce_produit);
+
+    // Absence de substitut : à dire explicitement. « Rien » et « rien affiché »
+    // ne se distinguent pas à l'écran, et l'absence de substitution de droit est
+    // une information de comptoir à part entière.
+    const esc = s => (s == null ? '' : String(s))
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    // Même langage que la liste principale : forme + couleur (jamais la couleur seule).
+    // « Aucun signalement » et non « Disponible » : nous savons qu'aucune rupture
+    // n'est déclarée, pas qu'il y a du stock chez le grossiste.
+    const STATUS = {
+        'Aucun signalement': { icon: 'fa-square-check', color: 'var(--disponible)', label: 'Aucun signalement' },
+        Tension: { icon: 'fa-square-minus', color: 'var(--tension)', label: 'Tension' },
+        Rupture: { icon: 'fa-square-xmark', color: 'var(--rupture)', label: 'Rupture' },
+        Arret: { icon: 'fa-square-xmark', color: 'var(--arret-bg)', label: 'Arrêt' },
+    };
+
+    const dispo = others.filter(r => r.statut === 'Aucun signalement').length;
+    const groupes = [...new Set(others.map(r => r.groupe_libelle).filter(Boolean))];
+    const vide = others.length === 0;
+    // Deux absences différentes : hors répertoire des groupes génériques, ou
+    // seul membre encore commercialisé de son groupe.
+    const messageVide = all.length
+        ? 'Seule spécialité encore commercialisée de son groupe générique.'
+        : 'Ce produit n\'appartient à aucun groupe générique du répertoire ANSM : pas de substitution de droit possible.';
+
+    const body = others.map(r => {
+        const st = STATUS[r.statut] || STATUS['Aucun signalement'];
+        const nom = esc(r.denomination_medicament || r.code_cis);
+        const lien = r.product_id
+            ? `<a href="/product/${r.product_id}">${nom}</a>`
+            : nom;
+        return `
+          <tr>
+            <td>
+              ${lien}${r.est_princeps ? ' <span class="subst-princeps">princeps</span>' : ''}
+              <div class="subst-lab">${esc(r.titulaires || '')}</div>
+            </td>
+            <td class="subst-status">
+              <i class="fa-solid ${st.icon}" style="color:${st.color}"></i> ${st.label}
+            </td>
+          </tr>`;
+    }).join('');
+
+    // Second volet, sous « Codes CIS concernés » : même famille d'information
+    // (quelles spécialités sont concernées), donc même contenant — plutôt qu'une
+    // carte isolée en bas de page, loin du décompte affiché en haut.
+    const section = document.createElement('div');
+    section.className = 'cis-section';
+    section.id = 'productpg-substitutes-section';
+    section.innerHTML = `
+        <button class="cis-toggle-button" type="button">
+          <div class="cis-button-content">
+            <div class="cis-icon">⇄</div>
+            <div class="cis-button-text">
+              <span class="cis-button-title">${vide ? 'Pas de médicament substituable' : 'Substituts officiels'}</span>
+              <span class="cis-button-count">${vide ? '' : `(${dispo} sans signalement sur ${others.length})`}</span>
+            </div>
+          </div>
+          <div class="cis-chevron"><i class="fa-solid fa-chevron-down"></i></div>
+        </button>
+        <div class="cis-content">
+          <div class="cis-list-container">
+            ${vide ? `<p class="subst-empty">${messageVide}</p>` : `
+            <p class="subst-source">
+              Même groupe générique · substitution de droit · source BDPM${groupes.length === 1 ? ` · ${esc(groupes[0])}` : ''}<br>
+              « Aucun signalement » = aucune rupture déclarée à l'ANSM — pas une garantie de stock.
+            </p>
+            <table class="productpg-stats-table subst-table">
+              <thead>
+                <tr><th>Spécialité</th><th>Disponibilité</th></tr>
+              </thead>
+              <tbody>${body}</tbody>
+            </table>`}
+          </div>
+        </div>`;
+    cisListDiv.appendChild(section);
+
+    const toggle = section.querySelector('.cis-toggle-button');
+    const content = section.querySelector('.cis-content');
+    const setOpen = open => {
+        toggle.classList.toggle('expanded', open);
+        content.classList.toggle('expanded', open);
+    };
+    toggle.addEventListener('click', () => setOpen(!toggle.classList.contains('expanded')));
+
+    // Décompte dans la ligne de statut : répond sans faire défiler, et ouvre le volet.
+    const resume = document.getElementById('productpg-status-substitutes');
+    if (resume) {
+        resume.textContent = vide
+            ? ' · pas de médicament substituable'
+            : dispo
+                ? ` · ${dispo} substitut${dispo > 1 ? 's' : ''} sans signalement`
+                : ` · tous les substituts sont signalés (${others.length} dans le groupe)`;
+        resume.classList.add('is-link');
+        resume.onclick = () => {
+            setOpen(true);
+            section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
+    }
+}
+
 // Helper to get color for status
 function getStatusColor(status) {
     switch (status) {
@@ -660,9 +777,12 @@ async function main() {
                         subtitleText += `${moleculeName}`;
                     }
 
-                    // Mêmes pastilles que la liste principale (H / V ; EU ajoutée
+                    // Mêmes pastilles que la liste principale (E / H / V ; EU ajoutée
                     // plus bas quand les incidents EMA sont chargés).
                     let markers = '';
+                    if (incidents[0].essentiel === true) {
+                        markers += ' <span class="type-marker type-marker-e" title="Médicament essentiel (liste DGS)">E</span>';
+                    }
                     if (incidents[0].reserve_hospitaliere === true) {
                         markers += ' <span class="type-marker type-marker-h" title="Réserve hospitalière — ventes ville non suivies par Open Medic">H</span>';
                     }
@@ -787,6 +907,18 @@ async function main() {
                     .then(rows => drawAnsmInfoCard(rows))
                     .catch(() => { /* pas de carte si indispo */ });
             }
+
+            // Substituts officiels (groupe générique BDPM) + disponibilité du jour
+            fetch(`/api/substitutes/${window.productId}`)
+                .then(async res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status} — ${(await res.text()).slice(0, 200)}`);
+                    return res.json();
+                })
+                .then(rows => {
+                    console.info(`[substituts] ${rows.length} ligne(s) pour le produit ${window.productId}`);
+                    drawSubstitutesCard(rows);
+                })
+                .catch(err => console.warn('[substituts] indisponible :', err.message));
 
             // Fetch sales data by CIS codes
             let salesData = [];

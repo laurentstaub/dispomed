@@ -18,7 +18,8 @@ incidents_with_sorting AS (
         STRING_AGG(DISTINCT m.id::text, ', ') AS molecule_id,
         ca.code || ' - ' || ca.description AS classe_atc,
         p.atc_code AS atc_code,
-        p.reserve_hospitaliere AS reserve_hospitaliere
+        p.reserve_hospitaliere AS reserve_hospitaliere,
+        p.essentiel AS essentiel
     FROM incidents i
     JOIN produits p ON i.product_id = p.id
     LEFT JOIN produits_molecules pm ON p.id = pm.produit_id
@@ -39,7 +40,8 @@ incidents_with_sorting AS (
       i.calculated_end_date,
       ca.code,
       ca.description,
-      p.reserve_hospitaliere
+      p.reserve_hospitaliere,
+      p.essentiel
 )
 SELECT * FROM incidents_with_sorting
 ORDER BY

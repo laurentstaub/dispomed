@@ -80,6 +80,23 @@
   padding: 4px;
 }
 
+/* Décompte des substituts, à la suite du statut : information secondaire, donc
+   en retrait typographique — mais cliquable pour descendre à la carte. */
+.productpg-status-substitutes {
+  font-size: 0.95em;
+  font-weight: 400;
+  color: #64748b;
+}
+
+.productpg-status-substitutes.is-link {
+  cursor: pointer;
+}
+
+.productpg-status-substitutes.is-link:hover {
+  color: #334155;
+  text-decoration: underline;
+}
+
 /* CIS Toggle Button Components */
 .cis-toggle-button {
   width: 100%;
@@ -931,4 +948,56 @@
 #breadcrumb .type-marker {
   vertical-align: middle;
   margin-left: 2px;
+}
+
+/* ---------------------------------------------------------------------------
+   Volet « Substituts officiels » — second accordéon, sous les codes CIS.
+   Filets horizontaux seuls ; le statut est codé par la forme de l'icône ET sa
+   couleur, jamais par la couleur seule.
+--------------------------------------------------------------------------- */
+.subst-source {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0 0 8px;
+}
+
+.subst-table td {
+  vertical-align: top;
+}
+
+.subst-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.subst-table th:last-child,
+.subst-table td.subst-status {
+  width: 120px;
+  white-space: nowrap;
+}
+
+.subst-lab {
+  font-size: 12px;
+  font-weight: 400;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.subst-princeps {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 2px;
+  padding: 1px 5px;
+  margin-left: 4px;
+  vertical-align: 1px;
+}
+
+.subst-empty {
+  font-size: 14px;
+  color: #64748b;
+  margin: 4px 2px;
 }

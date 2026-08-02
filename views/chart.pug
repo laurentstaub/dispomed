@@ -8,9 +8,10 @@ block content
     #title-container.flex-container
       .header-title
         .header-flex
-          .pill-icon 💊
           .header-text
-            h1#report-title INCIDENTS DE DISPONIBILITÉ des médicaments (MITM) et vaccins
+            //- Titre-étiquette : la portée et la source sont des métadonnées,
+            //- elles vivent dans la ligne unique en dessous (avec la date).
+            h1#report-title Ruptures et tensions
             h2#mise-a-jour
 
     .flex-container
@@ -31,6 +32,9 @@ block content
         .filter-group
             input(type="checkbox" id="vaccines-filter")
             label(for="vaccines-filter" class="card-subtitle") Vaccins uniquement (ATC J07)
+        .filter-group
+            input(type="checkbox" id="essentials-filter")
+            label(for="essentials-filter" class="card-subtitle") Essentiels uniquement (liste DGS)
         .filter-group
             .mainfilter-button-row(role="radiogroup" aria-label="Select time period")
               input(type="radio" id="period-12" name="period" value="12" class="mainfilter-radio" checked)
