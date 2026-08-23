@@ -11,8 +11,11 @@
 #   - confirmation explicite avant d'écraser la prod, puis avant le push code.
 #
 # Le dump embarque les schémas servis par l'app : public (dont product_sales,
-# ansm_info), dbpm, incidents_ema, substitution. Il EXCLUT open_medic (données
-# de préparation, lourdes) et les tables de sauvegarde __prev du loader BDPM.
+# ansm_info), dbpm (3 tables seulement, cf. §exclusions), incidents_ema, ref
+# (référentiel ATC du CNAM) et substitution. Il EXCLUT open_medic et docs
+# (préparation, lourds), les tables __prev du loader BDPM et les corpus de
+# travail — détail dans les options --exclude-* ci-dessous et dans
+# incident_scraper/README-fr.md §6.
 # ---------------------------------------------------------------------------
 set -euo pipefail
 
@@ -33,13 +36,45 @@ echo "✓ Base prod identifiée pour « $APP »."
 
 # 2. Dump de la base locale.
 #    Exclusions : open_medic (préparation), tables __prev (sauvegardes loader),
-#    et dbpm.cis_documents — 1,2 Go de HTML jamais lu par l'app (90 % du dump !).
-echo "— Dump de $LOCAL_DB (sans open_medic, __prev, cis_documents)…"
+#    et la famille dbpm.cis_documents* — corpus de travail local (HTML/RCP), jamais
+#    lu par l'app. Exclusion COMPLÈTE (structure incluse) : la prod n'en a pas
+#    l'usage, et --exclude-table-data laissait encore passer les tables dérivées.
+#    ansm_info_archive : historique local des fiches ANSM, structure seule en prod
+#    (l'app lit ansm_info, jamais l'archive) — évite de gonfler le dump avec le
+#    contenu intégral des pages.
+#
+#    docs : corpus RCP (docs.rcp_sections = 1,9 Go local) — travail d'analyse,
+#    jamais servi par l'app.
+#
+#    Règle : la prod ne reçoit du schéma dbpm QUE ce que l'app interroge, soit
+#    cis_bdpm, cis_gener_bdpm et cis_cip_dispo_spec. cis_cip_bdpm et cis_compo_bdpm
+#    servent à préparer product_sales et les rapprochements DCI en local ; les
+#    embarquer a fait dépasser le plan Heroku (1,6 Go pour 1 Go alloué) en août 2026.
+#    Avant d'ajouter une table ici, vérifier : grep -r 'dbpm\.' sql/ app.js
+echo "— Dump de $LOCAL_DB (sans open_medic, docs, __prev, cis_documents*, archive ANSM)…"
 pg_dump -Fc --no-owner --no-acl \
   --exclude-schema=open_medic \
+  --exclude-schema=docs \
   --exclude-table='dbpm.*__prev' \
-  --exclude-table-data='dbpm.cis_documents' \
+  --exclude-table='dbpm.cis_documents*' \
+  --exclude-table='dbpm.cis_compo_bdpm' \
+  --exclude-table='dbpm.cis_cip_bdpm' \
+  --exclude-table-data='public.ansm_info_archive' \
   -d "$LOCAL_DB" -f "$DUMP"
+
+# Garde-fou volume : un dump de prod normal pèse quelques Mo. Au-delà, une grosse
+# table est repartie dans le lot — mieux vaut le voir AVANT d'écraser la prod
+# (plafond de lignes du plan Heroku).
+DUMP_MB=$(du -m "$DUMP" | cut -f1)
+if (( DUMP_MB > 50 )); then
+  echo "⚠ Dump de ${DUMP_MB} Mo — inhabituel (attendu : < 50 Mo)."
+  echo "  Les 15 plus grosses tables locales :"
+  psql -d "$LOCAL_DB" -c "SELECT schemaname||'.'||relname AS \"table\",
+      pg_size_pretty(pg_total_relation_size(relid)) AS taille, n_live_tup AS lignes
+    FROM pg_stat_user_tables ORDER BY pg_total_relation_size(relid) DESC LIMIT 15"
+  read -r -p "  Continuer quand même ? (tape: oui) " REP_VOL
+  [[ "$REP_VOL" == "oui" ]] || { echo "Abandon."; exit 1; }
+fi
 echo "✓ Dump créé : $DUMP ($(du -h "$DUMP" | cut -f1))"
 
 # 3. Confirmation avant écrasement
@@ -62,6 +97,33 @@ if [[ $RC -ne 0 ]]; then
 else
   echo "✓ Restore terminé sans erreur."
 fi
+
+# 4bis. VÉRIFICATION — le seul juge est la donnée arrivée, pas le code de retour.
+#   pg_restore rend 0 ou 1 pour des raisons cosmétiques, et surtout : au-delà du
+#   plafond du plan, Heroku RÉVOQUE les INSERT. Les COPY échouent alors une à une
+#   (« permission denied ») pendant que le reste passe — la base garde sa date
+#   d'avant et personne ne le voit. Cas réel : prod figée au 8 août 2026.
+REQ='SELECT max(calculated_end_date) FROM incidents'
+LOCAL_MAX="$(psql -tAX -d "$LOCAL_DB" -c "$REQ" 2>/tmp/deploy_local_err || true)"
+PROD_ERR=/tmp/deploy_prod_err
+PROD_MAX="$(PGSSLMODE=require psql -tAX -d "$DB_URL" -c "$REQ" 2>"$PROD_ERR" || true)"
+echo
+echo "— Vérification : dernière date d'incident"
+echo "   local : ${LOCAL_MAX:-vide}"
+echo "   prod  : ${PROD_MAX:-vide}"
+if [[ -s "$PROD_ERR" ]]; then
+  echo "   erreur renvoyée par la prod :"
+  sed 's/^/     /' "$PROD_ERR"
+fi
+if [[ "$LOCAL_MAX" != "$PROD_MAX" ]]; then
+  echo "✗ LES DEUX DIFFÈRENT — le restore n'a PAS abouti."
+  echo "  · prod vide  -> les COPY ont échoué : plan dépassé (INSERT révoqués) ?"
+  echo "                  heroku pg:info -a $APP"
+  echo "  · erreur SQL -> lire le message ci-dessus (table absente, droits, SSL)."
+  echo "  Le push du code est bloqué : pousser du code sur une base périmée casse la prod."
+  exit 1
+fi
+echo "✓ Base prod à jour ($PROD_MAX)."
 
 # 5. Push du code
 echo

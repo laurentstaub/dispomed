@@ -1,68 +1,170 @@
-# Dispomed / Dr Kevin
+# dispomed — ruptures et tensions d'approvisionnement des médicaments
 
-# Tableau de Bord de Disponibilité des Produits Pharmaceutiques
+Application web qui suit dans le temps la disponibilité des médicaments signalés par
+l'ANSM, et met cette information à portée d'un pharmacien en trente secondes au
+comptoir : quel est le statut, depuis quand, que dit l'agence, et **par quoi
+remplacer**.
 
-## Concept
-Ce projet vise à offrir une meilleure transparence et information en matière de santé publique, particulièrement concernant la disponibilité des médicaments. En proposant des données claires et accessibles, nous contribuons à l'amélioration de l'information et de la prise de décision en santé publique.
+*(English version: [README.md](./README.md))*
 
-## Aperçu
-Ce projet est un tableau de bord visuel qui suit la disponibilité des produits pharmaceutiques au fil du temps. Il fournit une représentation claire et codée par couleur de l'état des produits sur plusieurs années, permettant une identification facile des tendances d'approvisionnement et des pénuries potentielles.
+---
 
-![screenshot](./public/images/screenshot_project.png)
+## 1. Périmètre
 
-## Fonctionnalités
-- **Visualisation temporelle**: Le tableau de bord affiche la disponibilité des produits de 2021 à 2024, répartie par mois.
-- **Code couleur**:
-  - Rouge: Indique une rupture d'approvisionnement ou une pénurie importante
-  - Jaune: Représente une tension dans la chaîne d'approvisionnement
-- **Recherche de produits**: Les utilisateurs peuvent rechercher des produits spécifiques à l'aide de la barre de recherche en haut du tableau de bord.
+Ce dépôt contient **l'application seule**. La donnée est produite par un second
+dépôt, `incident_scraper`, qui scrute quotidiennement l'ANSM et alimente la base
+PostgreSQL `incidents_json`. dispomed ne fait que lire cette base.
 
-## Représentation des Données
-- Chaque ligne représente un produit pharmaceutique différent.
-- Les colonnes sont divisées par année et par mois.
-- Les cellules sont codées par couleur pour indiquer l'état de chaque produit pour un mois donné.
-- Les chiffres dans les cellules peuvent représenter des niveaux de stock spécifiques ou des codes d'état.
+Ce qui est suivi : les signalements de rupture et de tension publiés par l'ANSM —
+soit très majoritairement des médicaments d'intérêt thérapeutique majeur et des
+vaccins (environ 83 % des produits suivis), mais pas uniquement. Le périmètre est
+donc défini par **la source**, pas par une liste réglementaire.
 
-## Utilisation
-1. Parcourez la liste des produits sur le côté gauche du tableau de bord.
-2. Utilisez la barre de recherche pour trouver rapidement des produits spécifiques.
+Ce qui n'est pas suivi : les dispositifs médicaux, les ruptures locales non
+déclarées à l'ANSM, et l'état réel des stocks chez les grossistes — information
+qu'aucune source publique ne fournit.
 
-## Détails Techniques
-Ce tableau de bord est construit en utilisant D3.js pour la visualisation.
+---
 
-## Améliorations Futures
-- Infobulles interactives pour des informations détaillées au survol
-- Options de filtrage par catégorie de produit ou par statut
-- Fonctionnalité d'exportation de données
-- Analyse de données historiques et prévisions d'approvisionnement
+## 2. Ce que l'application montre
 
-## Configuration de Développement
+**Liste principale.** Une ligne par produit, avec une frise temporelle colorée
+(rupture, tension, arrêt de commercialisation, disponible) sur 12, 24 mois ou la
+totalité de l'historique depuis avril 2021. Filtres par recherche libre, classe
+ATC, molécule, vaccins seuls, médicaments essentiels seuls.
 
-### Configuration de la Base de Données
-Après avoir cloné ou migré le projet, suivez ces étapes pour configurer la base de données:
+**Marqueurs de ligne.** `H` réserve hospitalière, `V` vaccin, `EU` incident
+également suivi au niveau européen (EMA). Volontairement en gris, hors du langage
+couleur des statuts.
 
-1. Assurez-vous que PostgreSQL est installé et fonctionne sur votre machine.
-2. Créez une nouvelle base de données nommée `dispomed`:
-   ```
-   createdb dispomed
-   ```
-3. Créez un fichier `.env` à la racine du projet avec le contenu suivant:
-   ```
-   DATABASE_URL=postgres://localhost:5432/dispomed
-   ```
-   Remarque: Ajustez la chaîne de connexion si votre configuration PostgreSQL nécessite un nom d'utilisateur/mot de passe.
-4. Initialisez le schéma de la base de données:
-   ```
-   npm run init-db
-   ```
+**Aperçu au survol.** Une fiche produit en réduction : fil d'Ariane ATC/DCI,
+bandeau de statut, substituts disponibles, situation ANSM ville et hôpital, date
+de remise à disposition annoncée, codes CIS concernés.
 
-### Exécution de l'Application
-1. Installez les dépendances:
-   ```
-   npm install
-   ```
-2. Démarrez l'application:
-   ```
-   npm start
-   ```
-3. Accédez à l'application à l'adresse http://localhost:3000
+**Fiche produit** (en overlay depuis la liste, ou en page autonome) :
+
+- statut courant et décompte des substituts sans signalement ;
+- codes CIS concernés, en accordéon ;
+- **substituts officiels** — les autres spécialités du même groupe générique BDPM,
+  avec leur disponibilité du jour ;
+- situation ANSM détaillée, issue des fiches publiées par l'agence ;
+- jours de disponibilité par année et score de disponibilité ;
+- ventes en nombre de boîtes par présentation (source Open Medic) ;
+- historique complet des incidents en frise.
+
+---
+
+## 3. Deux règles de conception qui expliquent beaucoup de choix
+
+**« Aucun signalement » n'est pas « disponible ».** Le statut d'un substitut est
+déterminé en cascade : fichier officiel des ruptures BDPM d'abord, nos incidents
+ensuite, fiche ANSM en repli, et à défaut « aucun signalement ». Cette dernière
+valeur signifie que rien n'est déclaré — pas qu'il y a du stock chez le grossiste.
+Le libellé le dit explicitement plutôt que de laisser croire à une garantie.
+
+**Substitution de droit uniquement.** La carte des substituts n'affiche que les
+membres du groupe générique du répertoire ANSM, où la substitution est légalement
+possible. Un indice de similitude thérapeutique existe dans la base
+(`substitution.equivalences_therapeutiques`) mais **n'est pas affiché** : il n'a
+pas été évalué, et proposer une alternative hors groupe générique sortirait du
+champ de compétence du pharmacien.
+
+---
+
+## 4. Architecture
+
+```
+Navigateur ──► Express (app.js) ──► fichiers SQL (sql/) ──► PostgreSQL incidents_json
+   │                                                              │
+   └── D3.js (public/js/) : liste, frises, overlay produit        └── alimentée par incident_scraper
+```
+
+| Élément | Rôle |
+|---------|------|
+| `app.js` | serveur Express, une route par question posée à la base |
+| `sql/` | **toutes** les requêtes, en fichiers `.sql` — jamais de SQL dans le JS |
+| `views/` | gabarits Pug (`chart`, `product`, `substitutions`, `layout`, erreurs) |
+| `public/js/draw.js` | liste principale, frises, aperçu au survol, overlay |
+| `public/js/draw_product_page.js` | fiche produit |
+| `public/js/00_fetch_data.js`, `01_store_data.js` | accès API et état client |
+| `public/stylesheets/common.css`, `product.css` | styles (pas de framework CSS) |
+| `database/connect_db.js` | pool PostgreSQL, `dbQuery()`, `loadSqlFile()` |
+| `deploy_prod.sh` | déploiement base + code vers Heroku |
+
+Les fichiers SQL sont relus à chaque requête : modifier une requête ne demande pas
+de redémarrer le serveur.
+
+### Points d'entrée API
+
+| Route | Ce qu'elle sert |
+|-------|-----------------|
+| `/api/incidents` | liste principale, filtres `monthsToShow`, `product`, `atcClass`, `molecule`, `vaccinesOnly`, `essentialsOnly` |
+| `/api/incidents/product/:id` | incidents d'un produit |
+| `/api/incidents/ATCClasses` | classes ATC présentes |
+| `/api/search` | recherche produit/molécule hors fenêtre temporelle |
+| `/api/substitutes/:productId` | substituts officiels + disponibilité |
+| `/api/substitutes-counts` | décomptes pour tous les produits (préchargé par la liste) |
+| `/api/ansm-info`, `/api/ansm-info/all` | fiches ANSM par CIS |
+| `/api/ema-incidents`, `/api/ema-active-cis` | incidents européens |
+| `/api/sales-by-cis`, `/api/sales-years` | ventes Open Medic |
+
+---
+
+## 5. Données lues
+
+Base `incidents_json`, schéma par schéma :
+
+| Schéma | Tables lues | Contenu |
+|--------|-------------|---------|
+| `public` | `produits`, `incidents`, `molecules`, `produits_molecules`, `classe_atc`, `product_sales`, `ansm_info` | cœur applicatif |
+| `dbpm` | `cis_bdpm`, `cis_gener_bdpm`, `cis_cip_dispo_spec` | référentiel BDPM : dénominations, groupes génériques, ruptures officielles |
+| `incidents_ema` | `incidents`, `french_translations`, `cis_mappings` | incidents européens traduits |
+| `substitution` | `equivalences_therapeutiques` | indice non validé, page héritée `/substitutions/:cis` |
+
+Colonnes de `produits` portant les marqueurs : `reserve_hospitaliere` (issue des
+conditions de prescription BDPM) et `essentiel` (liste des médicaments essentiels
+de la DGS, rapprochée par ATC).
+
+---
+
+## 6. Installation locale
+
+Prérequis : Node 20, PostgreSQL 16 ou plus, et une base `incidents_json` alimentée
+par `incident_scraper`.
+
+```bash
+npm install
+echo "DATABASE_URL=postgres://localhost:5432/incidents_json" > .env
+npm start          # http://localhost:3000
+npm test           # Jest
+```
+
+---
+
+## 7. Déploiement
+
+```bash
+./deploy_prod.sh
+```
+
+Le script dumpe la base locale, la restaure sur Heroku, **vérifie que les données
+sont bien arrivées**, puis propose de pousser le code. Chaque étape destructrice
+demande confirmation.
+
+**La base part toujours avant le code.** Une requête qui lit une colonne nouvelle
+suppose que cette colonne existe déjà en production ; un `git push heroku` isolé a
+cassé la prod deux fois pour cette raison.
+
+Le dump est volontairement maigre — la production ne reçoit que ce que
+l'application interroge. Détail des exclusions et procédure complète dans
+`incident_scraper/README-fr.md`.
+
+---
+
+## 8. Sources
+
+- **ANSM** — [Disponibilité des produits de santé](https://ansm.sante.fr/disponibilites-des-produits-de-sante/medicaments), scrape quotidien
+- **BDPM** — [Base de données publique des médicaments](https://base-donnees-publique.medicaments.gouv.fr/), référentiel et fichier officiel des ruptures
+- **Open Medic / Medic'AM** — Assurance Maladie, ventes en ville et rattachement ATC
+- **EMA** — [rapport de pénuries](https://www.ema.europa.eu/en/human-regulatory-overview/post-authorisation/medicine-shortages), mis à jour deux fois par jour
+- **DGS** — liste des médicaments essentiels, actualisée chaque année en juin

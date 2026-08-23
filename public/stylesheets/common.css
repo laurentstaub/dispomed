@@ -292,6 +292,28 @@ footer a:focus {
   margin-bottom: 10px;
 }
 
+/* Cases à cocher : la case et son libellé sur une ligne, alignés — sans quoi
+   l'espacement dépend du rendu du HTML et le libellé se colle à la case. */
+.filter-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* Géométrie figée : sans cela, les marges natives du navigateur sur la case
+   décalent le texte, et deux libellés voisins ne démarrent pas au même x. */
+.filter-check input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex: 0 0 16px;
+}
+
+.filter-check label {
+  cursor: pointer;
+  line-height: 1.3;
+}
+
 #mainfilter-search-box,
 .mainfilter-selector {
   background: #fafbfc;
