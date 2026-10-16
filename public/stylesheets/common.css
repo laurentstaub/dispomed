@@ -313,6 +313,16 @@ footer a:focus {
   color: var(--lien);
 }
 
+/* Grands panneaux du tableau de bord (filtres, courbe, incidents, sources) :
+   des objets posés sur la page, d'où le rayon des surfaces. */
+#mainfilter-container,
+#summary,
+#maintbl-dash,
+.recent-changes-block,
+#source-info {
+  border-radius: var(--radius-surface);
+}
+
 /* FILTERS */
 #mainfilter-container {
   align-items: stretch;
@@ -377,7 +387,7 @@ footer a:focus {
 
 .mainfilter-button-row {
   display: flex;
-  gap: 10px;
+  gap: 6px;
   position: relative;
 }
 
@@ -403,8 +413,10 @@ footer a:focus {
   color: var(--muted);
   font-weight: 500;
   font-size: 14px;
-  padding: 7px 6px;
+  padding: 7px 4px;
   text-align: center;
+  /* « 12 mois » sur une ligne : trois boutons dans un panneau de 220 px. */
+  white-space: nowrap;
   transition: all 0.2s ease;
 }
 
