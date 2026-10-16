@@ -1,4 +1,4 @@
-import {getProductStatus} from './utils.js';
+import { getProductStatus, icone } from './utils.js';
 
 /**
  * Fetches incidents for a specific product ID from the API.
@@ -90,7 +90,7 @@ function drawProductTimeline(product, containerId) {
         .attr('x2', d => xScale(d))
         .attr('y1', margin.top)
         .attr('y2', height)
-        .attr('stroke', 'var(--grisleger)')
+        .attr('stroke', 'var(--rule-medium)')
         .attr('stroke-width', 1)
         .attr('stroke-dasharray', '3,3');
 
@@ -103,7 +103,7 @@ function drawProductTimeline(product, containerId) {
     
     // Style the main axis line with darker color and 2px width
     xAxisGroup.select('.domain')
-        .attr('stroke', '#64748b')
+        .attr('stroke', 'var(--muted)')
         .attr('stroke-width', 2);
 
     // Add second year axis with background and centered labels
@@ -116,7 +116,7 @@ function drawProductTimeline(product, containerId) {
         .attr('y', secondAxisY)
         .attr('width', width - labelWidth)
         .attr('height', secondAxisHeight)
-        .attr('fill', '#f8fafc')
+        .attr('fill', 'var(--bg-alt)')
         .attr('opacity', 1);
 
     // Create year intervals for centered positioning
@@ -136,7 +136,7 @@ function drawProductTimeline(product, containerId) {
                 .attr('x', centerX)
                 .attr('y', 2)
                 .attr('text-anchor', 'middle')
-                .attr('fill', 'var(--grisfonce)')
+                .attr('fill', 'var(--muted)')
                 .attr('font-size', '12px')
                 .attr('font-weight', 500)
                 .text(d3.timeFormat('%Y')(tick));
@@ -169,7 +169,7 @@ function drawProductTimeline(product, containerId) {
             .attr('x2', width)
             .attr('y1', y + barHeight / 2)
             .attr('y2', y + barHeight / 2)
-            .attr('stroke', 'var(--gristresleger)')
+            .attr('stroke', 'var(--rule)')
             .attr('stroke-width', 1);
 
         // 3. Add the colored bar on top
@@ -273,12 +273,6 @@ function drawProductTimeline(product, containerId) {
     const scoreArc = scoreValue / 100 * circumference;
     const donutSVG = `
   <svg width="${donutSize}" height="${donutSize}" viewBox="0 0 ${donutSize} ${donutSize}">
-    <defs>
-      <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" style="stop-color:#3b82f6"/>
-        <stop offset="100%" style="stop-color:#1d4ed8"/>
-      </linearGradient>
-    </defs>
     <circle
       class="donut-background"
       cx="${center}" cy="${center}" r="${radius}"
@@ -500,9 +494,9 @@ function drawAnsmInfoCard(rows) {
 
     // Badge teinté avec les couleurs de statut de l'app (mêmes que la timeline).
     const badgeStyle = statut => {
-        if (/rupture/i.test(statut)) return 'background:rgba(213,76,117,.15);color:var(--rupturefonce);';
-        if (/tension/i.test(statut)) return 'background:var(--tensiontresleger);color:var(--tensionfonce);';
-        if (/remise/i.test(statut)) return 'background:#d1fae5;color:#059669;';
+        if (/rupture/i.test(statut)) return 'background:var(--statut-rupture-pale);color:var(--statut-rupture-fonce);';
+        if (/tension/i.test(statut)) return 'background:var(--statut-tension-pale);color:var(--statut-tension-fonce);';
+        if (/remise/i.test(statut)) return 'background:var(--statut-disponible-pale);color:var(--statut-disponible-fonce);';
         return '';
     };
 
@@ -586,10 +580,10 @@ function drawSubstitutesCard(rows) {
     // « Aucun signalement » et non « Disponible » : nous savons qu'aucune rupture
     // n'est déclarée, pas qu'il y a du stock chez le grossiste.
     const STATUS = {
-        'Aucun signalement': { icon: 'fa-square-check', color: 'var(--disponible)', label: 'Aucun signalement' },
-        Tension: { icon: 'fa-square-minus', color: 'var(--tension)', label: 'Tension' },
-        Rupture: { icon: 'fa-square-xmark', color: 'var(--rupture)', label: 'Rupture' },
-        Arret: { icon: 'fa-square-xmark', color: 'var(--arret-bg)', label: 'Arrêt' },
+        'Aucun signalement': { icon: 'square-check', color: 'var(--statut-disponible)', label: 'Aucun signalement' },
+        Tension: { icon: 'square-minus', color: 'var(--statut-tension)', label: 'Tension' },
+        Rupture: { icon: 'square-xmark', color: 'var(--statut-rupture)', label: 'Rupture' },
+        Arret: { icon: 'square-xmark', color: 'var(--statut-arret)', label: 'Arrêt' },
     };
 
     const dispo = others.filter(r => r.statut === 'Aucun signalement').length;
@@ -614,7 +608,7 @@ function drawSubstitutesCard(rows) {
               <div class="subst-lab">${esc(r.titulaires || '')}</div>
             </td>
             <td class="subst-status">
-              <i class="fa-solid ${st.icon}" style="color:${st.color}"></i> ${st.label}
+              ${icone(st.icon, { style: `color:${st.color}` })} ${st.label}
             </td>
           </tr>`;
     }).join('');
@@ -634,7 +628,7 @@ function drawSubstitutesCard(rows) {
               <span class="cis-button-count">${vide ? '' : `(${dispo} sans signalement sur ${others.length})`}</span>
             </div>
           </div>
-          <div class="cis-chevron"><i class="fa-solid fa-chevron-down"></i></div>
+          <div class="cis-chevron">${icone('chevron-down')}</div>
         </button>
         <div class="cis-content">
           <div class="cis-list-container">
@@ -681,13 +675,13 @@ function drawSubstitutesCard(rows) {
 function getStatusColor(status) {
     switch (status) {
         case 'Rupture':
-            return 'var(--rupture)';
+            return 'var(--statut-rupture)';
         case 'Tension':
-            return 'var(--tension)';
+            return 'var(--statut-tension)';
         case 'Arret':
-            return 'var(--arret-bg)';
+            return 'var(--statut-arret)';
         default:
-            return 'var(--grisleger)';
+            return 'var(--faint)';
     }
 }
 
@@ -746,7 +740,7 @@ async function main() {
             if (!incidents || !incidents.length) {
                 if (cisListDiv) cisListDiv.innerHTML = '';
                 if (statsDiv) statsDiv.innerHTML = '';
-                if (timelineDiv) timelineDiv.innerHTML = '<p style="margin:2rem 0 0 0;font-size:1.1em;color:var(--grisfonce);">Aucun incident enregistré.</p>';
+                if (timelineDiv) timelineDiv.innerHTML = '<p style="margin:2rem 0 0 0;font-size:1.1em;color:var(--muted);">Aucun incident enregistré.</p>';
                 document.querySelector('.productpg-status-label').textContent = 'Aucun incident enregistré.';
                 return;
             }
@@ -801,7 +795,7 @@ async function main() {
             }, new Date(incidents[0].calculated_end_date));
             const status = getProductStatus(latestIncident, reportDate);
             const statusLabel = document.querySelector('.productpg-status-label');
-            const statusIcon = document.querySelector('.productpg-status-icon i');
+            const statusIcon = document.querySelector('.productpg-status-icon');
             const statusRow = document.querySelector('.productpg-status-row');
             // Render CIS codes
             const allCisCodes = Array.from(new Set(
@@ -849,7 +843,7 @@ async function main() {
 
                     const chevronContainer = document.createElement('div');
                     chevronContainer.className = 'cis-chevron';
-                    chevronContainer.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
+                    chevronContainer.innerHTML = icone('chevron-down');
 
                     buttonContent.appendChild(cisIcon);
                     buttonContent.appendChild(buttonText);
@@ -868,9 +862,14 @@ async function main() {
                         const item = document.createElement('div');
                         item.className = 'cis-item';
 
+                        // Le code en chasse fixe, la dénomination en police courante.
                         const codeSpan = document.createElement('span');
                         codeSpan.className = 'cis-code';
-                        codeSpan.textContent = `${code} - ${cisNamesMap[code] || 'Dénomination non disponible'}`;
+                        const num = document.createElement('span');
+                        num.className = 'cis-code-num';
+                        num.textContent = String(code);
+                        codeSpan.appendChild(num);
+                        codeSpan.appendChild(document.createTextNode(` - ${cisNamesMap[code] || 'Dénomination non disponible'}`));
 
                         item.appendChild(codeSpan);
                         listContainer.appendChild(item);
@@ -1030,8 +1029,7 @@ async function main() {
                     statusRow.classList.add('status-disponible');
                 }
                 statusLabel.textContent = `Statut actuel : ${status.text}`;
-                statusIcon.className = status.icon + ' ' + status.shorthand + '-icon';
-                statusIcon.style.color = status.color;
+                statusIcon.innerHTML = icone(status.icon, { classe: status.shorthand + '-icon', style: `color:${status.color}` });
             }
 
             const alternativesForm = document.getElementById('alternatives-form');

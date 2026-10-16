@@ -1,4 +1,5 @@
 extends layout
+include mixins/icones
 
 block scripts
   script(type="module",src="/js/draw.js")
@@ -51,16 +52,16 @@ block content
               #floating-legend
                 p#title-legend Légende
                 .legend-item
-                  i.fa-solid.fa-square-xmark.legend-icon(style="color: var(--rupture)")
+                  +icone('square-xmark', 'legend-icon')(style="color: var(--statut-rupture)")
                   | Rupture
                 .legend-item
-                  i.fa-solid.fa-square-minus.legend-icon(style="color: var(--tension)")
+                  +icone('square-minus', 'legend-icon')(style="color: var(--statut-tension)")
                   | Tension
                 .legend-item
-                  i.fa-solid.fa-square-xmark.legend-icon(style="color: var(--arret-bg)")
+                  +icone('square-xmark', 'legend-icon')(style="color: var(--statut-arret)")
                   | Arrêt de commercialisation
                 .legend-item
-                  i.fa-solid.fa-square-check.legend-icon(style="color: var(--disponible)")
+                  +icone('square-check', 'legend-icon')(style="color: var(--statut-disponible)")
                   | Disponible
                 .legend-item
                   span.type-marker.type-marker-h H

@@ -1,0 +1,21 @@
+//- Icônes inline (remplacent Font Awesome). Mêmes tracés que ICONES dans
+//- public/js/utils.js : toute modification se fait aux deux endroits.
+//- 1 em, couleur courante ; le creux des carrés prend la couleur du fond.
+mixin icone(nom, classe)
+  - var cls = 'ico' + (classe ? ' ' + classe : '')
+  case nom
+    when 'square-xmark'
+      svg(class=cls viewBox="0 0 16 16" aria-hidden="true" style=attributes.style)
+        rect(width="16" height="16" rx="2" fill="currentColor")
+        path(d="M5 5l6 6M11 5l-6 6" stroke="var(--bg)" stroke-width="2" stroke-linecap="round")
+    when 'square-minus'
+      svg(class=cls viewBox="0 0 16 16" aria-hidden="true" style=attributes.style)
+        rect(width="16" height="16" rx="2" fill="currentColor")
+        path(d="M4 8h8" stroke="var(--bg)" stroke-width="2" stroke-linecap="round")
+    when 'square-check'
+      svg(class=cls viewBox="0 0 16 16" aria-hidden="true" style=attributes.style)
+        rect(width="16" height="16" rx="2" fill="currentColor")
+        path(d="M4 8.5l2.5 2.5L12 5.5" stroke="var(--bg)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none")
+    when 'arrow-left'
+      svg(class=cls viewBox="0 0 16 16" aria-hidden="true" style=attributes.style)
+        path(d="M14 8H3M7 4L3 8l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none")

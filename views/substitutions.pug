@@ -1,4 +1,5 @@
 extends layout
+include mixins/icones
 
 block stylesheets
   link(rel="stylesheet", href="/stylesheets/product.css")
@@ -9,7 +10,7 @@ block scripts
 block content
   div.retour-container
     a.productpg-back-link(onclick="window.history.back(); return false;" href="#")
-      i(class="fa-solid fa-arrow-left")
+      +icone('arrow-left')
       |  Retour à la page précédente
   div.main-container
     div#title-container.flex-container

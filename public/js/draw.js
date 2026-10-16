@@ -1,6 +1,6 @@
 import { dataManager } from "./01_store_data.js";
 import { fetchTableChartData, fetchSearchSuggestions } from "./00_fetch_data.js";
-import { getDaysBetween, formatDurationSince, getProductStatus } from "./utils.js";
+import { getDaysBetween, formatDurationSince, getProductStatus, icone } from "./utils.js";
 
 const ALL_TIME_START = new Date(2021, 4, 1);
 
@@ -466,10 +466,10 @@ function showFilterChangeNotification(message) {
   
   notification.innerHTML = `
     <div class="notification-content">
-      <i class="fa-solid fa-info-circle"></i>
+      ${icone('info-circle')}
       <span>${message}</span>
-      <button class="notification-close" onclick="this.parentElement.parentElement.classList.add('hidden')">
-        <i class="fa-solid fa-times"></i>
+      <button class="notification-close" aria-label="Fermer" onclick="this.parentElement.parentElement.classList.add('hidden')">
+        ${icone('times')}
       </button>
     </div>
   `;
@@ -653,22 +653,21 @@ function showArretOnlyMessage(arretProducts) {
     .attr("class", "arret-only-message")
     .style("text-align", "center")
     .style("padding", "40px 20px")
-    .style("color", "var(--grisfonce)")
-    .style("background", "rgba(150, 150, 150, 0.05)")
-    .style("border-radius", "8px")
-    .style("border", "1px solid rgba(150, 150, 150, 0.2)");
+    .style("color", "var(--ink)")
+    .style("background", "var(--bg-tint)")
+    .style("border", "1px solid var(--rule)");
   
   // Add icon
   messageContainer.append("div")
     .style("font-size", "48px")
     .style("margin-bottom", "16px")
-    .style("color", "var(--arret-bg)")
-    .html("&#9888;"); // Warning triangle
+    .style("color", "var(--statut-arret)")
+    .html("&#9888;"); // Triangle d'avertissement
   
   // Add title
   messageContainer.append("h3")
     .style("margin", "0 0 12px 0")
-    .style("color", "var(--grisfonce)")
+    .style("color", "var(--ink)")
     .style("font-size", "18px")
     .text("Arrêt de commercialisation");
   
@@ -684,7 +683,7 @@ function showArretOnlyMessage(arretProducts) {
     messageContainer.append("p")
       .style("margin", "8px 0 0 0")
       .style("font-size", "14px")
-      .style("color", "var(--gris)")
+      .style("color", "var(--muted)")
       .text(`${productCount} produits concernés par cet arrêt`);
   }
 }
@@ -822,12 +821,12 @@ function drawSummaryChart(monthlyChartData) {
   g.selectAll(".sumchart-x-axis text")
       .filter((d) => d.getMonth() === 0)
       .style("font-weight", "bold")
-      .style("fill", "#64748b");
+      .style("fill", "var(--ink)");
 
   // Style month labels differently
   g.selectAll(".sumchart-x-axis text")
       .filter((d) => d.getMonth() !== 0)
-      .style("fill", "#64748b");
+      .style("fill", "var(--muted)");
 
   g.selectAll(".sumchart-x-axis text")
       .style("font-size", `${labelFontSizeScale(windowWidth)}px`,
@@ -853,10 +852,9 @@ function drawSummaryChart(monthlyChartData) {
         .attr("cx", (d) => xScale(d.date))
         .attr("cy", (d) => yScale(d.rupture))
         .attr("r", 0) // Start at 0 for animation
-        .style("fill", "white")
-        .style("stroke", "#ef4444")
+        .style("fill", "var(--bg)")
+        .style("stroke", "var(--statut-rupture)")
         .style("stroke-width", 2)
-        .style("filter", "drop-shadow(0 4px 8px rgba(239, 68, 68, 0.2))")
         .style("cursor", "pointer")
         .on("mouseover", function() {
             d3.select(this)
@@ -887,10 +885,9 @@ function drawSummaryChart(monthlyChartData) {
         .attr("cx", (d) => xScale(d.date))
         .attr("cy", (d) => yScale(d.tension))
         .attr("r", 0) // Start at 0 for animation
-        .style("fill", "white")
-        .style("stroke", "#f59e0b")
+        .style("fill", "var(--bg)")
+        .style("stroke", "var(--statut-tension)")
         .style("stroke-width", 2)
-        .style("filter", "drop-shadow(0 4px 8px rgba(245, 158, 11, 0.2))")
         .style("cursor", "pointer")
         .on("mouseover", function() {
             d3.select(this)
@@ -988,7 +985,8 @@ function drawSummaryChart(monthlyChartData) {
           .attr("y", yScale(currentMonthData.rupture) - textHeight - 10)
           .attr("width", textWidth + 4)
           .attr("height", textHeight + 2)
-          .attr("fill", "var(--rupture)")
+          .attr("fill", "var(--statut-rupture-pale)")
+          .attr("stroke", "var(--statut-rupture)")
           .attr("rx", 2);
 
 // Add the text label on top
@@ -997,7 +995,7 @@ function drawSummaryChart(monthlyChartData) {
           .attr("x", labelX)
           .attr("y", yScale(currentMonthData.rupture) - 10)
           .attr("text-anchor", "middle")
-          .attr("fill", "var(--blanc  )")
+          .attr("fill", "var(--statut-rupture-fonce)")
           .style("font-size", `${fontSize}px`)
           .style("font-weight", "700")
           .text(currentMonthData.rupture);
@@ -1022,7 +1020,8 @@ function drawSummaryChart(monthlyChartData) {
         .attr("y", yScale(currentMonthData.tension) - textHeight - 10)
         .attr("width", textWidth + 10)
         .attr("height", textHeight + 4)
-        .attr("fill", "var(--tension)")
+        .attr("fill", "var(--statut-tension-pale)")
+        .attr("stroke", "var(--statut-tension)")
         .attr("rx", 2);
 
       // Add the text label on top
@@ -1031,7 +1030,7 @@ function drawSummaryChart(monthlyChartData) {
         .attr("x", labelX)
         .attr("y",  yScale(currentMonthData.tension) - 10)
         .attr("text-anchor", "middle")
-        .attr("fill", "var(--blanc)")
+        .attr("fill", "var(--statut-tension-fonce)")
         .style("font-size", `${fontSize}px`)
         .style("font-weight", "700")
         .text(currentMonthData.tension);
@@ -1158,7 +1157,7 @@ function drawTableChart(rawData) {
       .style('width', iconWidth + 'px')
       .style('text-align', 'center')
       .style('flex-shrink', '0')
-      .html(`<i class="${status.icon}" style="color:${status.color}; font-size: 14px;"></i>`);
+      .html(icone(status.icon, { style: `color:${status.color}; font-size: 14px;` }));
 
     // Product label - improved truncation
     const label = accentedProducts[i];
@@ -1215,7 +1214,7 @@ function drawTableChart(rawData) {
         }
         tooltipContent += `
           <div class="tt-status status-${status.shorthand}">
-            <i class="${status.icon}"></i>
+            ${icone(status.icon)}
             <span class="tt-status-label">${esc(statusText)}</span>
           </div>`;
 
@@ -1301,7 +1300,7 @@ function drawTableChart(rawData) {
       .attr('x2', xScale(dateReport))
       .attr('y1', rowHeight / 2)
       .attr('y2', rowHeight / 2)
-      .attr('stroke', 'var(--vertleger)')
+      .attr('stroke', 'var(--statut-disponible-pale)')
       .attr('stroke-width', 15);
 
     // Bars
@@ -1337,11 +1336,11 @@ function drawTableChart(rawData) {
 
           const libelle = d.status === 'Arret' ? 'Arrêt de commercialisation' : d.status;
           const classe = d.status.toLowerCase();
-          const icone = { rupture: 'fa-square-xmark', tension: 'fa-square-minus', arret: 'fa-square-xmark' }[classe]
-            || 'fa-square-check';
+          const nomIcone = { rupture: 'square-xmark', tension: 'square-minus', arret: 'square-xmark' }[classe]
+            || 'square-check';
           tooltipHTML += `
             <div class="tt-status status-${classe}">
-              <i class="fa-solid ${icone}"></i>
+              ${icone(nomIcone)}
               <span class="tt-status-label">${libelle}${d.status === 'Disponible' ? '' : ` · ${isOngoing ? 'en cours' : 'terminé'}`}</span>
             </div>`;
           if (d.status !== 'Disponible') {

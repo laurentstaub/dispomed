@@ -5,13 +5,13 @@ html(lang="fr")
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
     title= title || 'Disponibilité des produits de santé'
     link(rel="icon" type="image/x-icon" href="/images/favicon.png")
+    //- Socle visuel copié de Dr Kevin (tokens), puis les tokens de statut propres
+    //- à Dispomed, puis les feuilles de l'app. Polices système, icônes inline :
+    //- aucune ressource tierce hors D3.
+    link(rel="stylesheet", href="/stylesheets/tokens.css")
+    link(rel="stylesheet", href="/stylesheets/statuts.css")
     link(rel="stylesheet", href="/stylesheets/common.css")
     block stylesheets
-    link(rel="preconnect", href="https://fonts.googleapis.com")
-    link(rel="preconnect", href="https://fonts.gstatic.com", crossorigin)
-    link(href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet")
-    link(href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet")
-    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css")
     script(src='https://d3js.org/d3.v7.min.js')
 
     block head

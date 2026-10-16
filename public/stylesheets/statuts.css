@@ -1,0 +1,47 @@
+/* Tokens propres à Dispomed : les statuts d'approvisionnement, la donnée du
+   tableau de bord. Trois états plus l'arrêt, toujours doublés d'un mot ou
+   d'une forme (icône carrée : croix, tiret, coche) — jamais la couleur seule.
+   Le socle (tokens.css) est copié de Dr Kevin et n'est pas édité ici.
+
+   Par état, trois valeurs :
+     --statut-X         aplat : barres, marqueurs, icônes (graphique, ≥ 3:1)
+     --statut-X-fonce   texte, sur fond clair ou sur le fond pâle
+     --statut-X-pale    fond teinté d'un bandeau ou d'une pastille
+
+   Contrastes (clair / sombre, fond blanc #fff / fond #0a100c) :
+     rupture    aplat 4,10 / 6,81 · texte 8,52 / 9,30 · texte sur pâle 7,31 / 8,47
+     tension    aplat 1,74 / 11,06 (forme obligatoire) · texte 5,93 / 11,46 · sur pâle 5,33 / 10,13
+     disponible aplat 5,02 / 13,2 · texte 7,79 / 13,2 · sur pâle 6,64 / 10,35
+   Le vert « disponible » est celui de Kevin : --lien pour l'aplat, --accent
+   pour le texte. Il ne s'oppose jamais au rouge sans la forme de l'icône. */
+
+:root {
+  --statut-rupture: #d54c75;
+  --statut-rupture: light-dark(#d54c75, #e8759a);
+  --statut-rupture-fonce: #911e40;
+  --statut-rupture-fonce: light-dark(#911e40, #f29bb8);
+  --statut-rupture-pale: #fbe9ef;
+  --statut-rupture-pale: light-dark(#fbe9ef, #2a1219);
+
+  --statut-tension: #fbb854;
+  /* Texte : l'ambre de --interaction chez Kevin, même famille. */
+  --statut-tension-fonce: #8a5a00;
+  --statut-tension-fonce: light-dark(#8a5a00, #f2c14e);
+  --statut-tension-pale: #fff1dc;
+  --statut-tension-pale: light-dark(#fff1dc, #241b08);
+
+  --statut-disponible: var(--lien);
+  --statut-disponible-fonce: var(--accent);
+  --statut-disponible-pale: var(--accent-pale);
+
+  /* Arrêt de commercialisation : un gris de la famille, en retrait. */
+  --statut-arret: #8e9891;
+  --statut-arret: light-dark(#8e9891, #707a73);
+  --statut-arret-fonce: var(--muted);
+  --statut-arret-pale: var(--bg-tint);
+
+  /* Pastille EU (incident EMA en cours) : blanc sur bleu européen, 10,9:1.
+     Seule couleur hors famille : signal d'ampleur, pas une propriété du produit. */
+  --eu-bg: #003399;
+  --eu-ink: #ffffff;
+}
