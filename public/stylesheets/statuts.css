@@ -65,6 +65,10 @@
   --champ: light-dark(#fafbfa, #1f2321);
   --bouton: #e9efea;
   --bouton: light-dark(#e9efea, #161f19);
+  /* Champ de recherche et listes déroulantes : plus clairs que les boutons,
+     ils se lisent comme des zones de saisie dans le panneau blanc. */
+  --saisie: #f4f7f4;
+  --saisie: light-dark(#f4f7f4, #161f19);
   --faint: #646f68;
   --faint: light-dark(#646f68, #929c95);
   /* Panneaux : blanc en clair, posés sur le fond cassé ; en sombre, le fond

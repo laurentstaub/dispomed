@@ -364,7 +364,7 @@ footer a:focus {
 
 #mainfilter-search-box,
 .mainfilter-selector {
-  background: var(--bouton);
+  background: var(--saisie);
   border: 1px solid var(--rule-medium);
   border-radius: var(--radius-control);
   color: var(--ink);
@@ -797,13 +797,18 @@ footer a:focus {
   background: var(--statut-disponible);
 }
 
-/* Ligne survolée : elle grossit et se soulève (loupe d'origine), sur un
-   fond teinté du statut du produit, net sur le fond du panneau. */
+/* Ligne survolée, comme à l'origine : elle grossit, se soulève, passe sur
+   fond blanc (un cran au-dessus du fond en sombre) et prend un filet haut et
+   bas de la couleur de son statut. Les filets sont des ombres intérieures :
+   la ligne, sans filet au repos, ne bouge pas. */
 .maintbl-row-modern:is(:hover, :focus-within) {
   --survol: var(--accent);
-  background: color-mix(in srgb, var(--survol) 18%, var(--bg));
+  background: light-dark(#ffffff, var(--champ));
   transform: scale(1.02);
-  box-shadow: 0 8px 32px color-mix(in srgb, var(--ink) 18%, transparent);
+  box-shadow:
+    inset 0 1px 0 var(--survol),
+    inset 0 -1px 0 var(--survol),
+    0 8px 32px color-mix(in srgb, var(--ink) 18%, transparent);
 }
 
 .maintbl-row-modern.hover-rupture { --survol: var(--statut-rupture); }
