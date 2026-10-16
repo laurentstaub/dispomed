@@ -735,7 +735,6 @@ footer a:focus {
 
 .maintbl-row-modern:hover,
 .maintbl-row-modern:focus-within {
-  background: var(--bg-tint);
   font-weight: 400;
   z-index: 1000 !important;
 }
@@ -798,21 +797,19 @@ footer a:focus {
   background: var(--statut-disponible);
 }
 
-.maintbl-row-modern.hover-rupture:hover {
-  border-color: var(--statut-rupture);
+/* Ligne survolée : elle grossit et se soulève (loupe d'origine), sur un
+   fond teinté du statut du produit, net sur le fond du panneau. */
+.maintbl-row-modern:is(:hover, :focus-within) {
+  --survol: var(--accent);
+  background: color-mix(in srgb, var(--survol) 18%, var(--bg));
+  transform: scale(1.02);
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--ink) 18%, transparent);
 }
 
-.maintbl-row-modern.hover-tension:hover {
-  border-color: var(--statut-tension);
-}
-
-.maintbl-row-modern.hover-arret:hover {
-  border-color: var(--statut-arret);
-}
-
-.maintbl-row-modern.hover-disponible:hover {
-  border-color: var(--statut-disponible);
-}
+.maintbl-row-modern.hover-rupture { --survol: var(--statut-rupture); }
+.maintbl-row-modern.hover-tension { --survol: var(--statut-tension); }
+.maintbl-row-modern.hover-arret { --survol: var(--statut-arret); }
+.maintbl-row-modern.hover-disponible { --survol: var(--statut-disponible); }
 
 .recent-changes-title-row, .other-changes-title-row {
   font-weight: 400;
