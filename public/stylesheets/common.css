@@ -277,7 +277,7 @@ footer a:focus {
 
 /* AVERTISSEMENT (sources) : bandeau teinté entre deux filets. */
 #source-info {
-  background: var(--bg-tint);
+  background: var(--panneau);
   border-top: 1px solid var(--rule);
   border-bottom: 1px solid var(--rule);
   color: var(--ink);
@@ -326,7 +326,7 @@ footer a:focus {
 /* FILTERS */
 #mainfilter-container {
   align-items: stretch;
-  background: var(--bg);
+  background: var(--panneau);
   border: 1px solid var(--rule);
   display: flex;
   flex-direction: column;
@@ -364,7 +364,7 @@ footer a:focus {
 
 #mainfilter-search-box,
 .mainfilter-selector {
-  background: var(--champ);
+  background: var(--bouton);
   border: 1px solid var(--rule-medium);
   border-radius: var(--radius-control);
   color: var(--ink);
@@ -408,7 +408,7 @@ footer a:focus {
   flex: 1;
   cursor: pointer;
   border: 1px solid var(--rule-medium);
-  background: var(--bg);
+  background: var(--bouton);
   border-radius: var(--radius-control);
   color: var(--muted);
   font-weight: 500;
@@ -428,7 +428,7 @@ footer a:focus {
 #mainfilter-reset {
   width: 100%;
   padding: 8px 20px;
-  background: var(--bg);
+  background: var(--bouton);
   border: 1px solid var(--rule-medium);
   border-radius: var(--radius-control);
   font-weight: 500;
@@ -478,7 +478,7 @@ footer a:focus {
 }
 
 #summary {
-  background: var(--bg);
+  background: var(--panneau);
   border: 1px solid var(--rule);
   padding: 24px;
   flex: 1;

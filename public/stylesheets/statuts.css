@@ -45,3 +45,30 @@
   --eu-bg: #003399;
   --eu-ink: #ffffff;
 }
+
+/* Fonds. Dispomed est un tableau de bord qu'on garde ouvert, pas une page de
+   lecture : le blanc pur du socle éblouit. En clair, la page passe sur un
+   blanc cassé vert, que garde aussi le détail des incidents ; les autres
+   panneaux (filtres, courbe, sources) restent blancs, posés dessus
+   (--panneau) ; les commandes (boutons, listes)
+   sont un cran plus soutenues pour se lire comme des commandes. Le sombre ne
+   change pas, sinon les commandes, un cran au-dessus du fond. --faint est
+   assombri pour garder 4,5:1 sur le fond cassé.
+
+   Contrastes en clair (fond #f4f7f4 / commande #e9efea) :
+     --ink 15,6 / 14,4 · --muted 5,17 / 4,78 · --faint 4,85 · --lien 4,64
+   Ces valeurs priment sur celles de tokens.css, copie de Dr Kevin. */
+:root {
+  --bg: #f4f7f4;
+  --bg: light-dark(#f4f7f4, #0a100c);
+  --champ: #fafbfa;
+  --champ: light-dark(#fafbfa, #1f2321);
+  --bouton: #e9efea;
+  --bouton: light-dark(#e9efea, #161f19);
+  --faint: #646f68;
+  --faint: light-dark(#646f68, #929c95);
+  /* Panneaux : blanc en clair, posés sur le fond cassé ; en sombre, le fond
+     de page. */
+  --panneau: #ffffff;
+  --panneau: light-dark(#ffffff, #0a100c);
+}
