@@ -1,0 +1,27 @@
+//- Barre de situation et bouton d'apparence, sur le modèle de Dr Kevin.
+
+//- Bouton d'apparence (auto, clair, sombre), rempli et révélé par theme.js ;
+//- caché sans JavaScript, où le réglage du système s'applique seul.
+mixin apparence
+  button.theme(type="button" hidden title="Thème : automatique (réglage du système), clair ou sombre")
+
+//- Collante, toujours là : retour à l'accueil, recherche, ce qu'on lit, apparence.
+//- La recherche mène à l'accueil, qui filtre la liste des incidents (?q=).
+//-
+//- @param {string} titre  ce qu'on est en train de lire, en retrait ; facultatif
+mixin barre(titre)
+  header.barre
+    .barre-inner
+      a.retour(href="/") ← Accueil
+      form.barre-recherche(method="GET" action="/" role="search")
+        input.barre-champ(
+          type="search"
+          name="q"
+          placeholder="Produit ou molécule"
+          aria-label="Rechercher un produit ou une molécule"
+          autocomplete="off"
+          spellcheck="false"
+        )
+      if titre
+        span.barre-titre= titre
+      +apparence

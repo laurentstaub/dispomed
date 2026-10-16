@@ -75,11 +75,6 @@ p {
   min-height: 600px
 }
 
-.retour-container {
-  display: flex;
-  align-items: center;
-  margin: 10px;
-}
 
 /* En-tête plat : le titre n'est pas une carte de données — pas de fond blanc,
    d'ombre ni de liseré. La hiérarchie vient de la typographie seule. */
@@ -149,6 +144,113 @@ p {
 }
 
 /* FOOTER */
+/* ---------- Barre de situation (modèle Dr Kevin) ---------- */
+
+/* Collante, sans apparition au défilement : ce qui bouge pendant la lecture distrait. */
+.barre {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg-tint);
+  border-bottom: var(--rule-width) solid var(--rule);
+}
+
+.barre-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  min-height: var(--barre-h);
+  padding: var(--sp-1) var(--sp-3);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.retour {
+  flex: none;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.retour:hover {
+  color: var(--ink);
+}
+
+.barre-recherche {
+  flex: 1 1 16rem;
+  max-width: 28rem;
+  min-width: 0;
+}
+
+/* Surface de saisie, rayon des commandes : ce qui se saisit s'arrondit. */
+.barre-champ {
+  width: 100%;
+  font: inherit;
+  font-size: var(--fs-sm);
+  color: var(--ink);
+  background: var(--champ);
+  border: var(--rule-width) solid var(--rule-medium);
+  border-radius: var(--radius-control);
+  padding: 0.3em 0.6em;
+}
+
+.barre-champ::placeholder {
+  color: var(--faint);
+}
+
+.barre-champ:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Ce qu'on lit, en retrait ; cède la place au champ. */
+.barre-titre {
+  flex: 0 1 auto;
+  min-width: 0;
+  margin-left: auto;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Apparence : auto, clair, sombre (theme.js). Fixé en haut à droite, au-dessus
+   de la barre ; la barre s'arrête avant lui. */
+.theme {
+  position: fixed;
+  top: 1.05rem;
+  right: var(--sp-3);
+  z-index: 30;
+  font: inherit;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  background: var(--bg-tint);
+  border: var(--rule-width) solid var(--rule-medium);
+  border-radius: var(--radius-control);
+  padding: 0.15em 0.6em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.theme:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+@media (max-width: 60rem) {
+  .barre-inner { padding-right: 7rem; }
+}
+
+/* Téléphone : le picto seul, le titre de page cède la place au champ. */
+@media (max-width: 40rem) {
+  .theme-libelle { display: none; }
+  .barre-inner { padding-left: var(--sp-2); padding-right: 3.5rem; }
+  .barre-titre { display: none; }
+  .theme { right: var(--sp-2); }
+}
+
 footer {
   background: var(--bg);
   border-top: 1px solid var(--rule);

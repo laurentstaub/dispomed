@@ -321,22 +321,7 @@
   padding-left: 12px;
 }
 
-.productpg-back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 17px;
-  color: var(--muted);
-  text-decoration: none;
-  margin-bottom: 10px;
-  margin-left: 2px;
-  transition: color 0.15s;
-}
 
-.productpg-back-link:hover {
-  color: var(--ink);
-  text-decoration: underline;
-}
 
 /* Sales Card Styling */
 .productpg-sales-card {
@@ -778,15 +763,7 @@
   }
 
   /* Back link adjustments - no additional margins */
-  .retour-container {
-    margin: 10px 0;
-    width: 100%;
-    box-sizing: border-box;
-  }
 
-  .productpg-back-link {
-    margin-left: 0;
-  }
 }
 
 @media (max-width: 768px) {
@@ -846,11 +823,6 @@
     box-sizing: border-box;
   }
 
-  .retour-container {
-    margin: 10px 0;
-    width: 100%;
-    box-sizing: border-box;
-  }
 }
 /* ---------------------------------------------------------------------------
    Tableaux sur mobile : défilement horizontal DANS la carte, première colonne

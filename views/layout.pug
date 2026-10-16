@@ -1,9 +1,13 @@
+include mixins/barre
 doctype html
 html(lang="fr")
   head
     meta(charset="UTF-8")
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
     title= title || 'Disponibilité des produits de santé'
+    //- Apparence choisie, posée avant les styles (fichier externe : une
+    //- politique de sécurité stricte refuserait un script en ligne).
+    script(src="/js/apparence.js")
     link(rel="icon" type="image/x-icon" href="/images/favicon.png")
     //- Socle visuel copié de Dr Kevin (tokens), puis les tokens de statut propres
     //- à Dispomed, puis les feuilles de l'app. Polices système, icônes inline :
@@ -16,8 +20,10 @@ html(lang="fr")
 
     block head
   body
-    header
-      //- (Add shared header content here if needed)
+    //- Par défaut, le seul bouton d'apparence, en haut à droite ; les pages
+    //- de détail le remplacent par la barre de situation (mixins/barre.pug).
+    block barre
+      +apparence
     block content
     footer
       span
@@ -25,5 +31,7 @@ html(lang="fr")
         a(href="https://github.com/laurentstaub/dispomed" target="_blank" rel="noopener") Code source
         |  | 
         a(href="mailto:laurent.staub@gmail.com") Contact
+
+    script(src="/js/theme.js" defer)
 
   block scripts

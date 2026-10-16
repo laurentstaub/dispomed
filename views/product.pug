@@ -37,13 +37,13 @@ block stylesheets
 block scripts
   script(type='module', src='/js/draw_product_page.js')
 
-block content
-  //- embed=1 : page affichée dans l'overlay de la liste -> pas de lien retour
+//- embed=1 : page affichée dans l'overlay de la liste -> ni barre ni bouton,
+//- l'apparence suit celle de la page qui l'affiche (apparence.js).
+block barre
   if !embed
-    .retour-container
-      a.productpg-back-link(href="/")
-        +icone('arrow-left')
-        |  Retour à l'accueil
+    +barre()
+
+block content
   .main-container
     #title-container.flex-container
       .header-title

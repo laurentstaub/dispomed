@@ -7,11 +7,10 @@ block stylesheets
 block scripts
   script(type='module', src='/js/draw_substitutions_page.js')
 
+block barre
+  +barre('Alternatives thérapeutiques')
+
 block content
-  div.retour-container
-    a.productpg-back-link(onclick="window.history.back(); return false;" href="#")
-      +icone('arrow-left')
-      |  Retour à la page précédente
   div.main-container
     div#title-container.flex-container
       div#title-text

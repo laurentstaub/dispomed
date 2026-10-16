@@ -620,6 +620,17 @@ async function initializeData() {
   );
   drawTableChart(rawData);
   drawSummaryChart(monthlyData);
+
+  // Recherche venue de la barre d'une autre page (/?q=…) : la liste s'ouvre
+  // filtrée, le champ garde la saisie. Sans la liste de suggestions, qu'on
+  // n'a pas demandée.
+  const demande = new URLSearchParams(window.location.search).get('q')?.trim();
+  if (demande) {
+    document.querySelector('#mainfilter-search-box').value = demande;
+    dataManager.setSearchTerm(removeAccents(demande.toLowerCase()));
+    updateFilterStates();
+    await handleSearch(dataManager.getSearchTerm());
+  }
 }
 
 // Wait for DOM to be ready before initializing
