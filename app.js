@@ -122,6 +122,9 @@ app.get("/product/:productId", asyncHandler(async (req, res) => {
 app.get("/api/config", (req, res) => {
   res.json({
     API_BASE_URL: process.env.API_BASE_URL || "http://localhost:3000",
+    // Adresse de Dr Kevin (fiche d'une spécialité : /product/<CIS>). Absente :
+    // la fiche produit ne propose aucun lien, plutôt qu'un lien mort.
+    KEVIN_URL: (process.env.KEVIN_URL || "").replace(/\/+$/, "") || null,
   });
 });
 

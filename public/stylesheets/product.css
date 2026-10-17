@@ -921,3 +921,27 @@
   color: var(--muted);
   margin: 4px 2px;
 }
+
+/* Liens vers Dr Kevin : du texte, en couleur de lien, sans aplat. */
+.lien-kevin {
+  color: var(--lien);
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.lien-kevin:hover {
+  color: var(--accent);
+}
+
+/* Dans la ligne de statut, poussé à droite. */
+.productpg-kevin {
+  margin-left: auto;
+  padding-left: var(--sp-2);
+}
+
+/* Dans la liste des spécialités, après la dénomination. */
+.cis-item .lien-kevin {
+  margin-left: var(--sp-1);
+}

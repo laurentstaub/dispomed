@@ -672,6 +672,26 @@ function drawSubstitutesCard(rows) {
 }
 
 // Helper to get color for status
+/**
+ * Lien vers une fiche de Dr Kevin, dans un nouvel onglet : la fiche Dispomed
+ * reste ouverte, on lit l'une à côté de l'autre.
+ * @param {string} href - URL de la fiche (KEVIN_URL/product/<CIS>)
+ * @param {string} texte - libellé visible
+ * @param {string} titre - infobulle
+ * @param {string} [classe] - classe en plus de « lien-kevin »
+ * @returns {HTMLAnchorElement}
+ */
+function lienKevin(href, texte, titre, classe) {
+    const lien = document.createElement('a');
+    lien.className = classe ? `lien-kevin ${classe}` : 'lien-kevin';
+    lien.href = href;
+    lien.target = '_blank';
+    lien.rel = 'noopener';
+    lien.title = titre;
+    lien.textContent = `${texte} \u2197`;
+    return lien;
+}
+
 function getStatusColor(status) {
     switch (status) {
         case 'Rupture':
@@ -731,8 +751,17 @@ async function main() {
                 .then(range => { window.salesYearRange = range; })
                 .catch(() => {});
 
+            // Adresse de Dr Kevin, pour lier chaque spécialité à sa fiche ; absente,
+            // aucun lien. En parallèle des incidents.
+            const kevinPromise = fetch('/api/config')
+                .then(res => res.json())
+                .then(config => config.KEVIN_URL || null)
+                .catch(() => null);
+
             // Fetch all incidents for this product by ID
             const incidents = await fetchProductIncidents(window.productId);
+            const kevinUrl = await kevinPromise;
+            const ficheKevin = (cis) => `${kevinUrl}/product/${encodeURIComponent(cis)}`;
             window.productIncidents = incidents; // Store for resize
             const cisListDiv = document.getElementById('cis-list');
             const statsDiv = document.getElementById('productpg-stats');
@@ -809,6 +838,17 @@ async function main() {
                 }
             });
 
+            // Une spécialité : sa fiche. Plusieurs : la première, dont la fiche
+            // Kevin liste les autres dosages ; chacune est aussi liée plus bas.
+            if (kevinUrl && statusRow && allCisCodes.length > 0) {
+                const premiere = allCisCodes[0];
+                const libelle = allCisCodes.length > 1 ? 'Fiches Dr Kevin' : 'Fiche Dr Kevin';
+                const titre = allCisCodes.length > 1
+                    ? `${allCisCodes.length} spécialités : chacune est liée dans « Codes CIS concernés »`
+                    : `RCP, notice et délivrance de ${cisNamesMap[premiere] || premiere} dans Dr Kevin`;
+                statusRow.appendChild(lienKevin(ficheKevin(premiere), libelle, titre, 'productpg-kevin'));
+            }
+
             if (cisListDiv) {
                 cisListDiv.innerHTML = '';
                 if (allCisCodes.length > 0) {
@@ -872,6 +912,10 @@ async function main() {
                         codeSpan.appendChild(document.createTextNode(` - ${cisNamesMap[code] || 'Dénomination non disponible'}`));
 
                         item.appendChild(codeSpan);
+                        if (kevinUrl) {
+                            item.appendChild(lienKevin(ficheKevin(code), 'Fiche Dr Kevin',
+                                `RCP, notice et délivrance de ${cisNamesMap[code] || code} dans Dr Kevin`));
+                        }
                         listContainer.appendChild(item);
                     });
 

@@ -136,6 +136,11 @@ npm start          # http://localhost:3000
 npm test           # Jest
 ```
 
+`KEVIN_URL` (optional): address of Dr Kevin, e.g. `http://localhost:3001`
+locally. The product page then links each specialty to its Kevin page
+(`/product/<CIS>`); without it, no link is shown. In production:
+`heroku config:set KEVIN_URL=https://… -a dispomed`.
+
 ---
 
 ## 7. Deployment
