@@ -673,7 +673,7 @@ function drawSubstitutesCard(rows) {
 
 // Helper to get color for status
 /**
- * Lien vers une fiche de Dr Kevin, dans un nouvel onglet : la fiche Dispomed
+ * Lien vers une fiche de Médipile, dans un nouvel onglet : la fiche Dispomed
  * reste ouverte, on lit l'une à côté de l'autre.
  * @param {string} href - URL de la fiche (KEVIN_URL/product/<CIS>)
  * @param {string} texte - libellé visible
@@ -751,7 +751,7 @@ async function main() {
                 .then(range => { window.salesYearRange = range; })
                 .catch(() => {});
 
-            // Adresse de Dr Kevin, pour lier chaque spécialité à sa fiche ; absente,
+            // Adresse de Médipile, pour lier chaque spécialité à sa fiche ; absente,
             // aucun lien. En parallèle des incidents.
             const kevinPromise = fetch('/api/config')
                 .then(res => res.json())
@@ -839,13 +839,13 @@ async function main() {
             });
 
             // Une spécialité : sa fiche. Plusieurs : la première, dont la fiche
-            // Kevin liste les autres dosages ; chacune est aussi liée plus bas.
+            // Médipile liste les autres dosages ; chacune est aussi liée plus bas.
             if (kevinUrl && statusRow && allCisCodes.length > 0) {
                 const premiere = allCisCodes[0];
-                const libelle = allCisCodes.length > 1 ? 'Fiches Dr Kevin' : 'Fiche Dr Kevin';
+                const libelle = allCisCodes.length > 1 ? 'Fiches Médipile' : 'Fiche Médipile';
                 const titre = allCisCodes.length > 1
                     ? `${allCisCodes.length} spécialités : chacune est liée dans « Codes CIS concernés »`
-                    : `RCP, notice et délivrance de ${cisNamesMap[premiere] || premiere} dans Dr Kevin`;
+                    : `RCP, notice et délivrance de ${cisNamesMap[premiere] || premiere} dans Médipile`;
                 statusRow.appendChild(lienKevin(ficheKevin(premiere), libelle, titre, 'productpg-kevin'));
             }
 
@@ -913,8 +913,8 @@ async function main() {
 
                         item.appendChild(codeSpan);
                         if (kevinUrl) {
-                            item.appendChild(lienKevin(ficheKevin(code), 'Fiche Dr Kevin',
-                                `RCP, notice et délivrance de ${cisNamesMap[code] || code} dans Dr Kevin`));
+                            item.appendChild(lienKevin(ficheKevin(code), 'Fiche Médipile',
+                                `RCP, notice et délivrance de ${cisNamesMap[code] || code} dans Médipile`));
                         }
                         listContainer.appendChild(item);
                     });

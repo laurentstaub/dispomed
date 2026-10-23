@@ -139,9 +139,9 @@ npm start          # http://localhost:3000
 npm test           # Jest
 ```
 
-`KEVIN_URL` (facultatif) : adresse de Dr Kevin, par exemple
+`KEVIN_URL` (facultatif) : adresse de Médipile, par exemple
 `http://localhost:3001` en local. La fiche produit lie alors chaque spécialité à
-sa fiche Kevin (`/product/<CIS>`) ; sans elle, aucun lien n'est affiché. En
+sa fiche Médipile (`/product/<CIS>`) ; sans elle, aucun lien n'est affiché. En
 production : `heroku config:set KEVIN_URL=https://… -a dispomed`.
 
 ---
