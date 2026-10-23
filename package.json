@@ -23,8 +23,7 @@
     "pug-error": "^2.1.0"
   },
   "engines": {
-    "node": "20.x",
-    "npm": "10.x"
+    "node": "26.x"
   },
   "devDependencies": {
     "@babel/plugin-transform-modules-commonjs": "^7.26.3",
