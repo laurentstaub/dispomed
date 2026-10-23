@@ -2,28 +2,44 @@
 # ---------------------------------------------------------------------------
 # deploy_prod.sh — déploiement dispomed vers Heroku (base de données + code).
 #
-#   ./deploy_prod.sh                    # app par défaut : dispomed
+#   ./deploy_prod.sh                    # quotidien : les incidents (public, incidents_ema)
+#   ./deploy_prod.sh --mensuel          # mensuel : la BDPM (dbpm, ref, substitution)
 #   HEROKU_APP=autre ./deploy_prod.sh   # autre app
+#
+# Deux rythmes, parce que la base est partagée avec Médipile (même add-on
+# Postgres) : le quotidien ne touche que ce que run_update.js écrit chaque jour ;
+# la BDPM, qui change une fois par mois, n'est rechargée qu'avec --mensuel. Un
+# rechargement de dbpm.cis_bdpm supprime puis recrée la table : le faire chaque
+# jour couperait Médipile quelques secondes, pour une table qui n'a pas bougé.
+# Les tables propres à Médipile (dbpm.cis_documents, cis_compo_bdpm,
+# cis_cip_bdpm, schéma docs) ne partent jamais d'ici : Médipile les charge
+# lui-même (docs/deploiement-heroku.md du dépôt Médipile).
 #
 # Garde-fous :
 #   - refuse d'avancer si DATABASE_URL est introuvable (jamais de pg_restore
 #     avec une cible vide -> il taperait la base LOCALE par défaut) ;
 #   - confirmation explicite avant d'écraser la prod, puis avant le push code.
 #
-# Le dump embarque les schémas servis par l'app : public (dont product_sales,
-# ansm_info), dbpm (3 tables seulement, cf. §exclusions), incidents_ema, ref
-# (référentiel ATC du CNAM) et substitution. Il EXCLUT open_medic et docs
-# (préparation, lourds), les tables __prev du loader BDPM et les corpus de
-# travail — détail dans les options --exclude-* ci-dessous et dans
-# incident_scraper/README-fr.md §6.
+# Contenu des dumps (le 23 octobre 2026) : quotidien, les tables de public
+# (incidents, produits, molécules, product_sales, ansm_info) et d'incidents_ema,
+# environ 400 Ko ; mensuel, dbpm (BDPM sans les tables de Médipile ni __prev),
+# ref (ATC) et substitution, environ 4 Mo. Jamais open_medic ni docs. Détail
+# dans les options du § 2 et dans incident_scraper/README-fr.md §6.
 # ---------------------------------------------------------------------------
 set -euo pipefail
+
+MODE=quotidien
+case "${1:-}" in
+  "") ;;
+  --mensuel) MODE=mensuel ;;
+  *) echo "Usage : ./deploy_prod.sh [--mensuel]"; exit 1 ;;
+esac
 
 APP="${HEROKU_APP:-dispomed}"
 LOCAL_DB="${LOCAL_DB:-incidents_json}"
 DUMP="/tmp/incidents_json_$(date +%Y%m%d_%H%M%S).dump"
 
-echo "=== Déploiement dispomed → Heroku ($APP) ==="
+echo "=== Déploiement dispomed → Heroku ($APP), $MODE ==="
 
 # Délai de garde portable : `timeout` vient de coreutils, absent de macOS par
 # défaut (il s'y appelle `gtimeout` une fois brew coreutils installé). Sans lui,
@@ -65,33 +81,36 @@ if ! node scripts/check_sql.js; then
   exit 1
 fi
 
-# 2. Dump de la base locale.
-#    Exclusions : open_medic (préparation), tables __prev (sauvegardes loader),
-#    et la famille dbpm.cis_documents* — corpus de travail local (HTML/RCP), jamais
-#    lu par l'app. Exclusion COMPLÈTE (structure incluse) : la prod n'en a pas
-#    l'usage, et --exclude-table-data laissait encore passer les tables dérivées.
-#    ansm_info_archive : historique local des fiches ANSM, structure seule en prod
-#    (l'app lit ansm_info, jamais l'archive) — évite de gonfler le dump avec le
-#    contenu intégral des pages.
+# 2. Dump de la base locale, selon le rythme.
 #
-#    docs : corpus RCP (docs.rcp_sections = 1,9 Go local) — travail d'analyse,
-#    jamais servi par l'app.
+#    Quotidien : les TABLES de public et d'incidents_ema (-t), pas le schéma
+#    entier : public porte aussi les extensions, f_unaccent et la configuration
+#    french_nu dont dépendent les index de Médipile ; --clean tenterait de les
+#    supprimer. ansm_info_archive : historique local des fiches ANSM, structure
+#    seule en prod (l'app lit ansm_info, jamais l'archive).
 #
-#    Règle : la prod ne reçoit du schéma dbpm QUE ce que l'app interroge, soit
-#    cis_bdpm, cis_gener_bdpm et cis_cip_dispo_spec. cis_cip_bdpm et cis_compo_bdpm
-#    servent à préparer product_sales et les rapprochements DCI en local ; les
-#    embarquer a fait dépasser le plan Heroku (1,6 Go pour 1 Go alloué) en août 2026.
-#    Avant d'ajouter une table ici, vérifier : grep -r 'dbpm\.' sql/ app.js
-echo "— Dump de $LOCAL_DB (sans open_medic, docs, __prev, cis_documents*, archive ANSM)…"
-pg_dump -Fc --no-owner --no-acl \
-  --exclude-schema=open_medic \
-  --exclude-schema=docs \
-  --exclude-table='dbpm.*__prev' \
-  --exclude-table='dbpm.cis_documents*' \
-  --exclude-table='dbpm.cis_compo_bdpm' \
-  --exclude-table='dbpm.cis_cip_bdpm' \
-  --exclude-table-data='public.ansm_info_archive' \
-  -d "$LOCAL_DB" -f "$DUMP"
+#    Mensuel : la BDPM commune (dbpm, ref, substitution). Exclusions : tables
+#    __prev (sauvegardes du loader) et tables propres à Médipile (cis_documents*,
+#    cis_compo_bdpm, cis_cip_bdpm), qu'il charge lui-même. Jamais open_medic ni
+#    docs (préparation, lourds).
+#
+#    Avant d'ajouter une table, vérifier : grep -r 'dbpm\.' sql/ app.js
+if [[ "$MODE" == quotidien ]]; then
+  echo "— Dump des incidents de $LOCAL_DB (tables de public et incidents_ema)…"
+  pg_dump -Fc --no-owner --no-acl \
+    --table='public.*' --table='incidents_ema.*' \
+    --exclude-table-data='public.ansm_info_archive' \
+    -d "$LOCAL_DB" -f "$DUMP"
+else
+  echo "— Dump de la BDPM de $LOCAL_DB (dbpm, ref, substitution ; sans les tables de Médipile)…"
+  pg_dump -Fc --no-owner --no-acl \
+    --schema=dbpm --schema=ref --schema=substitution \
+    --exclude-table='dbpm.*__prev' \
+    --exclude-table='dbpm.cis_documents*' \
+    --exclude-table='dbpm.cis_compo_bdpm' \
+    --exclude-table='dbpm.cis_cip_bdpm' \
+    -d "$LOCAL_DB" -f "$DUMP"
+fi
 
 # Garde-fou volume : un dump de prod normal pèse quelques Mo. Au-delà, une grosse
 # table est repartie dans le lot — mieux vaut le voir AVANT d'écraser la prod
@@ -137,12 +156,16 @@ fi
 # Trois nombres, pas un : la date maximale seule ne distingue pas deux états qui
 # partagent leur dernier incident — la prod a déjà semblé « à jour » alors qu'elle
 # portait encore 17 doublons supprimés en local le jour même.
-REQ="SELECT max(calculated_end_date)||' | '||count(*)||' incidents | '||(SELECT count(*) FROM produits)||' produits' FROM incidents"
+if [[ "$MODE" == quotidien ]]; then
+  REQ="SELECT max(calculated_end_date)||' | '||count(*)||' incidents | '||(SELECT count(*) FROM produits)||' produits' FROM incidents"
+else
+  REQ="SELECT (SELECT count(*) FROM dbpm.cis_bdpm)||' spécialités | '||(SELECT count(*) FROM dbpm.cis_gener_bdpm)||' génériques | '||(SELECT count(*) FROM ref.cis_atc_mapping)||' ATC'"
+fi
 LOCAL_MAX="$(psql -tAX -d "$LOCAL_DB" -c "$REQ" 2>/tmp/deploy_local_err || true)"
 PROD_ERR=/tmp/deploy_prod_err
 PROD_MAX="$(PGSSLMODE=require psql -tAX -d "$DB_URL" -c "$REQ" 2>"$PROD_ERR" || true)"
 echo
-echo "— Vérification : dernière date d'incident"
+echo "— Vérification ($MODE)"
 echo "   local : ${LOCAL_MAX:-vide}"
 echo "   prod  : ${PROD_MAX:-vide}"
 if [[ -s "$PROD_ERR" ]]; then
@@ -158,6 +181,10 @@ if [[ "$LOCAL_MAX" != "$PROD_MAX" ]]; then
   exit 1
 fi
 echo "✓ Base prod à jour ($PROD_MAX)."
+if [[ "$MODE" == mensuel ]]; then
+  echo "  Médipile : recharger aussi ses tables (dbpm.cis_documents, cis_compo_bdpm,"
+  echo "  cis_cip_bdpm, docs) — docs/deploiement-heroku.md, « Mises à jour mensuelles »."
+fi
 
 # 5. Push du code
 echo

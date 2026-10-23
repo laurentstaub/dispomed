@@ -23,8 +23,9 @@ const isProduction = process.env.NODE_ENV === "production";
 const CONNECTION_CONFIG = {
   connectionString: process.env.DATABASE_URL,
   ssl: isProduction ? { rejectUnauthorized: false } : false,
-  // Connection pool configuration
-  max: 20, // Maximum number of clients in the pool
+  // Connection pool configuration. The Heroku database is shared with Médipile
+  // (essential-1: 20 connections in all): 10 here, 5 there, 5 left for scripts.
+  max: Number(process.env.PG_POOL_MAX) || 10, // Maximum number of clients in the pool
   idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
   connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection cannot be established
 };
