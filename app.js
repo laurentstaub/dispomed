@@ -26,6 +26,7 @@ import express from "express";
 import cors from "cors";
 import "./library/config.js";
 import { dbQuery, loadSqlFile } from "./database/connect_db.js";
+import { classer, CATEGORIES } from "./library/substitution_rules.js";
 import ATCDataManager from "./public/js/fetch_first_atcdata.js";
 
 /**
@@ -332,6 +333,105 @@ app.get('/api/substitutes/:productId', asyncHandler(async (req, res) => {
   const query = loadSqlFile('sql/substitutions/get_generic_group_availability.sql');
   const result = await dbQuery(query, req.params.productId);
   res.json(result.rows);
+}));
+
+/**
+ * API endpoint : options de substitution d'un produit, classées par ACTION.
+ *
+ * La base rassemble les candidats (même sous-classe ATC, commercialisés) et
+ * leur disponibilité ; la classification est faite ici par le moteur de règles,
+ * qui est testable sans base. La sortie est groupée par ce que le pharmacien
+ * DOIT FAIRE — délivrer, adapter, appeler le prescripteur, ne pas substituer —
+ * et non par un score, qui ne se justifie pas au comptoir.
+ *
+ * @param {string} req.params.productId - produits.id
+ * @returns {Promise<void>} - JSON : [{ categorie, action, detail, options[] }]
+ */
+app.get('/api/substitution-options/:productId', asyncHandler(async (req, res) => {
+  const query = loadSqlFile('sql/substitutions/get_substitution_candidates.sql');
+  const { rows } = await dbQuery(query, req.params.productId);
+  if (!rows.length) return res.json({ reference: null, groupes: [] });
+
+  const decoupe = v => (v || '').split(' + ').map(x => x.trim()).filter(Boolean);
+  const reference = {
+    atc5: rows[0].ref_atc5,
+    denomination: rows[0].ref_denomination,
+    forme: rows[0].ref_forme,
+    voies: rows[0].ref_voies,
+    dosage: rows[0].ref_dosage,
+    substances: decoupe(rows[0].ref_substances),
+  };
+
+  const parCategorie = new Map();
+  for (const r of rows) {
+    const verdict = classer(reference, {
+      atc5: r.atc5, substances: decoupe(r.substances), forme: r.forme, voies: r.voies,
+      dosage: r.dosage, code_cis: r.code_cis, denomination: r.denomination,
+      meme_groupe_generique: r.meme_groupe_generique, statut: r.statut,
+    });
+    if (!verdict) continue;                       // hors périmètre : on ne propose rien
+    if (!parCategorie.has(verdict.categorie)) parCategorie.set(verdict.categorie, []);
+    parCategorie.get(verdict.categorie).push({
+      code_cis: r.code_cis, denomination: r.denomination, titulaires: r.titulaires,
+      forme: r.forme, dosage: r.dosage, statut: r.statut, product_id: r.product_id,
+      substances: r.substances, atc5: r.atc5,
+      motif: verdict.motif, tri: verdict.tri,
+    });
+  }
+
+  // Tri interne : disponibles d'abord, puis la clé de tri du moteur (même forme,
+  // rapport de dosage simple). Jamais exposée — c'est de l'ordonnancement.
+  const rangStatut = s => (s === 'Aucun signalement' ? 0 : s === 'Tension' ? 1 : 2);
+
+  /**
+   * Résumés par catégorie — question de GRAIN, pas de présentation.
+   *
+   * Au niveau CIS, « même sous-classe ATC » compte des spécialités : 74 lignes
+   * pour l'héparine, 126 pour le zonisamide. Or on n'appelle pas un prescripteur
+   * pour proposer une spécialité, on lui propose une MOLÉCULE. De même, « 62
+   * écartées pour voie différente » informe, soixante-deux lignes non.
+   */
+  const resumeParMolecule = options => {
+    const m = new Map();
+    for (const o of options) {
+      const cle = o.substances || o.atc5 || o.denomination;
+      if (!m.has(cle)) m.set(cle, { molecule: cle, atc5: o.atc5, specialites: 0, disponibles: 0, exemples: [] });
+      const e = m.get(cle);
+      e.specialites++;
+      if (o.statut === 'Aucun signalement') e.disponibles++;
+      if (e.exemples.length < 3) e.exemples.push(o.denomination);
+    }
+    return [...m.values()].sort((a, b) => b.disponibles - a.disponibles || b.specialites - a.specialites);
+  };
+  const resumeParMotif = options => {
+    const m = new Map();
+    for (const o of options) m.set(o.motif, (m.get(o.motif) || 0) + 1);
+    return [...m.entries()].map(([motif, nombre]) => ({ motif, nombre }))
+      .sort((a, b) => b.nombre - a.nombre);
+  };
+
+  const groupes = [...parCategorie.entries()]
+    .map(([categorie, options]) => {
+      const triees = options
+        .sort((a, b) => rangStatut(a.statut) - rangStatut(b.statut) || a.tri - b.tri
+          || a.denomination.localeCompare(b.denomination));
+      return {
+        categorie,
+        action: CATEGORIES[categorie].action,
+        detail: CATEGORIES[categorie].detail,
+        rang: CATEGORIES[categorie].rang,
+        disponibles: options.filter(o => o.statut === 'Aucun signalement').length,
+        // Les catégories 3 et 4 se lisent par leur résumé ; le détail reste
+        // disponible pour qui veut déplier, mais n'est jamais le premier écran.
+        resume: categorie === 'ALTERNATIVE_CLASSE' ? resumeParMolecule(triees)
+          : categorie === 'BLOQUE' ? resumeParMotif(triees)
+            : null,
+        options: triees.map(({ tri, ...reste }) => reste),
+      };
+    })
+    .sort((a, b) => a.rang - b.rang);
+
+  res.json({ reference, groupes });
 }));
 
 /**

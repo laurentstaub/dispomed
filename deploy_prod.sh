@@ -25,14 +25,45 @@ DUMP="/tmp/incidents_json_$(date +%Y%m%d_%H%M%S).dump"
 
 echo "=== Déploiement dispomed → Heroku ($APP) ==="
 
+# Délai de garde portable : `timeout` vient de coreutils, absent de macOS par
+# défaut (il s'y appelle `gtimeout` une fois brew coreutils installé). Sans lui,
+# on exécute sans garde plutôt que d'échouer.
+if command -v timeout >/dev/null 2>&1; then
+  avec_delai() { timeout "$@"; }
+elif command -v gtimeout >/dev/null 2>&1; then
+  avec_delai() { gtimeout "$@"; }
+else
+  avec_delai() { shift; "$@"; }
+fi
+
+# 0. Authentification. Les sessions Heroku expirent (~1 mois) et le CLI ne le dit
+#    pas : `heroku config:get` reste simplement suspendu, sans message. On vérifie
+#    donc d'abord, avec un délai de garde pour ne jamais rester bloqué.
+echo "— Authentification Heroku…"
+if ! avec_delai 20 heroku auth:whoami >/dev/null 2>&1; then
+  echo "  Session expirée ou absente → ouverture de « heroku login »."
+  heroku login || { echo "✗ Connexion Heroku échouée."; exit 1; }
+  avec_delai 20 heroku auth:whoami >/dev/null 2>&1 || { echo "✗ Toujours pas authentifié."; exit 1; }
+fi
+echo "✓ Connecté à Heroku ($(heroku auth:whoami 2>/dev/null))."
+
 # 1. Garde-fou : l'URL de la base prod DOIT être récupérable avant toute action
-DB_URL="$(heroku config:get DATABASE_URL -a "$APP" 2>/dev/null || true)"
+DB_URL="$(avec_delai 30 heroku config:get DATABASE_URL -a "$APP" 2>/dev/null || true)"
 if [[ -z "$DB_URL" || "$DB_URL" != postgres* ]]; then
   echo "✗ Impossible de récupérer DATABASE_URL pour l'app « $APP »."
   echo "  Vérifie le nom : heroku apps    (ou lance HEROKU_APP=nom ./deploy_prod.sh)"
   exit 1
 fi
 echo "✓ Base prod identifiée pour « $APP »."
+
+# 1bis. Contrôle SQL : chaque requête de sql/ est analysée par PostgreSQL contre
+#   le schéma LOCAL (PREPARE, sans lire une ligne). Une requête invalide ici est
+#   une page cassée en prod — autant l'apprendre avant le dump qu'après le push.
+echo "— Contrôle des requêtes SQL…"
+if ! node scripts/check_sql.js; then
+  echo "✗ Déploiement interrompu : corrige les requêtes ci-dessus."
+  exit 1
+fi
 
 # 2. Dump de la base locale.
 #    Exclusions : open_medic (préparation), tables __prev (sauvegardes loader),
@@ -103,7 +134,10 @@ fi
 #   plafond du plan, Heroku RÉVOQUE les INSERT. Les COPY échouent alors une à une
 #   (« permission denied ») pendant que le reste passe — la base garde sa date
 #   d'avant et personne ne le voit. Cas réel : prod figée au 8 août 2026.
-REQ='SELECT max(calculated_end_date) FROM incidents'
+# Trois nombres, pas un : la date maximale seule ne distingue pas deux états qui
+# partagent leur dernier incident — la prod a déjà semblé « à jour » alors qu'elle
+# portait encore 17 doublons supprimés en local le jour même.
+REQ="SELECT max(calculated_end_date)||' | '||count(*)||' incidents | '||(SELECT count(*) FROM produits)||' produits' FROM incidents"
 LOCAL_MAX="$(psql -tAX -d "$LOCAL_DB" -c "$REQ" 2>/tmp/deploy_local_err || true)"
 PROD_ERR=/tmp/deploy_prod_err
 PROD_MAX="$(PGSSLMODE=require psql -tAX -d "$DB_URL" -c "$REQ" 2>"$PROD_ERR" || true)"
